@@ -1,0 +1,11 @@
+# Build pyGuardPoint Module
+py -m build
+
+# Upload to TestPyPi
+py -m twine upload --repository testpypi dist/*
+
+# Import into project
+pip install -i https://test.pypi.org/simple/ pyGuardPoint==0.2
+
+# List available versions
+pip index versions pyGuardPoint --extra-index-url https://test.pypi.org/simple/
