@@ -1,13 +1,6 @@
-import http.client
-import json
 import logging
-from enum import Enum
-from socket import error as socket_error
-
 import validators as validators
-
-from guardpoint_connection import GuardPointConnection, GuardPointAuthType
-from utils import Stopwatch, ConvertBase64
+from pyGuardPoint.guardpoint_connection import GuardPointConnection, GuardPointAuthType
 
 log = logging.getLogger(__name__)
 
