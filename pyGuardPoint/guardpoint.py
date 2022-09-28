@@ -1,5 +1,7 @@
 import logging
 import validators as validators
+
+from pyGuardPoint.dataclasses.cardholder import Cardholder
 from pyGuardPoint.guardpoint_connection import GuardPointConnection, GuardPointAuthType
 
 log = logging.getLogger(__name__)
@@ -45,9 +47,15 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderPersonalDetail," \
                                        "securityGroup"
 
-        response = self.query("GET", url=(url + url_query_params))
+        code, response_body = self.query("GET", url=(url + url_query_params))
 
-        return response
+        if code == 200:
+            if len(response_body['value']) == 1:
+                cardholder = Cardholder(response_body['value'][0])
+                log.info("UID: " + cardholder.uid)
+                return cardholder
+
+        return response_body
 
     @staticmethod
     def _compose_filter(searchPhrase):
@@ -91,9 +99,9 @@ class GuardPoint(GuardPointConnection):
                             "$top=" + str(limit) + "&$skip=" + str(offset)
                             )
 
-        response = self.query("GET", url=(url + url_query_params))
+        code, response_body = self.query("GET", url=(url + url_query_params))
 
-        return response
+        return response_body
 
 
 # conn = Connection()

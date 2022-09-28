@@ -60,8 +60,6 @@ class GuardPointConnection:
             headers['Authorization'] = auth_str
 
         connection = http.client.HTTPConnection(self.host, self.port)
-        # TODO: Fully remove request and response data for confidentiality?
-        # log.info(f"Sending \"{method}\" request to GP10 API...")
         log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
         timer = Stopwatch().start()
         if url[0:4] != "http":
@@ -74,7 +72,7 @@ class GuardPointConnection:
         data = response.read().decode("utf-8")
         log.debug("Response data: " + data)
         log.info(f"Response \'{response.getcode()}\' received in {timer.print()}")
-        return json.loads(data)
+        return response.getcode(), json.loads(data)
 
     def _new_token(self):
         log.info("Requesting new token")
@@ -90,10 +88,10 @@ class GuardPointConnection:
         return self._query_token(url, payload)
 
     def _query_token(self, url, payload):
-        response = self._query("POST", url, json.dumps(payload))
+        code, data = self._query("POST", url, json.dumps(payload))
 
-        if response['successful']:
-            self.token = response['token']
+        if code == 200:
+            self.token = data['token']
             token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
             self.token_issued = token_dict['iat']
             self.token_expiry = token_dict['exp']
