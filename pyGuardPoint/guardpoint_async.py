@@ -4,6 +4,7 @@ from datetime import time, datetime
 from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 
+from pyGuardPoint.dataclasses.cardholder import Cardholder
 from pyGuardPoint.guardpoint import GuardPoint
 
 
@@ -27,7 +28,20 @@ if __name__ == "__main__":
     gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
 
     def task_complete(resp):
-        print("Response:" + str(resp))
+        if isinstance(resp, Cardholder):
+            cardholder = resp
+            print("Cardholder:")
+            print("\tUID: " + cardholder.uid)
+            print("\tFirstname: " + cardholder.firstName)
+            print("\tLastname: " + cardholder.lastName)
+
+        if isinstance(resp, list):
+            cardholders = resp
+            for cardholder in cardholders:
+                print("Cardholder: ")
+                print("\tUID: " + cardholder.uid)
+                print("\tFirstname: " + cardholder.firstName)
+                print("\tLastname: " + cardholder.lastName)
 
     try:
         gp.get_card_holder(task_complete, "422edea0-589d-4224-af0d-77ed8a97ca57")
