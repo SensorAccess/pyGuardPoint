@@ -112,9 +112,14 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
     try:
-        resp = gp.get_card_holder("422edea0-589d-4224-af0d-77ed8a97ca57")
-        print(resp)
-        resp = gp.get_card_holders(limit=1, searchPhrase="john owen")
-        print(resp)
+        cardholder = gp.get_card_holder("422edea0-589d-4224-af0d-77ed8a97ca57")
+        print("Got back a: " + str(type(cardholder)))
+        if(isinstance(cardholder, Cardholder)):
+            print("Cardholder:")
+            print("\tUID: " + cardholder.uid)
+            print("\tFirstname: " + cardholder.firstName)
+            print("\tLastname: " + cardholder.lastName)
+        #resp = gp.get_card_holders(limit=1, searchPhrase="john owen")
+        #print(resp)
     except Exception as e:
         print(e)
