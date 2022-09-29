@@ -51,9 +51,7 @@ class GuardPoint(GuardPointConnection):
 
         if code == 200:
             if len(response_body['value']) == 1:
-                cardholder = Cardholder(response_body['value'][0])
-                log.info("UID: " + cardholder.uid)
-                return cardholder
+                return Cardholder(response_body['value'][0])
 
         return response_body
 
@@ -101,6 +99,12 @@ class GuardPoint(GuardPointConnection):
 
         code, response_body = self.query("GET", url=(url + url_query_params))
 
+        if code == 200:
+            cardholders = []
+            for x in response_body['value']:
+                cardholders.append(Cardholder(x))
+            return cardholders
+
         return response_body
 
 
@@ -112,14 +116,24 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
     try:
+        # Example getting a single cardholder
         cardholder = gp.get_card_holder("422edea0-589d-4224-af0d-77ed8a97ca57")
         print("Got back a: " + str(type(cardholder)))
-        if(isinstance(cardholder, Cardholder)):
+        if isinstance(cardholder, Cardholder):
             print("Cardholder:")
             print("\tUID: " + cardholder.uid)
             print("\tFirstname: " + cardholder.firstName)
             print("\tLastname: " + cardholder.lastName)
-        #resp = gp.get_card_holders(limit=1, searchPhrase="john owen")
-        #print(resp)
+
+        # Example getting a list of cardholders
+        cardholders = gp.get_card_holders(limit=1, searchPhrase="john owen")
+        print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
+        if isinstance(cardholders, list):
+            for cardholder in cardholders:
+                print("Cardholder: ")
+                print("\tUID: " + cardholder.uid)
+                print("\tFirstname: " + cardholder.firstName)
+                print("\tLastname: " + cardholder.lastName)
+
     except Exception as e:
         print(e)
