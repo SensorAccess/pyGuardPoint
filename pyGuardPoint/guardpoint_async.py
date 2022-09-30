@@ -5,7 +5,7 @@ from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 
 from pyGuardPoint.dataclasses.cardholder import Cardholder
-from pyGuardPoint.guardpoint import GuardPoint
+from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 
 
 class GuardPointAsync():
@@ -15,19 +15,30 @@ class GuardPointAsync():
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     def get_card_holder(self, on_finished, uid):
-        future = self.executor.submit(self.gp.get_card_holder, uid)
-        future.add_done_callback(lambda f: on_finished(f.result()))
+        try:
+            future = self.executor.submit(self.gp.get_card_holder, uid)
+            result = future.result()
+        except GuardPointError as e:
+            result = e
+        future.add_done_callback(on_finished(result))
 
     def get_card_holders(self, on_finished, offset=0, limit=10, searchPhrase=None):
-        future = self.executor.submit(self.gp.get_card_holders, offset, limit, searchPhrase)
-        future.add_done_callback(lambda f: on_finished(f.result()))
+        try:
+            future = self.executor.submit(self.gp.get_card_holders, offset, limit, searchPhrase)
+            result = future.result()
+        except GuardPointError as e:
+            result = e
+        future.add_done_callback(on_finished(result))
+
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="pasword")
 
     def task_complete(resp):
+        if isinstance(resp, GuardPointError):
+            print(f"Got back a GuardPointError: {resp}")
         if isinstance(resp, Cardholder):
             cardholder = resp
             print("Cardholder:")
