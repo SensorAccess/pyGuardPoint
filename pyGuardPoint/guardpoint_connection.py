@@ -2,6 +2,7 @@ import logging
 import http.client
 import json
 from enum import Enum
+from json import JSONDecodeError
 from socket import error as socket_error
 from utils import Stopwatch, ConvertBase64
 import time
@@ -31,17 +32,24 @@ class GuardPointConnection:
         self.token_issued = 0
         self.token_expiry = 0
         log.info(f"GP10 server connection: {host}:{port}")
+        self.connection = http.client.HTTPConnection(self.host, self.port)
 
     def query(self, method, url, body='', headers=None):
         if self.authType == GuardPointAuthType.BASIC:
             auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
         elif self.authType == GuardPointAuthType.BEARER_TOKEN:
             if self.token is None:
-                self._new_token()
+                code, body = self._new_token()
+                if code != 200:
+                    return code, body
             if self.token_expiry < (time.time() - (30 * 60)):  # If Token will expire within 30 minutes
-                self._renew_token()
+                code, body = self._renew_token()
+                if code != 200:
+                    return code, body
             if self.token_expiry < time.time():
-                self._new_token()
+                code, body = self._new_token()
+                if code != 200:
+                    return code, body
 
             auth_str = f"Bearer {self.token}"
         else:
@@ -59,20 +67,22 @@ class GuardPointConnection:
         if auth_str:
             headers['Authorization'] = auth_str
 
-        connection = http.client.HTTPConnection(self.host, self.port)
+
         log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
         timer = Stopwatch().start()
         if url[0:4] != "http":
             url = f"http://{self.host}:{self.port}/odata/{url}"
 
-        connection.request(method, url, body, headers)
+        self.connection.request(method, url, body, headers)
 
         timer.stop()
-        response = connection.getresponse()
+        response = self.connection.getresponse()
         data = response.read().decode("utf-8")
-        log.debug("Response data: " + data)
-        log.info(f"Response \'{response.getcode()}\' received in {timer.print()}")
-        return response.getcode(), json.loads(data)
+        #log.debug("Response hdrs: " + str(response.headers))
+        log.debug("Response data: " + response.read().decode("utf-8"))
+        log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
+
+        return response.getcode(), data
 
     def _new_token(self):
         log.info("Requesting new token")
@@ -88,13 +98,19 @@ class GuardPointConnection:
         return self._query_token(url, payload)
 
     def _query_token(self, url, payload):
-        code, data = self._query("POST", url, json.dumps(payload))
+        code, response_body = self._query("POST", url, json.dumps(payload))
 
         if code == 200:
-            self.token = data['token']
-            token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
-            self.token_issued = token_dict['iat']
-            self.token_expiry = token_dict['exp']
-            return True
-        else:
-            return False
+            try:
+                data = json.loads(response_body)
+                self.token = data['token']
+                token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
+                self.token_issued = token_dict['iat']
+                self.token_expiry = token_dict['exp']
+            except JSONDecodeError:
+                response_body = None
+            except Exception as e:
+                log.error(e)
+                response_body = None
+
+        return code, response_body

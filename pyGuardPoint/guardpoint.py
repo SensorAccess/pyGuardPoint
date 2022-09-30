@@ -1,10 +1,17 @@
+import json
 import logging
+from json import JSONDecodeError
+
 import validators as validators
 
 from pyGuardPoint.dataclasses.cardholder import Cardholder
 from pyGuardPoint.guardpoint_connection import GuardPointConnection, GuardPointAuthType
 
 log = logging.getLogger(__name__)
+
+
+class GuardPointError(Exception):
+    pass
 
 
 class GuardPoint(GuardPointConnection):
@@ -47,13 +54,33 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderPersonalDetail," \
                                        "securityGroup"
 
+
         code, response_body = self.query("GET", url=(url + url_query_params))
 
-        if code == 200:
-            if len(response_body['value']) == 1:
-                return Cardholder(response_body['value'][0])
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
 
-        return response_body
+        if code == 200:
+            if isinstance(response_body, dict):
+                if 'value' in response_body:
+                    return Cardholder(response_body['value'][0])
+                else:
+                    raise GuardPointError("Badly formatted response.")
+            else:
+                raise GuardPointError("Badly formatted response.")
+        else:
+            if isinstance(response_body, dict):
+                if 'error' in response_body:
+                    raise GuardPointError(response_body['error'])
+            raise GuardPointError(str(code))
+
+
 
     @staticmethod
     def _compose_filter(searchPhrase):
@@ -99,11 +126,25 @@ class GuardPoint(GuardPointConnection):
 
         code, response_body = self.query("GET", url=(url + url_query_params))
 
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
+
         if code == 200:
             cardholders = []
             for x in response_body['value']:
                 cardholders.append(Cardholder(x))
             return cardholders
+        else:
+            if isinstance(response_body, dict):
+                if 'error' in response_body:
+                    raise GuardPointError(response_body['error'])
+            raise GuardPointError(str(code))
 
         return response_body
 
@@ -124,7 +165,12 @@ if __name__ == "__main__":
             print("\tUID: " + cardholder.uid)
             print("\tFirstname: " + cardholder.firstName)
             print("\tLastname: " + cardholder.lastName)
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
+    except Exception as e:
+        print(f"Exception: {e}")
 
+    try:
         # Example getting a list of cardholders
         cardholders = gp.get_card_holders(limit=1, searchPhrase="john owen")
         print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
@@ -134,6 +180,7 @@ if __name__ == "__main__":
                 print("\tUID: " + cardholder.uid)
                 print("\tFirstname: " + cardholder.firstName)
                 print("\tLastname: " + cardholder.lastName)
-
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
     except Exception as e:
-        print(e)
+        print(f"Exception: {e}")
