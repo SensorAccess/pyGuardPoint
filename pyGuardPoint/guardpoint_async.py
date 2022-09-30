@@ -15,26 +15,38 @@ class GuardPointAsync():
         self.executor = ThreadPoolExecutor(max_workers=1)
 
     def get_card_holder(self, on_finished, uid):
-        try:
-            future = self.executor.submit(self.gp.get_card_holder, uid)
-            result = future.result()
-        except GuardPointError as e:
-            result = e
-        future.add_done_callback(on_finished(result))
+        def handle_future(future):
+            try:
+                r = future.result()
+                on_finished(r)
+            except GuardPointError as e:
+                on_finished(e)
+            except Exception as e:
+                on_finished(GuardPointError(e))
+
+        future = self.executor.submit(self.gp.get_card_holder, uid)
+        future.add_done_callback(handle_future)
 
     def get_card_holders(self, on_finished, offset=0, limit=10, searchPhrase=None):
-        try:
-            future = self.executor.submit(self.gp.get_card_holders, offset, limit, searchPhrase)
-            result = future.result()
-        except GuardPointError as e:
-            result = e
-        future.add_done_callback(on_finished(result))
+        def handle_future(future):
+            try:
+                r = future.result()
+                on_finished(r)
+            except GuardPointError as e:
+                on_finished(e)
+            except Exception as e:
+                on_finished(GuardPointError(e))
+
+        future = self.executor.submit(self.gp.get_card_holders, offset, limit, searchPhrase)
+        future.add_done_callback(handle_future)
+
+
 
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="pasword")
+    gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
 
     def task_complete(resp):
         if isinstance(resp, GuardPointError):
