@@ -1,5 +1,6 @@
+import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from types import NoneType
 
 log = logging.getLogger(__name__)
@@ -12,14 +13,24 @@ class CardholderPersonalDetail:
     idType: str
     idFreeText: str
 
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
+
 
 @dataclass
 class SecurityGroup:
     name: str
 
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
+
+
 @dataclass
 class CardholderType:
     typeName: str
+
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
 
 
 @dataclass
@@ -27,13 +38,13 @@ class Cardholder:
     uid: str
     lastName: str
     firstName: str
-    cardholderIdNumber: str
+    cardholderIdNumber: any
     status: str
     fromDateValid: str
     isFromDateActive: bool
     toDateValid: str
     isToDateActive: bool
-    photo: str
+    photo: any
     cardholderType: CardholderType
     securityGroup: SecurityGroup
     cards: list
@@ -63,9 +74,22 @@ class Cardholder:
                 setattr(self, property_name, cardholder_dict[property_name])
 
             if isinstance(cardholder_dict[property_name], NoneType):
-                setattr(self, property_name, "None")
+                setattr(self, property_name, None)
 
             if isinstance(cardholder_dict[property_name], bool):
-                setattr(self, property_name, cardholder_dict[property_name])
+                setattr(self, property_name, bool(cardholder_dict[property_name]))
 
+    def dict(self):
+        ch = { 'cardholder': {} }
+        for k, v in asdict(self).items():
+            if isinstance(v, dict):
+                ch['cardholder'][k] = v
+            elif isinstance(v, bool):
+                ch['cardholder'][k] = v
+            elif isinstance(v, NoneType):
+                ch['cardholder'][k] = None
+            else:
+                ch['cardholder'][k] = str(v)
+
+        return ch
 

@@ -4,7 +4,7 @@ import json
 from enum import Enum
 from json import JSONDecodeError
 from socket import error as socket_error
-from utils import Stopwatch, ConvertBase64
+from pyGuardPoint.guardpoint_utils import Stopwatch, ConvertBase64
 import time
 
 
@@ -70,8 +70,8 @@ class GuardPointConnection:
 
         log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
         timer = Stopwatch().start()
-        if url[0:4] != "http":
-            url = f"http://{self.host}:{self.port}/odata/{url}"
+        #if url[0:4] != "http":
+        #    url = f"http://{self.host}:{self.port}/odata/{url}"
 
         self.connection.request(method, url, body, headers)
 

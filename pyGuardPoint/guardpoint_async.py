@@ -1,10 +1,7 @@
 import logging
-import threading
-from datetime import time, datetime
-from time import sleep
 from concurrent.futures import ThreadPoolExecutor
 
-from pyGuardPoint.dataclasses.cardholder import Cardholder
+from pyGuardPoint.guardpoint_dataclasses import Cardholder
 from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 
 
