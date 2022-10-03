@@ -66,19 +66,27 @@ class GuardPoint(GuardPointConnection):
         #    body['cardholder'].pop('cardholderType')
         #if 'securityGroup' in body['cardholder']:
         #    body['cardholder'].pop('securityGroup')
-        if 'cards' in body['cardholder']:
+        if 'cards' in body['cardholder']: #Need to add cards in a second call
             body['cardholder'].pop('cards')
 
         #print(json.dumps(body))
         code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
 
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
+
         if code == 201:  # HTTP CREATED
-            return True
+            return response_body['value'][0]
         else:
             try:
-                response_body = json.loads(response_body)
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+                if "errorMessages" in response_body:
+                    raise GuardPointError(response_body["errorMessages"]["other"])
                 else:
                     raise GuardPointError(str(code))
             except Exception:
@@ -270,8 +278,8 @@ if __name__ == "__main__":
             if gp.delete_card_holder(cardholder.uid):
                 print("Cardholder: " + cardholder.firstName + " deleted.")
 
-                if gp.add_card_holder(cardholder):
-                    print("Cardholder: " + cardholder.firstName + " added.")
+                uid = gp.add_card_holder(cardholder)
+                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
