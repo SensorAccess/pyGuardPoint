@@ -84,12 +84,9 @@ class GuardPoint(GuardPointConnection):
         if code == 201:  # HTTP CREATED
             return response_body['value'][0]
         else:
-            try:
-                if "errorMessages" in response_body:
-                    raise GuardPointError(response_body["errorMessages"]["other"])
-                else:
-                    raise GuardPointError(str(code))
-            except Exception:
+            if "errorMessages" in response_body:
+                raise GuardPointError(response_body["errorMessages"][0]["other"])
+            else:
                 raise GuardPointError(str(code))
 
     def get_card_holder(self, uid):
@@ -256,7 +253,7 @@ if __name__ == "__main__":
         batch_of_cardholders = gp.get_card_holders(limit=5, offset=0)
         while len(batch_of_cardholders) > 0:
             all_cardholders.extend(batch_of_cardholders)
-            batch_of_cardholders = gp.get_card_holders(limit=5, offset=(len(all_cardholders) - 1))
+            batch_of_cardholders = gp.get_card_holders(limit=5, offset=(len(all_cardholders)))
 
         print(f"Got a list of: {len(all_cardholders)}")
         for cardholder in all_cardholders:
@@ -275,11 +272,11 @@ if __name__ == "__main__":
         cardholder_list = gp.get_card_holders(limit=1, offset=0)
         if len(cardholder_list) > 0:
             cardholder = cardholder_list[0]
-            if gp.delete_card_holder(cardholder.uid):
-                print("Cardholder: " + cardholder.firstName + " deleted.")
+            #if gp.delete_card_holder(cardholder.uid):
+            #    print("Cardholder: " + cardholder.firstName + " deleted.")
 
-                uid = gp.add_card_holder(cardholder)
-                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
+            uid = gp.add_card_holder(cardholder)
+            print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
