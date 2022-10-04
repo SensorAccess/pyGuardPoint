@@ -101,8 +101,6 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
                                        "securityGroup($select=name)&" \
                                        "$select=uid," \
-                                       "visitor_signature," \
-                                       "host_signature," \
                                        "lastName," \
                                        "firstName," \
                                        "cardholderIdNumber," \
@@ -143,23 +141,30 @@ class GuardPoint(GuardPointConnection):
             raise GuardPointError(str(code))
 
     @staticmethod
-    def _compose_filter(searchPhrase):
-        filter_str = "$filter=(cardholderType/typeName%20eq%20'Visitor')"
-        if searchPhrase:
-            words = list(filter(None, searchPhrase.split(" ")))[
+    def _compose_filter(search_words, cardholder_type_name):
+        filter_str = ""
+        if cardholder_type_name or search_words:
+            filter_str = "$filter="
+        if cardholder_type_name:
+            filter_str += f"(cardholderType/typeName%20eq%20'{cardholder_type_name}')"
+            if search_words:
+                filter_str += "%20and%20"
+        if search_words:
+            words = list(filter(None, search_words.split(" ")))[
                     :5]  # Split by space, remove empty elements, ignore > 5 elements
             fields = ["firstName", "lastName", "CardholderPersonalDetail/company"]
             phrases = []
             for f in fields:
                 for v in words:
                     phrases.append(f"contains({f},'{v}')")
-            filter_str += f"%20and%20({'%20or%20'.join(phrases)})"
-        filter_str += "&"
+            filter_str += f"({'%20or%20'.join(phrases)})"
+        if cardholder_type_name or search_words:
+            filter_str += "&"
         return filter_str
 
-    def get_card_holders(self, offset=0, limit=10, searchPhrase=None):
+    def get_card_holders(self, offset=0, limit=10, searchPhrase=None, cardholder_type_name=None):
         url = "/odata/API_Cardholders"
-        filter_str = self._compose_filter(searchPhrase=searchPhrase)
+        filter_str = self._compose_filter(search_words=searchPhrase, cardholder_type_name=cardholder_type_name)
         url_query_params = ("?" + filter_str +
                             "$expand="
                             "cardholderType($select=typeName),"
@@ -218,13 +223,14 @@ if __name__ == "__main__":
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("422edea0-589d-4224-af0d-77ed8a97ca57")
+        cardholder = gp.get_card_holder("000a1e34-3bef-4bf5-90d5-37403ac0b014")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
             print("\tUID: " + cardholder.uid)
             print("\tFirstname: " + cardholder.firstName)
             print("\tLastname: " + cardholder.lastName)
+            print("\tCardholder Type: " + cardholder.cardholderType.typeName)
             print("Cardholder as dictionary")
             print("\t" + json.dumps(cardholder.dict()), 3)
     except GuardPointError as e:
@@ -250,10 +256,10 @@ if __name__ == "__main__":
     try:
         # Example get all cardholders in batches of 5
         all_cardholders = []
-        batch_of_cardholders = gp.get_card_holders(limit=5, offset=0)
+        batch_of_cardholders = gp.get_card_holders(limit=5, offset=0, cardholder_type_name="Visitor")
         while len(batch_of_cardholders) > 0:
             all_cardholders.extend(batch_of_cardholders)
-            batch_of_cardholders = gp.get_card_holders(limit=5, offset=(len(all_cardholders)))
+            batch_of_cardholders = gp.get_card_holders(limit=5, offset=(len(all_cardholders)), cardholder_type_name="Visitor")
 
         print(f"Got a list of: {len(all_cardholders)}")
         for cardholder in all_cardholders:
@@ -269,14 +275,14 @@ if __name__ == "__main__":
 
     try:
         # Example delete the first cardholder
-        cardholder_list = gp.get_card_holders(limit=1, offset=0)
+        cardholder_list = gp.get_card_holders(limit=1, offset=0, cardholder_type_name="Visitor")
         if len(cardholder_list) > 0:
             cardholder = cardholder_list[0]
-            #if gp.delete_card_holder(cardholder.uid):
-            #    print("Cardholder: " + cardholder.firstName + " deleted.")
+            if gp.delete_card_holder(cardholder.uid):
+                print("Cardholder: " + cardholder.firstName + " deleted.")
 
-            uid = gp.add_card_holder(cardholder)
-            print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
+                uid = gp.add_card_holder(cardholder)
+                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
