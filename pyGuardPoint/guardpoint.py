@@ -4,7 +4,7 @@ from json import JSONDecodeError
 
 import validators as validators
 
-from pyGuardPoint.guardpoint_dataclasses import Cardholder
+from pyGuardPoint.guardpoint_dataclasses import Cardholder, SecurityGroup
 from pyGuardPoint.guardpoint_connection import GuardPointConnection, GuardPointAuthType
 
 log = logging.getLogger(__name__)
@@ -26,6 +26,43 @@ class GuardPoint(GuardPointConnection):
         key = kwargs.get('key', "00000000-0000-0000-0000-000000000000")
         super().__init__(host=host, port=port, auth=auth, user=user, pwd=pwd, key=key)
 
+    def get_security_groups(self):
+        url = self.baseurl + "/odata/api_SecurityGroups"
+        # url_query_params = "?$select=uid,name&$filter=name%20ne%20'Anytime%20Anywhere'"
+        url_query_params = ""
+        code, response_body = self.query("GET", url=(url + url_query_params))
+
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
+
+        if code != 200:
+            if isinstance(response_body, dict):
+                if 'error' in response_body:
+                    raise GuardPointError(response_body['error'])
+            raise GuardPointError(str(code))
+
+        # Check response body is formatted as expected
+        if not isinstance(response_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in response_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(response_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        # Compose list of security groups
+        security_groups = []
+        for entry in response_body['value']:
+            if isinstance(entry, dict):
+                sg = SecurityGroup(entry)
+                security_groups.append(sg)
+        return security_groups
+
     def delete_card_holder(self, uid):
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')
@@ -35,9 +72,7 @@ class GuardPoint(GuardPointConnection):
 
         code, response_body = self.query("DELETE", url=(url + url_query_params))
 
-        if code == 204:  # HTTP NO_CONTENT
-            return True
-        else:
+        if code != 204:  # HTTP NO_CONTENT
             try:
                 response_body = json.loads(response_body)
                 if 'error' in response_body:
@@ -46,6 +81,9 @@ class GuardPoint(GuardPointConnection):
                     raise GuardPointError(str(code))
             except Exception:
                 raise GuardPointError(str(code))
+
+        return True
+
 
     def add_card_holder(self, cardholder: Cardholder):
 
@@ -62,14 +100,14 @@ class GuardPoint(GuardPointConnection):
             body['cardholder'].pop('uid')
         if 'status' in body['cardholder']:
             body['cardholder'].pop('status')
-        #if 'cardholderType' in body['cardholder']:
+        # if 'cardholderType' in body['cardholder']:
         #    body['cardholder'].pop('cardholderType')
-        #if 'securityGroup' in body['cardholder']:
+        # if 'securityGroup' in body['cardholder']:
         #    body['cardholder'].pop('securityGroup')
-        if 'cards' in body['cardholder']: #Need to add cards in a second call
+        if 'cards' in body['cardholder']:  # Need to add cards in a second call
             body['cardholder'].pop('cards')
 
-        #print(json.dumps(body))
+        # print(json.dumps(body))
         code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
 
         # Try to convert body into json
@@ -99,21 +137,7 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderType($select=typeName)," \
                                        "cards($select=cardCode)," \
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
-                                       "securityGroup($select=name)&" \
-                                       "$select=uid," \
-                                       "lastName," \
-                                       "firstName," \
-                                       "cardholderIdNumber," \
-                                       "status," \
-                                       "fromDateValid," \
-                                       "isFromDateActive," \
-                                       "toDateValid," \
-                                       "isToDateActive," \
-                                       "photo," \
-                                       "cardholderType," \
-                                       "cards," \
-                                       "cardholderPersonalDetail," \
-                                       "securityGroup"
+                                       "securityGroup($select=name)"
 
         code, response_body = self.query("GET", url=(url + url_query_params))
 
@@ -126,19 +150,22 @@ class GuardPoint(GuardPointConnection):
             log.error(e)
             response_body = None
 
-        if code == 200:
-            if isinstance(response_body, dict):
-                if 'value' in response_body:
-                    return Cardholder(response_body['value'][0])
-                else:
-                    raise GuardPointError("Badly formatted response.")
-            else:
-                raise GuardPointError("Badly formatted response.")
-        else:
+        if code != 200:
             if isinstance(response_body, dict):
                 if 'error' in response_body:
                     raise GuardPointError(response_body['error'])
             raise GuardPointError(str(code))
+
+        # Check response body is formatted as expected
+        if not isinstance(response_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in response_body:
+            raise GuardPointError("Badly formatted response.")
+
+        return Cardholder(response_body['value'][0])
+
+
+
 
     @staticmethod
     def _compose_filter(search_words, cardholder_type_name):
@@ -171,20 +198,6 @@ class GuardPoint(GuardPointConnection):
                             "cards($select=cardCode),"
                             "cardholderPersonalDetail($select=email,company,idType,idFreeText),"
                             "securityGroup($select=name)&"
-                            "$select=uid,"
-                            "lastName,"
-                            "firstName,"
-                            "cardholderIdNumber,"
-                            "status,"
-                            "fromDateValid,"
-                            "isFromDateActive,"
-                            "toDateValid,"
-                            "isToDateActive,"
-                            "photo,"
-                            "cardholderType,"
-                            "cards,"
-                            "cardholderPersonalDetail,"
-                            "securityGroup&"
                             "$orderby=fromDateValid%20desc&"
                             "$top=" + str(limit) + "&$skip=" + str(offset)
                             )
@@ -200,91 +213,20 @@ class GuardPoint(GuardPointConnection):
             log.error(e)
             response_body = None
 
-        if code == 200:
-            cardholders = []
-            for x in response_body['value']:
-                cardholders.append(Cardholder(x))
-            return cardholders
-        else:
+        if code != 200:
             if isinstance(response_body, dict):
                 if 'error' in response_body:
                     raise GuardPointError(response_body['error'])
-            raise GuardPointError(str(code))
 
-        return response_body
+        if not isinstance(response_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in response_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(response_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
 
+        cardholders = []
+        for x in response_body['value']:
+            cardholders.append(Cardholder(x))
+        return cardholders
 
-# conn = Connection()
-# conn.query("GET", "/odata/$metadata")
-# log.info("End")
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
-    try:
-        # Example getting a single cardholder
-        cardholder = gp.get_card_holder("000a1e34-3bef-4bf5-90d5-37403ac0b014")
-        print("Got back a: " + str(type(cardholder)))
-        if isinstance(cardholder, Cardholder):
-            print("Cardholder:")
-            print("\tUID: " + cardholder.uid)
-            print("\tFirstname: " + cardholder.firstName)
-            print("\tLastname: " + cardholder.lastName)
-            print("\tCardholder Type: " + cardholder.cardholderType.typeName)
-            print("Cardholder as dictionary")
-            print("\t" + json.dumps(cardholder.dict()), 3)
-    except GuardPointError as e:
-        print(f"GuardPointError: {e}")
-    except Exception as e:
-        print(f"Exception: {e}")
-
-    try:
-        # Example getting a list of cardholders
-        cardholders = gp.get_card_holders(limit=1, searchPhrase="john owen")
-        print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
-        if isinstance(cardholders, list):
-            for cardholder in cardholders:
-                print("Cardholder: ")
-                print("\tUID: " + cardholder.uid)
-                print("\tFirstname: " + cardholder.firstName)
-                print("\tLastname: " + cardholder.lastName)
-    except GuardPointError as e:
-        print(f"GuardPointError: {e}")
-    except Exception as e:
-        print(f"Exception: {e}")
-
-    try:
-        # Example get all cardholders in batches of 5
-        all_cardholders = []
-        batch_of_cardholders = gp.get_card_holders(limit=5, offset=0, cardholder_type_name="Visitor")
-        while len(batch_of_cardholders) > 0:
-            all_cardholders.extend(batch_of_cardholders)
-            batch_of_cardholders = gp.get_card_holders(limit=5, offset=(len(all_cardholders)), cardholder_type_name="Visitor")
-
-        print(f"Got a list of: {len(all_cardholders)}")
-        for cardholder in all_cardholders:
-            print("Cardholder: ")
-            print("\tUID: " + cardholder.uid)
-            print("\tFirstname: " + cardholder.firstName)
-            print("\tLastname: " + cardholder.lastName)
-
-    except GuardPointError as e:
-        print(f"GuardPointError: {e}")
-    except Exception as e:
-        print(f"Exception: {e}")
-
-    try:
-        # Example delete the first cardholder
-        cardholder_list = gp.get_card_holders(limit=1, offset=0, cardholder_type_name="Visitor")
-        if len(cardholder_list) > 0:
-            cardholder = cardholder_list[0]
-            if gp.delete_card_holder(cardholder.uid):
-                print("Cardholder: " + cardholder.firstName + " deleted.")
-
-                uid = gp.add_card_holder(cardholder)
-                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
-
-    except GuardPointError as e:
-        print(f"GuardPointError: {e}")
-    except Exception as e:
-        print(f"Exception: {e}")

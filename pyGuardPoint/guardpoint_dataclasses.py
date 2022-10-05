@@ -7,19 +7,35 @@ log = logging.getLogger(__name__)
 
 
 @dataclass
-class CardholderPersonalDetail:
-    email: str
-    company: str
-    idType: str
-    idFreeText: str
+class SecurityGroup:
+    ownerSiteUID: str
+    uid: str
+    name: str
+    apiKey: any
+    description: str
+    isAppliedToVisitor: bool
+
+    def __init__(self, security_group_dict: dict):
+        for property_name in security_group_dict:
+            if isinstance(security_group_dict[property_name], str):
+                setattr(self, property_name, security_group_dict[property_name])
+
+            if isinstance(security_group_dict[property_name], NoneType):
+                setattr(self, property_name, None)
+
+            if isinstance(security_group_dict[property_name], bool):
+                setattr(self, property_name, bool(security_group_dict[property_name]))
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
 
 @dataclass
-class SecurityGroup:
-    name: str
+class CardholderPersonalDetail:
+    email: str
+    company: str
+    idType: str
+    idFreeText: str
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
@@ -49,6 +65,32 @@ class Cardholder:
     securityGroup: SecurityGroup
     cards: list
     cardholderPersonalDetail: CardholderPersonalDetail
+    ownerSiteUID: any
+    securityGroupApiKey: any
+    ownerSiteApiKey: any
+    accessGroupApiKeys: any
+    liftAccessGroupApiKeys: any
+    cardholderTypeUID: any
+    departmentUID: any
+    description: any
+    grantAccessForSupervisor: bool
+    isSupervisor: bool
+    needEscort: bool
+    personalWeeklyProgramUID: any
+    pinCode: str
+    sharedStatus: str
+    securityGroupUID: any
+    accessGroupUIDs: any
+    liftAccessGroupUIDs: any
+    lastDownloadTime: any
+    lastInOutArea: any
+    lastInOutReaderUID: any
+    lastInOutDate: any
+    lastAreaReaderDate: any
+    lastAreaReaderUID: any
+    lastPassDate: any
+    lastReaderPassUID: any
+    insideAreaUID: any
 
     def __init__(self, cardholder_dict: dict):
         for property_name in cardholder_dict:
@@ -61,14 +103,15 @@ class Cardholder:
 
             if isinstance(cardholder_dict[property_name], dict):
                 if property_name == "securityGroup":
-                    self.securityGroup = SecurityGroup(name=cardholder_dict[property_name]['name'])
+                    self.securityGroup = SecurityGroup(cardholder_dict[property_name])
                 if property_name == "cardholderType":
                     self.cardholderType = CardholderType(typeName=cardholder_dict[property_name]['typeName'])
                 if property_name == "cardholderPersonalDetail":
-                    self.cardholderPersonalDetail = CardholderPersonalDetail(email=cardholder_dict[property_name]['email'],
-                                                                             company=cardholder_dict[property_name]['company'],
-                                                                             idType=cardholder_dict[property_name]['idType'],
-                                                                             idFreeText=cardholder_dict[property_name]['idFreeText'])
+                    self.cardholderPersonalDetail = CardholderPersonalDetail(
+                        email=cardholder_dict[property_name]['email'],
+                        company=cardholder_dict[property_name]['company'],
+                        idType=cardholder_dict[property_name]['idType'],
+                        idFreeText=cardholder_dict[property_name]['idFreeText'])
 
             if isinstance(cardholder_dict[property_name], str):
                 setattr(self, property_name, cardholder_dict[property_name])
@@ -80,8 +123,10 @@ class Cardholder:
                 setattr(self, property_name, bool(cardholder_dict[property_name]))
 
     def dict(self):
-        ch = { 'cardholder': {} }
+        ch = {'cardholder': {}}
         for k, v in asdict(self).items():
+            if k == 'ownerSiteUID':
+                pass
             if isinstance(v, dict):
                 ch['cardholder'][k] = v
             elif isinstance(v, bool):
@@ -93,3 +138,11 @@ class Cardholder:
 
         return ch
 
+if __name__ == "__main__":
+    cardholdertype = CardholderType(typeName="test")
+    print(cardholdertype.typeName)
+
+    '''securityGroup = SecurityGroup(ownerSiteUID="1234",
+                                  uid="sdfs", name="test", apiKey="None", description="test", isAppliedToVisitor=False)
+    print(securityGroup.name)
+    print(securityGroup.uid)'''

@@ -70,8 +70,6 @@ class GuardPointConnection:
 
         log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
         timer = Stopwatch().start()
-        #if url[0:4] != "http":
-        #    url = f"http://{self.host}:{self.port}/odata/{url}"
 
         self.connection.request(method, url, body, headers)
 
@@ -79,8 +77,8 @@ class GuardPointConnection:
         response = self.connection.getresponse()
         data = response.read().decode("utf-8")
         #log.debug("Response hdrs: " + str(response.headers))
-        log.debug("Response data: " + response.read().decode("utf-8"))
-        log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
+        #log.debug("Response data: " + response.read().decode("utf-8"))
+        #log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
 
         return response.getcode(), data
 
