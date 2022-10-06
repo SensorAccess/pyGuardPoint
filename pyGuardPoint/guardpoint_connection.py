@@ -67,7 +67,6 @@ class GuardPointConnection:
         if auth_str:
             headers['Authorization'] = auth_str
 
-
         log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
         timer = Stopwatch().start()
 

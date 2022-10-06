@@ -8,12 +8,12 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class SecurityGroup:
-    ownerSiteUID: str
-    uid: str
-    name: str
-    apiKey: any
-    description: str
-    isAppliedToVisitor: bool
+    ownerSiteUID: str = ""
+    uid: str = ""
+    name: str = ""
+    apiKey: any = ""
+    description: str = ""
+    isAppliedToVisitor: bool = False
 
     def __init__(self, security_group_dict: dict):
         for property_name in security_group_dict:

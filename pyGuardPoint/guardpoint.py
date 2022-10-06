@@ -63,6 +63,35 @@ class GuardPoint(GuardPointConnection):
                 security_groups.append(sg)
         return security_groups
 
+    def get_cardholder_count(self):
+        url = self.baseurl + "/odata/GetCardholdersCount"
+        code, response_body = self.query("GET", url=url)
+
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
+
+        if code != 200:
+            if isinstance(response_body, dict):
+                if 'error' in response_body:
+                    raise GuardPointError(response_body['error'])
+            else:
+                raise GuardPointError(str(code))
+
+        # Check response body is formatted as expected
+        if not isinstance(response_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'totalItems' not in response_body:
+            raise GuardPointError("Badly formatted response.")
+
+        return int(response_body['totalItems'])
+
+
     def delete_card_holder(self, uid):
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')
@@ -154,7 +183,8 @@ class GuardPoint(GuardPointConnection):
             if isinstance(response_body, dict):
                 if 'error' in response_body:
                     raise GuardPointError(response_body['error'])
-            raise GuardPointError(str(code))
+            else:
+                raise GuardPointError(str(code))
 
         # Check response body is formatted as expected
         if not isinstance(response_body, dict):
