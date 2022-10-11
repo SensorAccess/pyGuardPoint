@@ -1,10 +1,30 @@
 import json
 import logging
-from dataclasses import dataclass, asdict
-from types import NoneType
+from dataclasses import dataclass, asdict, field
 
 log = logging.getLogger(__name__)
 
+@dataclass
+class Card:
+    description: str = ""
+    cardCode: str = ""
+    status: str = "Free"
+    cardholderUID: any = None
+    cardType: str = "Magnetic"
+
+    def __init__(self, card_dict: dict):
+        for property_name in card_dict:
+            if isinstance(card_dict[property_name], str):
+                setattr(self, property_name, card_dict[property_name])
+
+            if isinstance(card_dict[property_name], type(None)):
+                setattr(self, property_name, None)
+
+            if isinstance(card_dict[property_name], bool):
+                setattr(self, property_name, bool(card_dict[property_name]))
+
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
 
 @dataclass
 class SecurityGroup:
@@ -20,7 +40,7 @@ class SecurityGroup:
             if isinstance(security_group_dict[property_name], str):
                 setattr(self, property_name, security_group_dict[property_name])
 
-            if isinstance(security_group_dict[property_name], NoneType):
+            if isinstance(security_group_dict[property_name], type(None)):
                 setattr(self, property_name, None)
 
             if isinstance(security_group_dict[property_name], bool):
@@ -63,7 +83,6 @@ class Cardholder:
     photo: any
     cardholderType: CardholderType
     securityGroup: SecurityGroup
-    cards: list
     cardholderPersonalDetail: CardholderPersonalDetail
     ownerSiteUID: any
     securityGroupApiKey: any
@@ -91,12 +110,18 @@ class Cardholder:
     lastPassDate: any
     lastReaderPassUID: any
     insideAreaUID: any
+    cards: list
 
     def __init__(self, cardholder_dict: dict):
         for property_name in cardholder_dict:
             # If we have a list - For example, a cardholder has many cards - we only take the first entry
             if isinstance(cardholder_dict[property_name], list):
-                setattr(self, property_name, cardholder_dict[property_name])
+                if property_name == "cards":
+                    setattr(self, property_name, [])
+                    for card_entry in cardholder_dict[property_name]:
+                        self.cards.append(Card(card_entry))
+                else:
+                    setattr(self, property_name, cardholder_dict[property_name])
                 '''if len(cardholder_dict[property_name]) > 0:
                     for inner_property in cardholder_dict[property_name][0]:
                         setattr(self, inner_property, cardholder_dict[property_name][0][inner_property])'''
@@ -116,25 +141,27 @@ class Cardholder:
             if isinstance(cardholder_dict[property_name], str):
                 setattr(self, property_name, cardholder_dict[property_name])
 
-            if isinstance(cardholder_dict[property_name], NoneType):
+            if isinstance(cardholder_dict[property_name], type(None)):
                 setattr(self, property_name, None)
 
             if isinstance(cardholder_dict[property_name], bool):
                 setattr(self, property_name, bool(cardholder_dict[property_name]))
 
     def dict(self):
-        ch = {'cardholder': {}}
+        ch = {}
         for k, v in asdict(self).items():
             if k == 'ownerSiteUID':
                 pass
-            if isinstance(v, dict):
-                ch['cardholder'][k] = v
+            elif isinstance(v, list):
+                ch[k] = v
+            elif isinstance(v, dict):
+                ch[k] = v
             elif isinstance(v, bool):
-                ch['cardholder'][k] = v
-            elif isinstance(v, NoneType):
-                ch['cardholder'][k] = None
+                ch[k] = v
+            elif isinstance(v, type(None)):
+                ch[k] = None
             else:
-                ch['cardholder'][k] = str(v)
+                ch[k] = str(v)
 
         return ch
 

@@ -4,7 +4,7 @@ from json import JSONDecodeError
 
 import validators as validators
 
-from pyGuardPoint.guardpoint_dataclasses import Cardholder, SecurityGroup
+from pyGuardPoint.guardpoint_dataclasses import Cardholder, SecurityGroup, Card
 from pyGuardPoint.guardpoint_connection import GuardPointConnection, GuardPointAuthType
 
 log = logging.getLogger(__name__)
@@ -113,6 +113,33 @@ class GuardPoint(GuardPointConnection):
 
         return True
 
+    def add_new_card(self, card: Card):
+        url = "/odata/API_Cards"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        body = card.dict()
+        code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
+
+        # Try to convert body into json
+        try:
+            response_body = json.loads(response_body)
+        except JSONDecodeError:
+            response_body = None
+        except Exception as e:
+            log.error(e)
+            response_body = None
+
+        if code == 201:  # HTTP CREATED
+            return response_body['uid']
+        else:
+            if "errorMessages" in response_body:
+                raise GuardPointError(response_body["errorMessages"][0]["other"])
+            elif "error" in response_body:
+                raise GuardPointError(response_body["error"]['message'])
+            else:
+                raise GuardPointError(str(code))
 
     def add_card_holder(self, cardholder: Cardholder):
 
@@ -124,18 +151,22 @@ class GuardPoint(GuardPointConnection):
             'IgnoreNonEditable': ''
         }
 
-        body = cardholder.dict()
-        if 'uid' in body['cardholder']:
-            body['cardholder'].pop('uid')
-        if 'status' in body['cardholder']:
-            body['cardholder'].pop('status')
+        ch = cardholder.dict()
+
+        # Filter out un-settable variables
+        if 'uid' in ch:
+            ch.pop('uid')
+        if 'status' in ch:
+            ch.pop('status')
         # if 'cardholderType' in body['cardholder']:
         #    body['cardholder'].pop('cardholderType')
-        # if 'securityGroup' in body['cardholder']:
-        #    body['cardholder'].pop('securityGroup')
-        if 'cards' in body['cardholder']:  # Need to add cards in a second call
-            body['cardholder'].pop('cards')
+        if 'securityGroup' in ch:
+            ch.pop('securityGroup')
+        if 'cards' in ch:  # Need to add cards in a second call
+            cards = ch['cards']
+            ch.pop('cards')
 
+        body = {'cardholder': ch}
         # print(json.dumps(body))
         code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
 
@@ -149,10 +180,17 @@ class GuardPoint(GuardPointConnection):
             response_body = None
 
         if code == 201:  # HTTP CREATED
+            if cards:
+                for card in cards:
+                    card['cardholderUID'] = response_body['value'][0]
+                    self.add_new_card(Card(card))
+                    #TODO catch card already exists
             return response_body['value'][0]
         else:
             if "errorMessages" in response_body:
                 raise GuardPointError(response_body["errorMessages"][0]["other"])
+            elif "error" in response_body:
+                raise GuardPointError(response_body["error"]['message'])
             else:
                 raise GuardPointError(str(code))
 

@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("cdd8377a-521b-484f-bcc9-ffa7ea211378")
+        cardholder = gp.get_card_holder("e21676b5-9151-4e8a-8781-e843c3e3cc31")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
@@ -28,8 +28,17 @@ if __name__ == "__main__":
             print("\tFirstname: " + cardholder.firstName)
             print("\tLastname: " + cardholder.lastName)
             print("\tCardholder Type: " + cardholder.cardholderType.typeName)
-            #print("Cardholder as dictionary")
-            #print("\t" + json.dumps(cardholder.dict()), 3)
+            print("\tNum of Cards: " + str(len(cardholder.cards)))
+            for card in cardholder.cards:
+                print("\t\tCard Type: " + card.cardType)
+                print("\t\tCard Code: " + card.cardCode)
+
+            if gp.delete_card_holder(cardholder.uid):
+                print("Cardholder: " + cardholder.firstName + " deleted.")
+
+                uid = gp.add_card_holder(cardholder)
+                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
+
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
@@ -37,7 +46,7 @@ if __name__ == "__main__":
 
     try:
         # Example getting a list of cardholders
-        cardholders = gp.get_card_holders(limit=1, searchPhrase="john owen")
+        cardholders = gp.get_card_holders(limit=1, searchPhrase="Frida")
         print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
         if isinstance(cardholders, list):
             for cardholder in cardholders:

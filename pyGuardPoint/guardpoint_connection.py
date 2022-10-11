@@ -39,17 +39,17 @@ class GuardPointConnection:
             auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
         elif self.authType == GuardPointAuthType.BEARER_TOKEN:
             if self.token is None:
-                code, body = self._new_token()
+                code, auth_body = self._new_token()
                 if code != 200:
-                    return code, body
+                    return code, auth_body
             if self.token_expiry < (time.time() - (30 * 60)):  # If Token will expire within 30 minutes
-                code, body = self._renew_token()
+                code, auth_body = self._renew_token()
                 if code != 200:
-                    return code, body
+                    return code, auth_body
             if self.token_expiry < time.time():
-                code, body = self._new_token()
+                code, auth_body = self._new_token()
                 if code != 200:
-                    return code, body
+                    return code, auth_body
 
             auth_str = f"Bearer {self.token}"
         else:
@@ -67,7 +67,8 @@ class GuardPointConnection:
         if auth_str:
             headers['Authorization'] = auth_str
 
-        log.debug(f"Request data: host={self.host}:{self.port}, {method=}, {url=}, {headers=}, {body=}")
+
+        log.debug(f"Request data: host={self.host}:{self.port}, {method}, {url}, {headers}, {body}")
         timer = Stopwatch().start()
 
         self.connection.request(method, url, body, headers)
