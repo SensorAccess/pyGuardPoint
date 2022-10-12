@@ -30,34 +30,25 @@ class GuardPoint(GuardPointConnection):
         url = self.baseurl + "/odata/api_SecurityGroups"
         # url_query_params = "?$select=uid,name&$filter=name%20ne%20'Anytime%20Anywhere'"
         url_query_params = ""
-        code, response_body = self.query("GET", url=(url + url_query_params))
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
         if code != 200:
-            if isinstance(response_body, dict):
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
             raise GuardPointError(str(code))
 
         # Check response body is formatted as expected
-        if not isinstance(response_body, dict):
+        if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'value' not in response_body:
+        if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
-        if not isinstance(response_body['value'], list):
+        if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
         # Compose list of security groups
         security_groups = []
-        for entry in response_body['value']:
+        for entry in json_body['value']:
             if isinstance(entry, dict):
                 sg = SecurityGroup(entry)
                 security_groups.append(sg)
@@ -65,32 +56,22 @@ class GuardPoint(GuardPointConnection):
 
     def get_cardholder_count(self):
         url = self.baseurl + "/odata/GetCardholdersCount"
-        code, response_body = self.query("GET", url=url)
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("GET", url=url)
 
         if code != 200:
-            if isinstance(response_body, dict):
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
             else:
                 raise GuardPointError(str(code))
 
         # Check response body is formatted as expected
-        if not isinstance(response_body, dict):
+        if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'totalItems' not in response_body:
+        if 'totalItems' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return int(response_body['totalItems'])
-
+        return int(json_body['totalItems'])
 
     def delete_card_holder(self, uid):
         if not validators.uuid(uid):
@@ -99,13 +80,12 @@ class GuardPoint(GuardPointConnection):
         url = self.baseurl + "/odata/API_Cardholders"
         url_query_params = "(" + uid + ")"
 
-        code, response_body = self.query("DELETE", url=(url + url_query_params))
+        code, json_body = self.gp_json_query("DELETE", url=(url + url_query_params))
 
         if code != 204:  # HTTP NO_CONTENT
             try:
-                response_body = json.loads(response_body)
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
                 else:
                     raise GuardPointError(str(code))
             except Exception:
@@ -120,28 +100,47 @@ class GuardPoint(GuardPointConnection):
             'Accept': 'application/json'
         }
         body = card.dict()
-        code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("POST", headers=headers, url=url, body=json.dumps(body))
 
         if code == 201:  # HTTP CREATED
-            return response_body['uid']
+            return json_body['uid']
         else:
-            if "errorMessages" in response_body:
-                raise GuardPointError(response_body["errorMessages"][0]["other"])
-            elif "error" in response_body:
-                raise GuardPointError(response_body["error"]['message'])
+            if "errorMessages" in json_body:
+                raise GuardPointError(json_body["errorMessages"][0]["other"])
+            elif "error" in json_body:
+                raise GuardPointError(json_body["error"]['message'])
             else:
                 raise GuardPointError(str(code))
 
-    def add_card_holder(self, cardholder: Cardholder):
+    def update_card_holder(self, cardholder: Cardholder):
+        if not validators.uuid(cardholder.uid):
+            raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
+
+        url = "/odata/API_Cardholders"
+        url_query_params = f"({cardholder.uid})"
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'IgnoreNonEditable': ''
+        }
+
+        code, json_body = self.gp_json_query("PATCH", headers=headers, url=url, body=json.dumps(cardholder.dict()))
+
+        if code != 204:  # HTTP NO_CONTENT
+            try:
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
+                else:
+                    raise GuardPointError(str(code))
+            except Exception:
+                raise GuardPointError(str(code))
+
+        return True
+
+
+
+    def add_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False, reassign_existing_cards=False):
 
         url = "/odata/API_Cardholders/CreateFullCardholder"
 
@@ -168,29 +167,20 @@ class GuardPoint(GuardPointConnection):
 
         body = {'cardholder': ch}
         # print(json.dumps(body))
-        code, response_body = self.query("POST", headers=headers, url=url, body=json.dumps(body))
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
         if code == 201:  # HTTP CREATED
-            if cards:
+            if cards and reassign_existing_cards:
                 for card in cards:
-                    card['cardholderUID'] = response_body['value'][0]
+                    card['cardholderUID'] = json_body['value'][0]
                     self.add_new_card(Card(card))
-                    #TODO catch card already exists
-            return response_body['value'][0]
+                    # TODO catch card already exists
+            return json_body['value'][0]
         else:
-            if "errorMessages" in response_body:
-                raise GuardPointError(response_body["errorMessages"][0]["other"])
-            elif "error" in response_body:
-                raise GuardPointError(response_body["error"]['message'])
+            if "errorMessages" in json_body:
+                raise GuardPointError(json_body["errorMessages"][0]["other"])
+            elif "error" in json_body:
+                raise GuardPointError(json_body["error"]['message'])
             else:
                 raise GuardPointError(str(code))
 
@@ -206,34 +196,22 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
                                        "securityGroup($select=name)"
 
-        code, response_body = self.query("GET", url=(url + url_query_params))
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
         if code != 200:
-            if isinstance(response_body, dict):
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
             else:
                 raise GuardPointError(str(code))
 
         # Check response body is formatted as expected
-        if not isinstance(response_body, dict):
+        if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'value' not in response_body:
+        if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Cardholder(response_body['value'][0])
-
-
-
+        return Cardholder(json_body['value'][0])
 
     @staticmethod
     def _compose_filter(search_words, cardholder_type_name):
@@ -270,31 +248,21 @@ class GuardPoint(GuardPointConnection):
                             "$top=" + str(limit) + "&$skip=" + str(offset)
                             )
 
-        code, response_body = self.query("GET", url=(url + url_query_params))
-
-        # Try to convert body into json
-        try:
-            response_body = json.loads(response_body)
-        except JSONDecodeError:
-            response_body = None
-        except Exception as e:
-            log.error(e)
-            response_body = None
+        code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
         if code != 200:
-            if isinstance(response_body, dict):
-                if 'error' in response_body:
-                    raise GuardPointError(response_body['error'])
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
 
-        if not isinstance(response_body, dict):
+        if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'value' not in response_body:
+        if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
-        if not isinstance(response_body['value'], list):
+        if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
         cardholders = []
-        for x in response_body['value']:
+        for x in json_body['value']:
             cardholders.append(Cardholder(x))
         return cardholders
-

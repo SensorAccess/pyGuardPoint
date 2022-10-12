@@ -34,7 +34,7 @@ class GuardPointConnection:
         log.info(f"GP10 server connection: {host}:{port}")
         self.connection = http.client.HTTPConnection(self.host, self.port)
 
-    def query(self, method, url, body='', headers=None):
+    def gp_json_query(self, method, url, json_body: dict = '', headers=None):
         if self.authType == GuardPointAuthType.BASIC:
             auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
         elif self.authType == GuardPointAuthType.BEARER_TOKEN:
@@ -55,9 +55,15 @@ class GuardPointConnection:
         else:
             raise NotImplementedError("Selected authentication mechanism not available.")
 
-        return self._query(method, url, body, headers, auth_str)
+        return self._query(method, url, json_body, headers, auth_str)
 
-    def _query(self, method, url, body='', headers=None, auth_str=None):
+    def _query(self, method, url, json_body: dict = None, headers=None, auth_str=None):
+        raw_body = ''
+        if json_body:
+            if not isinstance(json_body, dict):
+                raise ValueError("Variable 'json_body' must be of type dict.")
+            else:
+                raw_body = json.dumps(json_body)
 
         headers = headers or {
             'Content-Type': 'application/json',
@@ -67,20 +73,28 @@ class GuardPointConnection:
         if auth_str:
             headers['Authorization'] = auth_str
 
-
-        log.debug(f"Request data: host={self.host}:{self.port}, {method}, {url}, {headers}, {body}")
+        log.debug(f"Request data: host={self.host}:{self.port}, {method}, {url}, {headers}, {raw_body}")
         timer = Stopwatch().start()
 
-        self.connection.request(method, url, body, headers)
+        self.connection.request(method, url, raw_body, headers)
 
         timer.stop()
         response = self.connection.getresponse()
-        data = response.read().decode("utf-8")
-        #log.debug("Response hdrs: " + str(response.headers))
-        #log.debug("Response data: " + response.read().decode("utf-8"))
-        #log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
+        body = response.read().decode("utf-8")
+        # log.debug("Response hdrs: " + str(response.headers))
+        # log.debug("Response data: " + response.read().decode("utf-8"))
+        # log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
 
-        return response.getcode(), data
+        # Try to convert body into json
+        try:
+            json_body = json.loads(body)
+        except JSONDecodeError:
+            json_body = None
+        except Exception as e:
+            log.error(e)
+            json_body = None
+
+        return response.getcode(), json_body
 
     def _new_token(self):
         log.info("Requesting new token")
@@ -95,20 +109,19 @@ class GuardPointConnection:
         url = self.baseurl + "/api/Token/RenewToken"
         return self._query_token(url, payload)
 
-    def _query_token(self, url, payload):
-        code, response_body = self._query("POST", url, json.dumps(payload))
+    def _query_token(self, url, json_payload):
+        code, json_body = self._query("POST", url, json_payload)
 
         if code == 200:
             try:
-                data = json.loads(response_body)
-                self.token = data['token']
+                self.token = json_body['token']
                 token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
                 self.token_issued = token_dict['iat']
                 self.token_expiry = token_dict['exp']
             except JSONDecodeError:
-                response_body = None
+                json_body = None
             except Exception as e:
                 log.error(e)
-                response_body = None
+                json_body = None
 
-        return code, response_body
+        return code, json_body

@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("e21676b5-9151-4e8a-8781-e843c3e3cc31")
+        cardholder = gp.get_card_holder("c142cba4-e480-4e48-98d4-756f483925ec")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
@@ -29,6 +29,7 @@ if __name__ == "__main__":
             print("\tLastname: " + cardholder.lastName)
             print("\tCardholder Type: " + cardholder.cardholderType.typeName)
             print("\tNum of Cards: " + str(len(cardholder.cards)))
+            print("\tOwnerSiteUID:" + cardholder.ownerSiteUID)
             for card in cardholder.cards:
                 print("\t\tCard Type: " + card.cardType)
                 print("\t\tCard Code: " + card.cardCode)
