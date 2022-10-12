@@ -150,9 +150,7 @@ class Cardholder:
     def dict(self):
         ch = {}
         for k, v in asdict(self).items():
-            if k == 'ownerSiteUID':
-                pass
-            elif isinstance(v, list):
+            if isinstance(v, list):
                 ch[k] = v
             elif isinstance(v, dict):
                 ch[k] = v

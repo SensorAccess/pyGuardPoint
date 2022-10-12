@@ -73,12 +73,12 @@ class GuardPoint(GuardPointConnection):
 
         return int(json_body['totalItems'])
 
-    def delete_card_holder(self, uid):
-        if not validators.uuid(uid):
-            raise ValueError(f'Malformed UID {uid}')
+    def delete_card_holder(self, cardholder:Cardholder):
+        if not validators.uuid(cardholder.uid):
+            raise ValueError(f'Malformed UID {cardholder.uid}')
 
         url = self.baseurl + "/odata/API_Cardholders"
-        url_query_params = "(" + uid + ")"
+        url_query_params = "(" + cardholder.uid + ")"
 
         code, json_body = self.gp_json_query("DELETE", url=(url + url_query_params))
 
@@ -232,7 +232,7 @@ class GuardPoint(GuardPointConnection):
                                        "cardholderType($select=typeName)," \
                                        "cards($select=cardCode)," \
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
-                                       "securityGroup($select=name)"
+                                       "securityGroup"
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 

@@ -24,30 +24,9 @@ try:
     print(f"Importing {str(count)} entries from {EXPORT_FILENAME}.")
     for i in tqdm(range(0, count)):
         cardholder = Cardholder(entries[i])
+        gp.delete_card_holder(cardholder)
         gp.add_card_holder(cardholder)
 
-    '''for entry in d:
-        cardholder = Cardholder(entry)
-        print(cardholder.lastName)'''
-    #all_cardholders = []
-    '''f = open(EXPORT_FILENAME, "r")
-    f.write("[\n")
-    for i in tqdm(range(0, count)):
-        batch_of_cardholders = gp.get_card_holders(limit=1, offset=i) # Get a batch of 1 cardholder!
-        if len(batch_of_cardholders) < 1:
-            break;
-        f.write(json.dumps(batch_of_cardholders[0].dict(), indent=4))
-        # Check is last cardholder
-        if i == (count -1):
-            f.write("\n") # No comma after last entry
-        else:
-            f.write(",\n")
-        #all_cardholders.extend(batch_of_cardholders)
-
-    #print(f"Got back {len(all_cardholders)} cardholders")
-    f.write("]\n")
-    f.close()
-    print(f"File {EXPORT_FILENAME} written.")'''
 
 except GuardPointError as e:
     print(f"GuardPointError: {e}")
