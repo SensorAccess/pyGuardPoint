@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("c142cba4-e480-4e48-98d4-756f483925ec")
+        cardholder = gp.get_card_holder("edb08a7a-d26b-4c88-8651-957b093559d5")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
@@ -34,11 +34,12 @@ if __name__ == "__main__":
                 print("\t\tCard Type: " + card.cardType)
                 print("\t\tCard Code: " + card.cardCode)
 
-            if gp.delete_card_holder(cardholder.uid):
+            gp.update_card_holder(cardholder)
+            '''if gp.delete_card_holder(cardholder.uid):
                 print("Cardholder: " + cardholder.firstName + " deleted.")
 
                 uid = gp.add_card_holder(cardholder)
-                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
+                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)'''
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

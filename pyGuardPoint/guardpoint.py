@@ -112,6 +112,40 @@ class GuardPoint(GuardPointConnection):
             else:
                 raise GuardPointError(str(code))
 
+    @staticmethod
+    def _remove_non_editable(ch: dict):
+        if 'uid' in ch:
+            ch.pop('uid')
+        if 'lastDownloadTime' in ch:
+            ch.pop('lastDownloadTime')
+        if 'lastInOutArea' in ch:
+            ch.pop('lastInOutArea')
+        if 'lastInOutReaderUID' in ch:
+            ch.pop('lastInOutReaderUID')
+        if 'lastInOutDate' in ch:
+            ch.pop('lastInOutDate')
+        if 'lastAreaReaderDate' in ch:
+            ch.pop('lastAreaReaderDate')
+        if 'lastAreaReaderUID' in ch:
+            ch.pop('lastAreaReaderUID')
+        if 'lastPassDate' in ch:
+            ch.pop('lastPassDate')
+        if 'lastReaderPassUID' in ch:
+            ch.pop('lastReaderPassUID')
+        if 'status' in ch:
+            ch.pop('status')
+        if 'cardholderPersonalDetail' in ch:
+            ch.pop('cardholderPersonalDetail')
+        if 'cardholderType' in ch:
+            ch.pop('cardholderType')
+        if 'securityGroup' in ch:
+            ch.pop('securityGroup')
+        if 'cards' in ch:
+            ch.pop('cards')
+
+        return ch
+
+    # TODO use UpdateFullCardholder instead
     def update_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
@@ -125,7 +159,9 @@ class GuardPoint(GuardPointConnection):
             'IgnoreNonEditable': ''
         }
 
-        code, json_body = self.gp_json_query("PATCH", headers=headers, url=url, body=json.dumps(cardholder.dict()))
+        ch = self._remove_non_editable(cardholder.dict())
+
+        code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url+url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
             try:
@@ -137,8 +173,6 @@ class GuardPoint(GuardPointConnection):
                 raise GuardPointError(str(code))
 
         return True
-
-
 
     def add_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False, reassign_existing_cards=False):
 
@@ -176,6 +210,10 @@ class GuardPoint(GuardPointConnection):
                     self.add_new_card(Card(card))
                     # TODO catch card already exists
             return json_body['value'][0]
+        elif code == 422: # unprocessable Entity
+            if "errorMessages" in json_body:
+                if json_body["errorMessages"][0]["errorCode"] == 59: # Cardholder_0_AlreadyExists
+                    self.update_card_holder(cardholder)
         else:
             if "errorMessages" in json_body:
                 raise GuardPointError(json_body["errorMessages"][0]["other"])
