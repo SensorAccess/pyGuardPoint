@@ -6,11 +6,15 @@ log = logging.getLogger(__name__)
 
 @dataclass
 class Card:
+    technologyType: int = 0
     description: str = ""
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
     cardType: str = "Magnetic"
+    readerFunctionUID: str = ""
+    status: str = ""
+    uid: str = ""
 
     def __init__(self, card_dict: dict):
         for property_name in card_dict:
@@ -23,8 +27,27 @@ class Card:
             if isinstance(card_dict[property_name], bool):
                 setattr(self, property_name, bool(card_dict[property_name]))
 
-    def dict(self):
-        return {k: str(v) for k, v in asdict(self).items()}
+    def dict(self, editable_only=False):
+        c = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, list):
+                c[k] = v
+            elif isinstance(v, dict):
+                c[k] = v
+            elif isinstance(v, bool):
+                c[k] = v
+            elif isinstance(v, int):
+                c[k] = v
+            elif isinstance(v, type(None)):
+                c[k] = None
+            else:
+                c[k] = str(v)
+
+        if editable_only:
+            if 'uid' in c:
+                c.pop('uid')
+
+        return c
 
 @dataclass
 class SecurityGroup:
@@ -58,7 +81,22 @@ class CardholderPersonalDetail:
     idFreeText: str
 
     def dict(self):
-        return {k: str(v) for k, v in asdict(self).items()}
+        ch_pd = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, list):
+                ch_pd[k] = v
+            elif isinstance(v, dict):
+                ch_pd[k] = v
+            elif isinstance(v, bool):
+                ch_pd[k] = v
+            elif isinstance(v, int):
+                ch_pd[k] = v
+            elif isinstance(v, type(None)):
+                ch_pd[k] = None
+            else:
+                ch_pd[k] = str(v)
+
+        return ch_pd
 
 
 @dataclass
@@ -147,7 +185,7 @@ class Cardholder:
             if isinstance(cardholder_dict[property_name], bool):
                 setattr(self, property_name, bool(cardholder_dict[property_name]))
 
-    def dict(self):
+    def dict(self, editable_only=False):
         ch = {}
         for k, v in asdict(self).items():
             if isinstance(v, list):
@@ -160,6 +198,41 @@ class Cardholder:
                 ch[k] = None
             else:
                 ch[k] = str(v)
+
+        if editable_only:
+            ch = self._remove_non_editable(ch)
+        return ch
+
+    @staticmethod
+    def _remove_non_editable(ch: dict):
+        if 'uid' in ch:
+            ch.pop('uid')
+        if 'lastDownloadTime' in ch:
+            ch.pop('lastDownloadTime')
+        if 'lastInOutArea' in ch:
+            ch.pop('lastInOutArea')
+        if 'lastInOutReaderUID' in ch:
+            ch.pop('lastInOutReaderUID')
+        if 'lastInOutDate' in ch:
+            ch.pop('lastInOutDate')
+        if 'lastAreaReaderDate' in ch:
+            ch.pop('lastAreaReaderDate')
+        if 'lastAreaReaderUID' in ch:
+            ch.pop('lastAreaReaderUID')
+        if 'lastPassDate' in ch:
+            ch.pop('lastPassDate')
+        if 'lastReaderPassUID' in ch:
+            ch.pop('lastReaderPassUID')
+        if 'status' in ch:
+            ch.pop('status')
+        if 'cardholderPersonalDetail' in ch:
+            ch.pop('cardholderPersonalDetail')
+        if 'cardholderType' in ch:
+            ch.pop('cardholderType')
+        if 'securityGroup' in ch:
+            ch.pop('securityGroup')
+        if 'cards' in ch:
+            ch.pop('cards')
 
         return ch
 

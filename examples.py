@@ -9,6 +9,24 @@ if __name__ == "__main__":
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
     try:
+        cards = gp.get_cards()
+        print("Got back a: " + str(type(cards)))
+        for card in cards:
+            print("Card:")
+            print("\tCard UID: " + card.uid)
+            print("\tCard Type: " + card.cardType)
+            print("\tCard Code: " + card.cardCode)
+
+        if gp.delete_card(card):
+            uid = gp.add_card(card)
+            print("New Card added and assigned with the UID:" + uid)
+
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
+    except Exception as e:
+        print(f"Exception: {e}")
+
+    try:
         security_groups = gp.get_security_groups()
         print("Got back a: " + str(type(security_groups)))
         for security_group in security_groups:
