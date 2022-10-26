@@ -5,7 +5,8 @@ from pyGuardPoint.guardpoint_error import GuardPointError
 
 
 class CardholdersAPI:
-    def delete_card_holder(self, cardholder:Cardholder):
+
+    def delete_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -25,7 +26,6 @@ class CardholdersAPI:
 
         return True
 
-
     # TODO use UpdateFullCardholder instead
     def update_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
@@ -37,12 +37,12 @@ class CardholdersAPI:
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            #'IgnoreNonEditable': ''
+            # 'IgnoreNonEditable': ''
         }
 
         ch = cardholder.dict(editable_only=True)
 
-        code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url+url_query_params), json_body=ch)
+        code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
             try:
@@ -55,7 +55,7 @@ class CardholdersAPI:
 
         return True
 
-    def add_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False, reassign_existing_cards=False):
+    def add_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False):
 
         url = "/odata/API_Cardholders/CreateFullCardholder"
 
@@ -77,23 +77,19 @@ class CardholdersAPI:
         if 'securityGroup' in ch:
             ch.pop('securityGroup')
         if 'cards' in ch:  # Need to add cards in a second call
-            cards = ch['cards']
-            ch.pop('cards')
+            for card in ch['cards']:
+                if 'uid' in card:
+                    card.pop('uid')
 
         body = {'cardholder': ch}
         # print(json.dumps(body))
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
         if code == 201:  # HTTP CREATED
-            if cards and reassign_existing_cards:
-                for card in cards:
-                    card['cardholderUID'] = json_body['value'][0]
-                    self.add_card(Card(card))
-                    # TODO catch card already exists
             return json_body['value'][0]
-        elif code == 422: # unprocessable Entity
+        elif code == 422:  # unprocessable Entity
             if "errorMessages" in json_body:
-                if json_body["errorMessages"][0]["errorCode"] == 59: # Cardholder_0_AlreadyExists
+                if json_body["errorMessages"][0]["errorCode"] == 59:  # Cardholder_0_AlreadyExists
                     self.update_card_holder(cardholder)
         else:
             if "errorMessages" in json_body:
@@ -111,7 +107,7 @@ class CardholdersAPI:
         url_query_params = "(" + uid + ")?" \
                                        "$expand=" \
                                        "cardholderType($select=typeName)," \
-                                       "cards($select=cardCode)," \
+                                       "cards," \
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
                                        "securityGroup"
 

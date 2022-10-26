@@ -1,4 +1,3 @@
-import json
 import logging
 
 from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
@@ -8,7 +7,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
-    try:
+    '''try:
         cards = gp.get_cards()
         print("Got back a: " + str(type(cards)))
         for card in cards:
@@ -34,11 +33,11 @@ if __name__ == "__main__":
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
-        print(f"Exception: {e}")
+        print(f"Exception: {e}")'''
 
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("edb08a7a-d26b-4c88-8651-957b093559d5")
+        cardholder = gp.get_card_holder("55e6f34d-ef53-4ba9-8762-bdc49c7b899a")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
@@ -49,22 +48,28 @@ if __name__ == "__main__":
             print("\tNum of Cards: " + str(len(cardholder.cards)))
             print("\tOwnerSiteUID:" + cardholder.ownerSiteUID)
             for card in cardholder.cards:
+                print("\t\tCard UID: " + card.uid)
                 print("\t\tCard Type: " + card.cardType)
                 print("\t\tCard Code: " + card.cardCode)
 
-            gp.update_card_holder(cardholder)
-            '''if gp.delete_card_holder(cardholder.uid):
-                print("Cardholder: " + cardholder.firstName + " deleted.")
+            # Delete all associated cards
+            for card in cardholder.cards:
+                gp.delete_card(cardholder.cards[0])
 
-                uid = gp.add_card_holder(cardholder)
-                print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)'''
+            # Delete the cardholder
+            gp.delete_card_holder(cardholder)
+            print("Cardholder: " + cardholder.firstName + " deleted.")
+
+            # Re-add the cardholder
+            uid = gp.add_card_holder(cardholder)
+            print("Cardholder: " + cardholder.firstName + " added, with the new UID:" + uid)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
         print(f"Exception: {e}")
 
-    try:
+    '''try:
         # Example getting a list of cardholders
         cardholders = gp.get_card_holders(limit=1, searchPhrase="Frida")
         print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
@@ -77,7 +82,7 @@ if __name__ == "__main__":
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
-        print(f"Exception: {e}")
+        print(f"Exception: {e}")'''
 
     '''try:
         # Example get all cardholders in batches of 5
