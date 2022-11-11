@@ -3,11 +3,34 @@ import logging
 from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
+import pkg_resources
+py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+
 if __name__ == "__main__":
+    print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
-    '''try:
+    try:
+        cardholders = gp.lookup('1B1A1B1C')
+        if len(cardholders) < 1:
+            print("No card holders found")
+        else:
+            for cardholder in cardholders:
+                print("Cardholder:")
+                print("\tUID: " + cardholder.uid)
+                print(f"\tFirstname: {cardholder.firstName if hasattr(cardholder, 'firstName') else ' '}")
+                print("\tLastname: " + cardholder.lastName)
+                print("\tCardholder Type: " + cardholder.cardholderType.typeName)
+                print("\tNum of Cards: " + str(len(cardholder.cards)))
+                print("\tOwnerSiteUID:" + cardholder.ownerSiteUID)
+
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
+    except Exception as e:
+        print(f"Exception: {e}")
+
+    try:
         cards = gp.get_cards()
         print("Got back a: " + str(type(cards)))
         for card in cards:
@@ -33,11 +56,11 @@ if __name__ == "__main__":
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
-        print(f"Exception: {e}")'''
-
+        print(f"Exception: {e}")
+    '''
     try:
         # Example getting a single cardholder
-        cardholder = gp.get_card_holder("55e6f34d-ef53-4ba9-8762-bdc49c7b899a")
+        cardholder = gp.get_card_holder("87ff8a5d-ef0c-4367-b773-e10e0b031679")
         print("Got back a: " + str(type(cardholder)))
         if isinstance(cardholder, Cardholder):
             print("Cardholder:")
@@ -69,7 +92,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Exception: {e}")
 
-    '''try:
+    try:
         # Example getting a list of cardholders
         cardholders = gp.get_card_holders(limit=1, searchPhrase="Frida")
         print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
@@ -82,8 +105,8 @@ if __name__ == "__main__":
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except Exception as e:
-        print(f"Exception: {e}")'''
-
+        print(f"Exception: {e}")
+    '''
     '''try:
         # Example get all cardholders in batches of 5
         all_cardholders = []

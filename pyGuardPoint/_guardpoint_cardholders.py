@@ -156,9 +156,9 @@ class CardholdersAPI:
         url_query_params = ("?" + filter_str +
                             "$expand="
                             "cardholderType($select=typeName),"
-                            "cards($select=cardCode),"
-                            "cardholderPersonalDetail($select=email,company,idType,idFreeText),"
-                            "securityGroup($select=name)&"
+                            "cards,"
+                            "cardholderPersonalDetail,"
+                            "securityGroup&"
                             "$orderby=fromDateValid%20desc&"
                             "$top=" + str(limit) + "&$skip=" + str(offset)
                             )

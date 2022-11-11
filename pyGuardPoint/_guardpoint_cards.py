@@ -1,8 +1,7 @@
 import json
 import validators
 
-
-from pyGuardPoint.guardpoint_dataclasses import Card
+from pyGuardPoint.guardpoint_dataclasses import Card, Cardholder
 from pyGuardPoint.guardpoint_error import GuardPointError
 
 
@@ -76,3 +75,38 @@ class CardsAPI:
                 raise GuardPointError(json_body["error"]['message'])
             else:
                 raise GuardPointError(str(code))
+
+    def lookup(self, card_code):
+        url = "/odata/API_Cards"
+        url_query_params = f"?$filter=cardcode%20eq%20'{card_code}'%20and%20status%20eq%20'Used'%20" \
+                           "&$expand=cardholder(" \
+                           "$expand=securityGroup($select=name)," \
+                           "cardholderType($select=typeName)," \
+                           "cards," \
+                           "cardholderPersonalDetail," \
+                           "securityGroup)"
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        card_holders = []
+        for x in json_body['value']:
+            if 'cardholder' in x:
+                card_holders.append(Cardholder(x['cardholder']))
+        return card_holders
