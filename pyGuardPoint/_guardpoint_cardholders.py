@@ -99,7 +99,16 @@ class CardholdersAPI:
             else:
                 raise GuardPointError(str(code))
 
-    def get_card_holder(self, uid):
+    def get_card_holder(self,
+                        uid: str = None,
+                        card_code: str = None):
+        if card_code:
+            # Part of the Cards_API
+            return self.get_cardholder_by_card_code(card_code)
+        else:
+            return self._get_card_holder(uid)
+
+    def _get_card_holder(self, uid):
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')
 
@@ -150,9 +159,9 @@ class CardholdersAPI:
             filter_str += "&"
         return filter_str
 
-    def get_card_holders(self, offset=0, limit=10, searchPhrase=None, cardholder_type_name=None):
+    def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, cardholder_type_name=None):
         url = "/odata/API_Cardholders"
-        filter_str = self._compose_filter(search_words=searchPhrase, cardholder_type_name=cardholder_type_name)
+        filter_str = self._compose_filter(search_words=search_terms, cardholder_type_name=cardholder_type_name)
         url_query_params = ("?" + filter_str +
                             "$expand="
                             "cardholderType($select=typeName),"

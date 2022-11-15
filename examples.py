@@ -12,18 +12,15 @@ if __name__ == "__main__":
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
     try:
-        cardholders = gp.lookup('1B1A1B1C')
-        if len(cardholders) < 1:
-            print("No card holders found")
-        else:
-            for cardholder in cardholders:
-                print("Cardholder:")
-                print("\tUID: " + cardholder.uid)
-                print(f"\tFirstname: {cardholder.firstName if hasattr(cardholder, 'firstName') else ' '}")
-                print("\tLastname: " + cardholder.lastName)
-                print("\tCardholder Type: " + cardholder.cardholderType.typeName)
-                print("\tNum of Cards: " + str(len(cardholder.cards)))
-                print("\tOwnerSiteUID:" + cardholder.ownerSiteUID)
+        cardholder = gp.get_card_holder(card_code='1B1A1B1C')
+
+        print("Cardholder:")
+        print("\tUID: " + cardholder.uid)
+        print(f"\tFirstname: {cardholder.firstName if hasattr(cardholder, 'firstName') else ' '}")
+        print("\tLastname: " + cardholder.lastName)
+        print("\tCardholder Type: " + cardholder.cardholderType.typeName)
+        print("\tNum of Cards: " + str(len(cardholder.cards)))
+        print("\tOwnerSiteUID:" + cardholder.ownerSiteUID)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

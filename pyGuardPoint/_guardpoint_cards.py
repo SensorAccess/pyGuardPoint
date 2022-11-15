@@ -76,7 +76,7 @@ class CardsAPI:
             else:
                 raise GuardPointError(str(code))
 
-    def lookup(self, card_code):
+    def get_cardholder_by_card_code(self, card_code):
         url = "/odata/API_Cards"
         url_query_params = f"?$filter=cardcode%20eq%20'{card_code}'%20and%20status%20eq%20'Used'%20" \
                            "&$expand=cardholder(" \
@@ -109,4 +109,8 @@ class CardsAPI:
         for x in json_body['value']:
             if 'cardholder' in x:
                 card_holders.append(Cardholder(x['cardholder']))
-        return card_holders
+
+        if len(card_holders) > 0:
+            return card_holders[0]
+        else:
+            raise GuardPointError("No Cardholder Found")
