@@ -1,3 +1,4 @@
+from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
 from .guardpoint import GuardPoint, GuardPointError
 
@@ -35,7 +36,18 @@ class GuardPointAsync:
                                       cardholder_type_name=cardholder_type_name)
         future.add_done_callback(handle_future)
 
+    def get_areas(self, on_finished):
+        def handle_future(future):
+            try:
+                r = future.result()
+                on_finished(r)
+            except GuardPointError as e:
+                on_finished(e)
+            except Exception as e:
+                on_finished(GuardPointError(e))
 
+        future = self.executor.submit(self.gp.get_areas)
+        future.add_done_callback(handle_future)
 
 
 
