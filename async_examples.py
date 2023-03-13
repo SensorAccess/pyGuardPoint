@@ -1,3 +1,4 @@
+import json
 import logging, sys
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
@@ -17,6 +18,7 @@ if __name__ == "__main__":
             print("\tUID: " + cardholder.uid)
             print("\tFirstname: " + cardholder.firstName)
             print("\tLastname: " + cardholder.lastName)
+
 
         if isinstance(resp, list):
             for entry in resp:
