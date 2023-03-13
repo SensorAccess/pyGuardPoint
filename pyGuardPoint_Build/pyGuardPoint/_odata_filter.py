@@ -1,7 +1,6 @@
 from datetime import datetime
-from enum import Enum
 
-from pyGuardPoint_Build.pyGuardPoint import Area
+from .guardpoint_dataclasses import Area
 
 
 @staticmethod
@@ -11,7 +10,7 @@ def _compose_filter(search_words=None, areas=None, cardholder_type_name=None, fi
     if filter_expired:
         # end_of_day = datetime.utcnow().strftime('%Y-%m-%dT23:59:59Z')
         start_of_day = datetime.utcnow().strftime('%Y-%m-%dT00:00:00Z')
-        filter_phrases.append(f'(fromDateValid ge {start_of_day})')
+        filter_phrases.append(f'(fromDateValid%20ge%20{start_of_day})')
 
     # Filter by Cardholder Type Name
     if cardholder_type_name:
@@ -22,7 +21,7 @@ def _compose_filter(search_words=None, areas=None, cardholder_type_name=None, fi
         if isinstance(areas, list):
             for area in areas:
                 if isinstance(area, Area):
-                    filter_phrases.append(f"(insideAreaUID%20eq%20'{area.uid}')")
+                    filter_phrases.append(f"(insideAreaUID%20eq%20{area.uid})")
 
     # Search filter
     if search_words:

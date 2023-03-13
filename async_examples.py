@@ -38,14 +38,17 @@ if __name__ == "__main__":
                     print("\tType: " + card.cardType)
 
     try:
-        gp.get_card_holder(task_complete, uid="422edea0-589d-4224-af0d-77ed8a97ca57")
-        gp.get_card_holder(task_complete, card_code="1B1A1B1C")
-        gp.get_card_holders(task_complete, search_terms="john")
-        gp.get_card_holders(task_complete, search_terms="robert")
-        gp.get_card_holders(task_complete, search_terms="josh")
-        gp.get_card_holders(task_complete, search_terms="frida")
-        gp.get_areas(task_complete)
-        gp.get_cards(task_complete)
+        #gp.get_card_holder(task_complete, uid="422edea0-589d-4224-af0d-77ed8a97ca57")
+        #gp.get_card_holder(task_complete, card_code="1B1A1B1C")
+        #gp.get_card_holders(task_complete, search_terms="john owen")
+        #gp.get_card_holders(task_complete, search_terms="robert")
+        #gp.get_card_holders(task_complete, search_terms="josh")
+        #gp.get_card_holders(task_complete, search_terms="frida")
+        #gp.get_areas(task_complete)
+        #gp.get_cards(task_complete)
+        area_list = []
+        area_list.append(Area({'uid': '00000000-0000-0000-0000-100000000001', 'area': "Offsite"}))
+        gp.get_card_holders(task_complete, search_terms="john owen john.owen@countermac.com", areas=area_list, filter_expired=False)
     except Exception as e:
         print(e)
 

@@ -1,5 +1,6 @@
 import validators
 
+from ._odata_filter import _compose_filter
 from .guardpoint_dataclasses import Cardholder, Card
 from .guardpoint_error import GuardPointError
 
@@ -138,36 +139,11 @@ class CardholdersAPI:
 
         return Cardholder(json_body['value'][0])
 
-    @staticmethod
-    def _compose_filter(search_words, cardholder_type_name):
-        # Begin filter string
-        filter_str = ""
-        if cardholder_type_name or search_words:
-            filter_str = "$filter="
-
-        # Cardholder Type Name
-        if cardholder_type_name:
-            filter_str += f"(cardholderType/typeName%20eq%20'{cardholder_type_name}')"
-            if search_words:
-                filter_str += "%20and%20"
-
-        # Search filter
-        if search_words:
-            words = list(filter(None, search_words.split(" ")))[
-                    :5]  # Split by space, remove empty elements, ignore > 5 elements
-            fields = ["firstName", "lastName", "CardholderPersonalDetail/company"]
-            phrases = []
-            for f in fields:
-                for v in words:
-                    phrases.append(f"contains({f},'{v}')")
-            filter_str += f"({'%20or%20'.join(phrases)})"
-        if cardholder_type_name or search_words:
-            filter_str += "&"
-        return filter_str
-
-    def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, cardholder_type_name=None):
+    def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
+                         filter_expired=False, cardholder_type_name=None):
         url = "/odata/API_Cardholders"
-        filter_str = self._compose_filter(search_words=search_terms, cardholder_type_name=cardholder_type_name)
+        filter_str = _compose_filter(search_words=search_terms, areas=areas, filter_expired=filter_expired,
+                                     cardholder_type_name=cardholder_type_name)
         url_query_params = ("?" + filter_str +
                             "$expand="
                             "cardholderType($select=typeName),"

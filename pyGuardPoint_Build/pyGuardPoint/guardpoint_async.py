@@ -14,9 +14,10 @@ class GuardPointAsync:
         callback = GPAsyncCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
-    def get_card_holders(self, on_finished, offset=0, limit=10, search_terms=None, cardholder_type_name=None):
+    def get_card_holders(self, on_finished, offset=0, limit=10, search_terms=None, cardholder_type_name=None, areas=None,
+                         filter_expired=False):
         future = self.executor.submit(self.gp.get_card_holders, offset=offset, limit=limit, search_terms=search_terms,
-                                      cardholder_type_name=cardholder_type_name)
+                                      cardholder_type_name=cardholder_type_name, areas=areas, filter_expired=filter_expired)
         callback = GPAsyncCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
