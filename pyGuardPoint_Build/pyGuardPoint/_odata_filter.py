@@ -18,9 +18,12 @@ def _compose_filter(search_words=None, areas=None, cardholder_type_name=None, fi
     # Filter by Areas
     if areas:
         if isinstance(areas, list):
-            for area in areas:
-                if isinstance(area, Area):
-                    filter_phrases.append(f"(insideAreaUID%20eq%20{area.uid})")
+            if len(areas) > 0 :
+                area_phrases = []
+                for area in areas:
+                    if isinstance(area, Area):
+                        area_phrases.append(f"(insideAreaUID%20eq%20{area.uid})")
+                filter_phrases.append(f"({'%20or%20'.join(area_phrases)})")
 
     # Search filter
     if search_words:
