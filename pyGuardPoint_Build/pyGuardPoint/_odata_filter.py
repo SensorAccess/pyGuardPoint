@@ -3,7 +3,6 @@ from datetime import datetime
 from .guardpoint_dataclasses import Area
 
 
-@staticmethod
 def _compose_filter(search_words=None, areas=None, cardholder_type_name=None, filter_expired=False):
     filter_phrases = []
     # Filter out expired cardholders
