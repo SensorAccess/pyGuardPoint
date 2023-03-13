@@ -140,13 +140,18 @@ class CardholdersAPI:
 
     @staticmethod
     def _compose_filter(search_words, cardholder_type_name):
+        # Begin filter string
         filter_str = ""
         if cardholder_type_name or search_words:
             filter_str = "$filter="
+
+        # Cardholder Type Name
         if cardholder_type_name:
             filter_str += f"(cardholderType/typeName%20eq%20'{cardholder_type_name}')"
             if search_words:
                 filter_str += "%20and%20"
+
+        # Search filter
         if search_words:
             words = list(filter(None, search_words.split(" ")))[
                     :5]  # Split by space, remove empty elements, ignore > 5 elements
