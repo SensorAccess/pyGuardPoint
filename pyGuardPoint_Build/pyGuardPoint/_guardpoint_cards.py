@@ -84,6 +84,7 @@ class CardsAPI:
                            "cardholderType($select=typeName)," \
                            "cards," \
                            "cardholderPersonalDetail," \
+                           "cardholderCustomizedField," \
                            "securityGroup," \
                            "insideArea)"
 

@@ -119,6 +119,7 @@ class CardholdersAPI:
                                        "$expand=" \
                                        "cardholderType($select=typeName)," \
                                        "cards," \
+                                       "cardholderCustomizedField," \
                                        "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
                                        "securityGroup," \
                                        "insideArea"
@@ -151,6 +152,7 @@ class CardholdersAPI:
                             "cardholderType($select=typeName),"
                             "cards,"
                             "cardholderPersonalDetail,"
+                            "cardholderCustomizedField,"
                             "insideArea,"
                             "securityGroup&"
                             "$orderby=fromDateValid%20desc&"

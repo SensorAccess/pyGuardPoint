@@ -1,7 +1,7 @@
 from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
 from .guardpoint import GuardPoint, GuardPointError
-from .guardpoint_dataclasses import SortAlgorithm
+from .guardpoint_dataclasses import SortAlgorithm, Cardholder
 
 
 class GuardPointAsync:
@@ -25,6 +25,16 @@ class GuardPointAsync:
         callback = GPAsyncCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
+    def update_cardholder(self, on_finished, cardholder: Cardholder):
+        future = self.executor.submit(self.gp.update_card_holder, cardholder=cardholder)
+        callback = GPAsyncCallBack(on_finished)
+        future.add_done_callback(callback.handle_future)
+
+    def delete_cardholder(self, on_finished, cardholder: Cardholder):
+        future = self.executor.submit(self.gp.delete_card_holder, cardholder=cardholder)
+        callback = GPAsyncCallBack(on_finished)
+        future.add_done_callback(callback.handle_future)
+
     def get_cards(self, on_finished):
         future = self.executor.submit(self.gp.get_cards)
         callback = GPAsyncCallBack(on_finished)
@@ -37,6 +47,11 @@ class GuardPointAsync:
 
     def get_areas(self, on_finished):
         future = self.executor.submit(self.gp.get_areas)
+        callback = GPAsyncCallBack(on_finished)
+        future.add_done_callback(callback.handle_future)
+
+    def get_security_groups(self, on_finished):
+        future = self.executor.submit(self.gp.get_security_groups)
         callback = GPAsyncCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 

@@ -101,6 +101,74 @@ class SecurityGroup:
 
 
 @dataclass
+class CardholderCustomizedField:
+    uid: str = ""
+    cF_BoolField_1: bool = False,
+    cF_BoolField_2: bool = False
+    cF_BoolField_3: bool = False
+    cF_BoolField_4: bool = False
+    cF_BoolField_5: bool = False
+    cF_IntField_1: int = 0
+    cF_IntField_2: int = 0
+    cF_IntField_3: int = 0
+    cF_IntField_4: int = 0
+    cF_IntField_5: int = 0
+    cF_DateTimeField_1: any = None
+    cF_DateTimeField_2: any = None
+    cF_DateTimeField_3: any = None
+    cF_DateTimeField_4: any = None
+    cF_DateTimeField_5: any = None
+    cF_StringField_1: str = ""
+    cF_StringField_2: str = ""
+    cF_StringField_3: str = ""
+    cF_StringField_4: str = ""
+    cF_StringField_5: str = ""
+    cF_StringField_6: str = ""
+    cF_StringField_7: str = ""
+    cF_StringField_8: str = ""
+    cF_StringField_9: str = ""
+    cF_StringField_10: str = ""
+    cF_StringField_11: str = ""
+    cF_StringField_12: str = ""
+    cF_StringField_13: str = ""
+    cF_StringField_14: str = ""
+    cF_StringField_15: str = ""
+    cF_StringField_16: str = ""
+    cF_StringField_17: str = ""
+    cF_StringField_18: str = ""
+    cF_StringField_19: str = ""
+    cF_StringField_20: str = ""
+
+    def __init__(self, custom_fields_dict: dict):
+        for property_name in custom_fields_dict:
+            if isinstance(custom_fields_dict[property_name], str):
+                setattr(self, property_name, custom_fields_dict[property_name])
+
+            if isinstance(custom_fields_dict[property_name], type(None)):
+                setattr(self, property_name, None)
+
+            if isinstance(custom_fields_dict[property_name], bool):
+                setattr(self, property_name, bool(custom_fields_dict[property_name]))
+
+    def dict(self):
+        c = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, list):
+                c[k] = v
+            elif isinstance(v, dict):
+                c[k] = v
+            elif isinstance(v, bool):
+                c[k] = v
+            elif isinstance(v, int):
+                c[k] = v
+            elif isinstance(v, type(None)):
+                c[k] = None
+            else:
+                c[k] = str(v)
+        return c
+
+
+@dataclass
 class CardholderPersonalDetail:
     email: str
     company: str
@@ -149,6 +217,7 @@ class Cardholder:
     cardholderType: CardholderType
     securityGroup: SecurityGroup
     cardholderPersonalDetail: CardholderPersonalDetail
+    cardholderCustomizedField: CardholderCustomizedField
     insideArea: Area
     ownerSiteUID: any
     securityGroupApiKey: any
@@ -205,6 +274,8 @@ class Cardholder:
                         company=cardholder_dict[property_name]['company'],
                         idType=cardholder_dict[property_name]['idType'],
                         idFreeText=cardholder_dict[property_name]['idFreeText'])
+                if property_name == "cardholderCustomizedField":
+                    self.cardholderCustomizedField = CardholderCustomizedField(cardholder_dict[property_name])
 
             if isinstance(cardholder_dict[property_name], str):
                 setattr(self, property_name, cardholder_dict[property_name])
