@@ -4,10 +4,18 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import RIGHT, Y, YES, END
 
-from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Cardholder, GuardPointAsync
+import pkg_resources
+from pyGuardPoint import GuardPointAsync, GuardPointError, SortAlgorithm
 
 windll.shcore.SetProcessDpiAwareness(1)  # Fix Win10 DPI issue
 
+py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+print("pyGuardPoint Version:" + py_gp_version)
+py_gp_version_int = int(py_gp_version.replace('.', ''))
+if py_gp_version_int < 45:
+    print("Please Update pyGuardPoint")
+    print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+    exit()
 
 class App(tk.Tk):
     def __init__(self):
@@ -37,10 +45,13 @@ class App(tk.Tk):
             for area in self.area_list:
                 if self.lstCHList.get(i) == area.name:
                     area_filter_list.append(area)
+        filter_expired=(not self.var_chkLookup_expired.get())
         self.gp.get_card_holders(self.lookup_finished,
                                  search_terms=self.txtLookup.get(),
                                  areas=area_filter_list,
-                                 filter_expired=not self.var_chkLookup_expired.get())
+                                 filter_expired=filter_expired,
+                                 sort_algorithm=SortAlgorithm.SERVER_DEFAULT,
+                                 threshold=20)
 
     def got_areas(self, response):
         if isinstance(response, GuardPointError):
