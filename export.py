@@ -4,7 +4,7 @@ from pyGuardPoint.guardpoint import GuardPointError, GuardPoint
 from tqdm import tqdm
 
 
-EXPORT_FILENAME = '../cardholder_export.json'
+EXPORT_FILENAME = 'cardholder_export.json'
 GP_HOST = 'sensoraccess.duckdns.org'
 GP_USER = 'Admin'
 GP_PASS = 'password'
@@ -13,7 +13,7 @@ try:
     gp = GuardPoint(host=GP_HOST, username=GP_USER, pwd=GP_PASS)
     count = gp.get_cardholder_count()
     print(f"Total Cardholders: {str(count)}")
-    count = 1
+    #count = 1
     #all_cardholders = []
     f = open(EXPORT_FILENAME, "w")
     f.write("[\n")

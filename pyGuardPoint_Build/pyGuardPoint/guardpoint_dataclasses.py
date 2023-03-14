@@ -210,6 +210,26 @@ class Cardholder:
             if isinstance(cardholder_dict[property_name], bool):
                 setattr(self, property_name, bool(cardholder_dict[property_name]))
 
+    def to_search_pattern(self):
+        pattern = ""
+        if self.firstName:
+            pattern += self.firstName + " "
+        if self.lastName:
+            pattern += self.lastName + " "
+        if self.cardholderPersonalDetail.company:
+            pattern += self.cardholderPersonalDetail.company + " "
+        if self.cardholderPersonalDetail.email:
+            pattern += self.cardholderPersonalDetail.email
+        return pattern
+
+    def pretty_print(self):
+        for attribute_name in self.__dict__:
+            attribute = getattr(self, attribute_name)
+            if hasattr(attribute, '__dict__'):
+                print(f"{attribute_name}:")
+                self.pretty_print(attribute)
+            else:
+                print(f"\t{attribute_name:<25}" + str(attribute))
     def dict(self, editable_only=False):
         ch = {}
         for k, v in asdict(self).items():
