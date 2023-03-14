@@ -3,7 +3,8 @@ import logging, sys
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
 sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPointAsync, GuardPointError, Cardholder, Area, Card
+from pyGuardPoint_Build.pyGuardPoint import GuardPointAsync, GuardPointError, Cardholder, Area, Card, SortAlgorithm, \
+    GuardPoint
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -28,6 +29,10 @@ if __name__ == "__main__":
                     print("\tUID: " + cardholder.uid)
                     print("\tFirstname: " + cardholder.firstName)
                     print("\tLastname: " + cardholder.lastName)
+                    if cardholder.cardholderPersonalDetail.company:
+                        print("\tCompany: " + cardholder.cardholderPersonalDetail.company)
+                    if cardholder.cardholderPersonalDetail.email:
+                        print("\tEmail: " + cardholder.cardholderPersonalDetail.email)
                 if isinstance(entry, Area):
                     area = entry
                     print("Area:")
@@ -50,7 +55,10 @@ if __name__ == "__main__":
         #gp.get_cards(task_complete)
         area_list = []
         area_list.append(Area({'uid': '00000000-0000-0000-0000-100000000001', 'area': "Offsite"}))
-        gp.get_card_holders(task_complete, search_terms="john owen john.owen@countermac.com", areas=area_list, filter_expired=False)
+        gp.get_card_holders(task_complete, search_terms="john owen john.owen@countermac.com ", areas=area_list,
+                            filter_expired=False, sort_algorithm=SortAlgorithm.FUZZY_MATCH, threshold=50)
+
+
     except Exception as e:
         print(e)
 

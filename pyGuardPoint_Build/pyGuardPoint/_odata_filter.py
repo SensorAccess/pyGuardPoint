@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from .guardpoint_dataclasses import Area
 
 

@@ -1,8 +1,13 @@
-import json
 import logging
-from dataclasses import dataclass, asdict, field
+from dataclasses import dataclass, asdict
+from enum import Enum
 
 log = logging.getLogger(__name__)
+
+
+class SortAlgorithm(Enum):
+    SERVER_DEFAULT = 0,
+    FUZZY_MATCH = 1
 
 
 @dataclass
@@ -222,14 +227,17 @@ class Cardholder:
             pattern += self.cardholderPersonalDetail.email
         return pattern
 
-    def pretty_print(self):
-        for attribute_name in self.__dict__:
-            attribute = getattr(self, attribute_name)
+    def pretty_print(self, obj: object = None):
+        if obj == None:
+            obj = self
+        for attribute_name in obj.__dict__:
+            attribute = getattr(obj, attribute_name)
             if hasattr(attribute, '__dict__'):
                 print(f"{attribute_name}:")
-                self.pretty_print(attribute)
+                obj.pretty_print(attribute)
             else:
                 print(f"\t{attribute_name:<25}" + str(attribute))
+
     def dict(self, editable_only=False):
         ch = {}
         for k, v in asdict(self).items():

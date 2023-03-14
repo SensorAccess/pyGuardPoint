@@ -1,7 +1,8 @@
 import validators
 
 from ._odata_filter import _compose_filter
-from .guardpoint_dataclasses import Cardholder, Card
+from ._str_match_algo import fuzzy_match
+from .guardpoint_dataclasses import Cardholder, SortAlgorithm
 from .guardpoint_error import GuardPointError
 
 
@@ -140,7 +141,8 @@ class CardholdersAPI:
         return Cardholder(json_body['value'][0])
 
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
-                         filter_expired=False, cardholder_type_name=None):
+                         filter_expired: bool = False, cardholder_type_name: str = None,
+                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75):
         url = "/odata/API_Cardholders"
         filter_str = _compose_filter(search_words=search_terms, areas=areas, filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name)
@@ -172,4 +174,8 @@ class CardholdersAPI:
         cardholders = []
         for x in json_body['value']:
             cardholders.append(Cardholder(x))
+
+        if sort_algorithm == SortAlgorithm.FUZZY_MATCH:
+            cardholders = fuzzy_match(search_words=search_terms, cardholders=cardholders, threshold=threshold)
+
         return cardholders

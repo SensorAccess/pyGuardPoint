@@ -4,6 +4,9 @@ from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
 import pkg_resources
+
+from pyGuardPoint_Build.pyGuardPoint import SortAlgorithm
+
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 if __name__ == "__main__":
@@ -91,7 +94,7 @@ if __name__ == "__main__":
 
     try:
         # Example getting a list of cardholders
-        cardholders = gp.get_card_holders(limit=1, search_terms="Frida")
+        cardholders = gp.get_card_holders(limit=1, search_terms="Frida",  sort_algorithm=SortAlgorithm.FUZZY_MATCH, threshold=50)
         print("Got back a: " + str(type(cardholders)) + " containing: " + str(len(cardholders)) + " entry.")
         if isinstance(cardholders, list):
             for cardholder in cardholders:
