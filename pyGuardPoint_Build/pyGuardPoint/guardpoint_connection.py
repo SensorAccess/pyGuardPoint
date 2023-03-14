@@ -33,6 +33,12 @@ class GuardPointConnection:
         log.info(f"GP10 server connection: {host}:{port}")
         self.connection = http.client.HTTPConnection(self.host, self.port)
 
+    def set_token(self, gp_token):
+        self.token = gp_token
+        token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
+        self.token_issued = token_dict['iat']
+        self.token_expiry = token_dict['exp']
+
     def gp_json_query(self, method, url, json_body: dict = '', headers=None):
         if self.authType == GuardPointAuthType.BASIC:
             auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
