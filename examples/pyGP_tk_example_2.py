@@ -1,7 +1,12 @@
+from ctypes import windll
+import signal
 import tkinter as tk
+import tkinter.ttk as ttk
 from tkinter import RIGHT, Y, YES, END
 
 from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Cardholder, GuardPointAsync
+
+windll.shcore.SetProcessDpiAwareness(1)  # Fix Win10 DPI issue
 
 
 class App(tk.Tk):
@@ -10,37 +15,40 @@ class App(tk.Tk):
         self.wm_title("TK with pyGuardPoint")
         self.gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
         self.build_gui()
+        
+        self.protocol('WM_DELETE_WINDOW', self.quit)
+        signal.signal(signal.SIGINT, self.quit)
 
     def lookup_finished(self, response):
         if isinstance(response, GuardPointError):
-            self.lookup_result_lbl.config(text=f"{response}")
+            self.lblLookup_result.config(text=f"{response}")
         if isinstance(response, list):
             cardholders = response
             if len(cardholders) > 0:
-                self.lookup_result_lbl.config(text=f"Found: {cardholders[0].firstName} {cardholders[0].lastName}\n "
+                self.lblLookup_result.config(text=f"Found: {cardholders[0].firstName} {cardholders[0].lastName}\n "
                                                    f"within the {cardholders[0].insideArea.name}")
             else:
-                self.lookup_result_lbl.config(text=f"No Cardholder Found")
+                self.lblLookup_result.config(text=f"No Cardholder Found")
 
     def lookup_start(self):
-        self.lookup_result_lbl.config(text=f"Searching ....")
+        self.lblLookup_result.config(text=f"Searching ....")
         area_filter_list = []
-        for i in self.area_listbox.curselection():
+        for i in self.lstCHList.curselection():
             for area in self.area_list:
-                if self.area_listbox.get(i) == area.name:
+                if self.lstCHList.get(i) == area.name:
                     area_filter_list.append(area)
         self.gp.get_card_holders(self.lookup_finished,
-                                 search_terms=self.lookup_entry.get(),
+                                 search_terms=self.txtLookup.get(),
                                  areas=area_filter_list,
-                                 filter_expired=False)  # TODO: JOSH ADD TOGGLE BUTTON
+                                 filter_expired=not self.var_chkLookup_expired.get())
 
     def got_areas(self, response):
         if isinstance(response, GuardPointError):
-            self.lookup_result_lbl.config(text=f"{response}")
+            self.lblLookup_result.config(text=f"{response}")
         if isinstance(response, list):
             self.area_list = response
             for area in self.area_list:
-                self.area_listbox.insert(END, area.name)
+                self.lstCHList.insert(END, area.name)
 
     def option_select(self, *args):
         print(self.om_variable.get())
@@ -54,31 +62,55 @@ class App(tk.Tk):
         self.om = tk.OptionMenu(self, self.om_variable, *self.options)
         self.om.pack()'''
 
-        # ListBox
-        yscrollbar = tk.Scrollbar(master=self)
-        yscrollbar.pack(side=RIGHT, fill=Y)
-        self.area_listbox = tk.Listbox(master=self, selectmode="multiple",
-                                       yscrollcommand=yscrollbar.set)
-        self.area_listbox.pack(padx=10, pady=10,
-                               expand=YES, fill="both")
-        yscrollbar.config(command=self.area_listbox.yview)
+        padding = 4
+
+        # -------------------- CH List Frame -------------------- #
+
+        self.frmCHList = ttk.LabelFrame(self, text=" Cardholder List ", padding=padding)
+
+        self.lstCHList = tk.Listbox(self.frmCHList, selectmode="multiple", height=10)
+        self.scbCHList = ttk.Scrollbar(self.frmCHList, orient=tk.VERTICAL, command=self.lstCHList.yview)
+        self.lstCHList.configure(yscrollcommand=self.scbCHList.set)
+
+        self.lstCHList.grid(row=1, column=1, sticky="NSWE", padx=(padding, 0), pady=padding)
+        self.scbCHList.grid(row=1, column=2, sticky="NS", padx=(0, padding), pady=padding)
+        self.frmCHList.columnconfigure(1, weight=1)
+        self.frmCHList.rowconfigure(1, weight=1)
+
+        # -------------------- Lookup Frame -------------------- #
+
+        self.var_chkLookup_expired = tk.IntVar()
+
+        self.frmLookup = ttk.LabelFrame(self, text=" Cardholder Lookup ", padding=padding)
+
+        self.txtLookup = ttk.Entry(self.frmLookup, foreground="blue", background="white", width=50)
+        self.chkLookup_expired = ttk.Checkbutton(self.frmLookup, text="Include expired", variable=self.var_chkLookup_expired)
+        self.btnLookup = ttk.Button(self.frmLookup, text="Lookup Cardholder", command=self.lookup_start)
+        self.lblLookup_result = ttk.Label(self.frmLookup, text=" - ", font=("Arial", 16), relief="sunken")
+
+        self.txtLookup.grid(row=1, column=1, columnspan=2, sticky="WE", padx=padding, pady=padding)
+        self.chkLookup_expired.grid(row=2, column=1, sticky="W", padx=padding, pady=padding)
+        self.btnLookup.grid(row=2, column=2, padx=padding, sticky="E", pady=padding)
+        self.lblLookup_result.grid(row=3, column=1, columnspan=2, sticky="WE", padx=padding, pady=padding)
+
+        self.frmLookup.columnconfigure(1, weight=1)
+
+        # -------------------- Main Window -------------------- #
+
+        self.frmCHList.grid(row=1, column=1, sticky='NSWE', padx=padding*2, pady=padding*2)
+        self.frmLookup.grid(row=2, column=1, sticky='NSWE', padx=padding*2, pady=padding*2)
+        self.columnconfigure(1, weight=1, pad=padding)
+        self.rowconfigure(1, weight=1, pad=padding)
+
+        self.update()
+        self.minsize(self.winfo_width(), self.winfo_height())
 
         self.gp.get_areas(on_finished=self.got_areas)
-
-        self.lookup_lbl = tk.Label(master=self, text="Enter search phrase below: ")
-        self.lookup_lbl.pack()
-        self.lookup_entry = tk.Entry(master=self, fg="blue", bg="white", width=50)
-        self.lookup_entry.insert(tk.END, "john")
-        self.lookup_entry.pack()
-        self.lookup_btn = tk.Button(master=self, text="Lookup Cardholder",
-                                    command=self.lookup_start)
-        self.lookup_btn.pack()
-        self.lookup_result_lbl = tk.Label(master=self, text=" - ", font=("Arial", 20))
-        self.lookup_result_lbl.pack()
 
 
 if __name__ == "__main__":
     app = App()
+    app.txtLookup.insert(tk.END, "john")
 
     # display GUI
     app.mainloop()
