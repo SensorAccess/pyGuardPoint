@@ -1,4 +1,3 @@
-from asyncio import Future
 from concurrent.futures import ThreadPoolExecutor
 from .guardpoint import GuardPoint, GuardPointError
 from .guardpoint_dataclasses import SortAlgorithm, Cardholder
