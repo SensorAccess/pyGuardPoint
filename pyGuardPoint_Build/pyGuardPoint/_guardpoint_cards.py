@@ -6,12 +6,15 @@ from .guardpoint_error import GuardPointError
 
 
 class CardsAPI:
-    def get_cards(self):
+    def get_cards(self, count=False):
         url = "/odata/API_Cards"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
+
+        if count:
+            url += "?$count=true&$top=0"
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=url)
 
@@ -26,6 +29,9 @@ class CardsAPI:
             raise GuardPointError("Badly formatted response.")
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
 
         cards = []
         for x in json_body['value']:

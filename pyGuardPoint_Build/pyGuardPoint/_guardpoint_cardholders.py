@@ -28,7 +28,7 @@ class CardholdersAPI:
 
         return True
 
-    # TODO use UpdateFullCardholder instead
+    # TODO use UpdateFullCardholder instead - need to update custom fields
     def update_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
@@ -143,7 +143,8 @@ class CardholdersAPI:
 
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
-                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75):
+                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
+                         count = False):
         url = "/odata/API_Cardholders"
         filter_str = _compose_filter(search_words=search_terms, areas=areas, filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name)
@@ -155,9 +156,11 @@ class CardholdersAPI:
                             "cardholderCustomizedField,"
                             "insideArea,"
                             "securityGroup&"
-                            "$orderby=fromDateValid%20desc&"
-                            "$top=" + str(limit) + "&$skip=" + str(offset)
-                            )
+                            "$orderby=fromDateValid%20desc&")
+        if count:
+            url_query_params += "$count=true&$top=0"
+        else:
+            url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
@@ -172,6 +175,9 @@ class CardholdersAPI:
             raise GuardPointError("Badly formatted response.")
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
 
         cardholders = []
         for x in json_body['value']:

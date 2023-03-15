@@ -22,6 +22,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         key = kwargs.get('key', "00000000-0000-0000-0000-000000000000")
         super().__init__(host=host, port=port, auth=auth, user=user, pwd=pwd, key=key)
 
+    # TODO: is this needed since count can be achieved with "$count=true&$top=0"
     def get_cardholder_count(self):
         url = self.baseurl + "/odata/GetCardholdersCount"
         code, json_body = self.gp_json_query("GET", url=url)
