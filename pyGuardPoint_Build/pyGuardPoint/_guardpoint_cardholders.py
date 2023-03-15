@@ -145,21 +145,25 @@ class CardholdersAPI:
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
                          count = False):
+
         url = "/odata/API_Cardholders"
+
         filter_str = _compose_filter(search_words=search_terms, areas=areas, filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name)
-        url_query_params = ("?" + filter_str +
-                            "$expand="
-                            "cardholderType($select=typeName),"
-                            "cards,"
-                            "cardholderPersonalDetail,"
-                            "cardholderCustomizedField,"
-                            "insideArea,"
-                            "securityGroup&"
-                            "$orderby=fromDateValid%20desc&")
+
+        url_query_params = ("?" + filter_str)
+
         if count:
             url_query_params += "$count=true&$top=0"
         else:
+            url_query_params += "$expand=" \
+                                    "cardholderType($select=typeName)," \
+                                    "cards," \
+                                    "cardholderPersonalDetail," \
+                                    "cardholderCustomizedField," \
+                                    "insideArea," \
+                                    "securityGroup&" \
+                                    "$orderby=fromDateValid%20desc&"
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
