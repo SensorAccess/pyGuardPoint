@@ -1,5 +1,7 @@
 import logging
 
+from ._guardpoint_customizedfields import CustomizedFieldsAPI
+from ._guardpoint_personaldetails import PersonalDetailsAPI
 from ._guardpoint_securitygroups import SecurityGroupsAPI
 from .guardpoint_connection import GuardPointConnection, GuardPointAuthType
 from ._guardpoint_cards import CardsAPI
@@ -10,7 +12,7 @@ from ._guardpoint_areas import AreasAPI
 log = logging.getLogger(__name__)
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI):
+class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI):
 
     def __init__(self, **kwargs):
         # Set default values if not present

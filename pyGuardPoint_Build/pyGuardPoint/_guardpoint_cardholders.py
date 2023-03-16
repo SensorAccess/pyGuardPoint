@@ -28,10 +28,22 @@ class CardholdersAPI:
 
         return True
 
-    # TODO use UpdateFullCardholder instead - need to update custom fields
     def update_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
+
+        if cardholder.cardholderCustomizedField:
+            if len(cardholder.cardholderCustomizedField.changed_attributes) > 0:
+                self.update_custom_fields(cardholder.uid, cardholder.cardholderCustomizedField)
+
+        if cardholder.cardholderPersonalDetail:
+            if len(cardholder.cardholderPersonalDetail.changed_attributes) > 0:
+                self.update_personal_details(cardholder.uid, cardholder.cardholderPersonalDetail)
+
+        ch = cardholder.dict(editable_only=True, changed_only=True)
+
+        if len(ch) < 1: # Nothing to update
+            return True
 
         url = "/odata/API_Cardholders"
         url_query_params = f"({cardholder.uid})"
@@ -39,20 +51,19 @@ class CardholdersAPI:
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            # 'IgnoreNonEditable': ''
+            #'IgnoreNonEditable': ''
         }
 
-        ch = cardholder.dict(editable_only=True)
+
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
-            try:
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
-                else:
-                    raise GuardPointError(str(code))
-            except Exception:
+            if 'error' in json_body:
+                raise GuardPointError(json_body['error'])
+            elif 'message' in json_body:
+                raise GuardPointError(json_body['message'])
+            else:
                 raise GuardPointError(str(code))
 
         return True
@@ -120,7 +131,7 @@ class CardholdersAPI:
                                        "cardholderType($select=typeName)," \
                                        "cards," \
                                        "cardholderCustomizedField," \
-                                       "cardholderPersonalDetail($select=email,company,idType,idFreeText)," \
+                                       "cardholderPersonalDetail," \
                                        "securityGroup," \
                                        "insideArea"
 
