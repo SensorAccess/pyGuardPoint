@@ -1,6 +1,6 @@
 import logging, sys
 import pkg_resources
-from pyGuardPoint import GuardPoint
+from pyGuardPoint import GuardPoint, GuardPointError
 from strgen import StringGenerator # pip install StringGenerator
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
