@@ -19,7 +19,7 @@ class CustomizedFieldsAPI:
             # 'IgnoreNonEditable': ''
         }
 
-        ch = customFields.dict()
+        ch = customFields.dict(changed_only=True)
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 

@@ -6,7 +6,7 @@ from strgen import StringGenerator # pip install StringGenerator
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
 py_gp_version_int = int(py_gp_version.replace('.', ''))
-if py_gp_version_int < 47:
+if py_gp_version_int < 48:
     print("Please Update pyGuardPoint")
     print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
     exit()
