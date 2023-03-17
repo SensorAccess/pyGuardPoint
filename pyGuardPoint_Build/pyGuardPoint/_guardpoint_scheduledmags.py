@@ -52,8 +52,11 @@ class ScheduledMagsAPI:
         if code == 201:  # HTTP CREATED
             return json_body['uid']
         else:
-            if "errorMessages" in json_body:
-                raise GuardPointError(json_body["errorMessages"][0]["other"])
+            if 'value' in json_body:
+                if isinstance(json_body['value'], list):
+                    json_body = json_body['value'][0]
+            if "other" in json_body:
+                raise GuardPointError(json_body["other"])
             elif "error" in json_body:
                 raise GuardPointError(json_body["error"]['message'])
             else:

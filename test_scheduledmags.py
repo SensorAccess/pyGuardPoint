@@ -28,15 +28,15 @@ if __name__ == "__main__":
         # Get a cardholder
         cardholder = gp.get_card_holder(card_code='1B1A1B1C')
 
-        '''
-        fromDateValid = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:00Z')
-        toDateValid = (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:00Z')
+
+        fromDateValid = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+        toDateValid = (datetime.now() + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
         sm = ScheduledMag(scheduledSecurityGroupUID=sec_groups[0].uid,
                           cardholderUID=cardholder.uid,
                           fromDateValid=fromDateValid,
                           toDateValid=toDateValid)
         gp.add_scheduled_mag(sm)
-        '''
+
 
         scheduled_mags = gp.get_scheduled_mags()
         for scheduled_mag in scheduled_mags:
