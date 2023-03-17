@@ -1,8 +1,7 @@
 import logging, sys
 import pkg_resources
-#from pyGuardPoint import GuardPoint, GuardPointError
-sys.path.insert(1, '../pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
+from pyGuardPoint import GuardPoint, GuardPointError, Cardholder
+
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
