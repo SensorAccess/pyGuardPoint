@@ -119,7 +119,7 @@ class SecurityGroup:
 @dataclass
 class ScheduledMag:
     uid: str = ""
-    securityGroupAPIKey: any = None
+    securityGroupAPIKey: str = ""
     scheduledSecurityGroupUID: str = ""
     cardholderUID: str = ""
     toDateValid:str = ""
@@ -167,8 +167,6 @@ class ScheduledMag:
         if editable_only:
             if 'uid' in c:
                 c.pop('uid')
-            if 'scheduledSecurityGroupUID' in c:
-                c.pop('scheduledSecurityGroupUID')
             if 'status' in c:
                 c.pop('status')
 

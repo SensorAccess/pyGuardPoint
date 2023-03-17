@@ -1,4 +1,4 @@
-from attr import validators
+import validators
 
 from .guardpoint_dataclasses import ScheduledMag, Cardholder
 from .guardpoint_error import GuardPointError
@@ -8,7 +8,7 @@ class ScheduledMagsAPI:
 
     def get_scheduled_mags(self, cardholder: Cardholder = None):
         url = self.baseurl + "/odata/API_ScheduledMags"
-        if cardholder.uid:
+        if cardholder:
             if not validators.uuid(cardholder.uid):
                 raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
             url_query_params = f"?$filter=cardholderUid%20eq%20'{cardholder.uid}'"
