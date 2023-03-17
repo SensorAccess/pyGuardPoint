@@ -1,7 +1,7 @@
 import logging, sys
 import pkg_resources
 from pyGuardPoint import GuardPoint, GuardPointError
-from strgen import StringGenerator # pip install StringGenerator
+#from strgen import StringGenerator # pip install StringGenerator
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
@@ -23,9 +23,12 @@ if __name__ == "__main__":
         print(f"\tdescription: {cardholder.description}")
         print(f"\tcityOrDistrict: {cardholder.cardholderPersonalDetail.cityOrDistrict}")
 
-        cardholder.cardholderCustomizedField.cF_StringField_20 = "cf20:" + StringGenerator("[\w\d]{10}").render()
-        cardholder.description = "D:" + StringGenerator("[\w\d]{10}").render()
-        cardholder.cardholderPersonalDetail.cityOrDistrict = "cOrD:" + StringGenerator("[\w\d]{10}").render()
+        #cardholder.cardholderCustomizedField.cF_StringField_20 = "cf20:" + StringGenerator("[\w\d]{10}").render()
+        #cardholder.description = "D:" + StringGenerator("[\w\d]{10}").render()
+        #cardholder.cardholderPersonalDetail.cityOrDistrict = "cOrD:" + StringGenerator("[\w\d]{10}").render()
+        cardholder.cardholderCustomizedField.cF_StringField_20 = "Hello"
+        cardholder.description = "Help"
+        cardholder.cardholderPersonalDetail.cityOrDistrict = "Yelp"
 
         print("\n\n Detected the following fields have changed:")
         print(cardholder.dict(editable_only=True, changed_only=True))

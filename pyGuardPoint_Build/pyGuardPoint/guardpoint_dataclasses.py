@@ -23,11 +23,9 @@ class Observable:
         for observer in self.observed.get(name, []):
             observer(name)
 
-    def add_observer(self, name, observer):
-        self.observed[name].append(observer)
+    def add_observer(self, name):
+        self.observed[name].append(lambda name: self.changed_attributes.add(name))
 
-    def has_changed(self, name):
-        self.changed_attributes.add(name)
 
 
 @dataclass
@@ -118,7 +116,63 @@ class SecurityGroup:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+@dataclass
+class ScheduledMag:
+    uid: str = ""
+    securityGroupAPIKey: any = None
+    scheduledSecurityGroupUID: str = ""
+    cardholderUID: str = ""
+    toDateValid:str = ""
+    fromDateValid:str = ""
+    status: str = ""
 
+    def __init__(self, *args, **kwargs):
+        scheduled_mags_dict = dict()
+        for arg in args:
+            if isinstance(arg, dict):
+                scheduled_mags_dict = arg
+
+        for k,v in kwargs.items():
+            scheduled_mags_dict[k] = v
+
+        super().__init__()
+
+        #Initialise clss attributes from dictionary
+        for property_name in scheduled_mags_dict:
+            if isinstance(scheduled_mags_dict[property_name], str):
+                setattr(self, property_name, scheduled_mags_dict[property_name])
+
+            if isinstance(scheduled_mags_dict[property_name], type(None)):
+                setattr(self, property_name, None)
+
+            if isinstance(scheduled_mags_dict[property_name], bool):
+                setattr(self, property_name, bool(scheduled_mags_dict[property_name]))
+
+    def dict(self, editable_only=False):
+        c = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, list):
+                c[k] = v
+            elif isinstance(v, dict):
+                c[k] = v
+            elif isinstance(v, bool):
+                c[k] = v
+            elif isinstance(v, int):
+                c[k] = v
+            elif isinstance(v, type(None)):
+                c[k] = None
+            else:
+                c[k] = str(v)
+
+        if editable_only:
+            if 'uid' in c:
+                c.pop('uid')
+            if 'scheduledSecurityGroupUID' in c:
+                c.pop('scheduledSecurityGroupUID')
+            if 'status' in c:
+                c.pop('status')
+
+        return c
 @dataclass
 class CardholderCustomizedField(Observable):
     uid: str = ""
@@ -163,15 +217,15 @@ class CardholderCustomizedField(Observable):
         for property_name in custom_fields_dict:
             if isinstance(custom_fields_dict[property_name], str):
                 setattr(self, property_name, custom_fields_dict[property_name])
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
             if isinstance(custom_fields_dict[property_name], type(None)):
                 setattr(self, property_name, None)
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
             if isinstance(custom_fields_dict[property_name], bool):
                 setattr(self, property_name, bool(custom_fields_dict[property_name]))
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
     def dict(self, changed_only=False):
         c = dict()
@@ -220,11 +274,11 @@ class CardholderPersonalDetail(Observable):
         for property_name in person_details_dict:
             if isinstance(person_details_dict[property_name], str):
                 setattr(self, property_name, person_details_dict[property_name])
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
             if isinstance(person_details_dict[property_name], type(None)):
                 setattr(self, property_name, None)
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
     def dict(self, changed_only=False):
         ch_pd = dict()
@@ -333,15 +387,15 @@ class Cardholder(Observable):
 
             if isinstance(cardholder_dict[property_name], str):
                 setattr(self, property_name, cardholder_dict[property_name])
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
             if isinstance(cardholder_dict[property_name], type(None)):
                 setattr(self, property_name, None)
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
             if isinstance(cardholder_dict[property_name], bool):
                 setattr(self, property_name, bool(cardholder_dict[property_name]))
-                self.add_observer(property_name, self.has_changed)
+                self.add_observer(property_name)
 
     def to_search_pattern(self):
         pattern = ""
