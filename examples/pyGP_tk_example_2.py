@@ -50,7 +50,7 @@ class App(tk.Tk):
                                  search_terms=self.txtLookup.get(),
                                  areas=area_filter_list,
                                  filter_expired=filter_expired,
-                                 sort_algorithm=SortAlgorithm.SERVER_DEFAULT,
+                                 sort_algorithm=SortAlgorithm.FUZZY_MATCH if self.var_chkLookup_fuzzy.get() else SortAlgorithm.SERVER_DEFAULT,
                                  threshold=20)
 
     def got_areas(self, response):
@@ -90,19 +90,23 @@ class App(tk.Tk):
 
         # -------------------- Lookup Frame -------------------- #
 
-        self.var_chkLookup_expired = tk.IntVar()
+        self.var_chkLookup_fuzzy = tk.BooleanVar()
+        self.var_chkLookup_expired = tk.BooleanVar()
+        self.var_chkLookup_expired.set(True)
 
         self.frmLookup = ttk.LabelFrame(self, text=" Cardholder Lookup ", padding=padding)
 
         self.txtLookup = ttk.Entry(self.frmLookup, foreground="blue", background="white", width=50)
+        self.chkLookup_fuzzy = ttk.Checkbutton(self.frmLookup, text="Fuzzy search", variable=self.var_chkLookup_fuzzy)
         self.chkLookup_expired = ttk.Checkbutton(self.frmLookup, text="Include expired", variable=self.var_chkLookup_expired)
         self.btnLookup = ttk.Button(self.frmLookup, text="Lookup Cardholder", command=self.lookup_start)
         self.lblLookup_result = ttk.Label(self.frmLookup, text=" - ", font=("Arial", 16), relief="sunken")
 
-        self.txtLookup.grid(row=1, column=1, columnspan=2, sticky="WE", padx=padding, pady=padding)
-        self.chkLookup_expired.grid(row=2, column=1, sticky="W", padx=padding, pady=padding)
-        self.btnLookup.grid(row=2, column=2, padx=padding, sticky="E", pady=padding)
-        self.lblLookup_result.grid(row=3, column=1, columnspan=2, sticky="WE", padx=padding, pady=padding)
+        self.txtLookup.grid(row=1, column=1, columnspan=3, sticky="WE", padx=padding, pady=padding)
+        self.chkLookup_fuzzy.grid(row=2, column=1, sticky="W", padx=padding, pady=padding)
+        self.chkLookup_expired.grid(row=2, column=2, sticky="W", padx=padding, pady=padding)
+        self.btnLookup.grid(row=2, column=3, padx=padding, sticky="E", pady=padding)
+        self.lblLookup_result.grid(row=3, column=1, columnspan=3, sticky="WE", padx=padding, pady=padding)
 
         self.frmLookup.columnconfigure(1, weight=1)
 
