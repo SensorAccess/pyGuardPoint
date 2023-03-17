@@ -9,6 +9,11 @@ class GuardPointAsync:
         self.gp = GuardPoint(**kwargs)
         self.executor = ThreadPoolExecutor(max_workers=1)
 
+    def new_card_holder(self, on_finished, cardholder: Cardholder):
+        future = self.executor.submit(self.gp.new_card_holder(), cardholder=cardholder)
+        callback = GPAsyncCallBack(on_finished)
+        future.add_done_callback(callback.handle_future)
+
     def get_card_holder(self, on_finished, uid=None, card_code=None):
         future = self.executor.submit(self.gp.get_card_holder, uid=uid, card_code=card_code)
         callback = GPAsyncCallBack(on_finished)

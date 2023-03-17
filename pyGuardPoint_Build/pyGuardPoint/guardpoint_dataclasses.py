@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 
 log = logging.getLogger(__name__)
@@ -316,51 +316,59 @@ class CardholderType:
 
 @dataclass
 class Cardholder(Observable):
-    uid: str
-    lastName: str
-    firstName: str
-    cardholderIdNumber: any
-    status: str
-    fromDateValid: str
-    isFromDateActive: bool
-    toDateValid: str
-    isToDateActive: bool
-    photo: any
-    cardholderType: CardholderType
-    securityGroup: SecurityGroup
-    cardholderPersonalDetail: CardholderPersonalDetail
-    cardholderCustomizedField: CardholderCustomizedField
-    insideArea: Area
-    ownerSiteUID: any
-    securityGroupApiKey: any
-    ownerSiteApiKey: any
-    accessGroupApiKeys: any
-    liftAccessGroupApiKeys: any
-    cardholderTypeUID: any
-    departmentUID: any
-    description: any
-    grantAccessForSupervisor: bool
-    isSupervisor: bool
-    needEscort: bool
-    personalWeeklyProgramUID: any
-    pinCode: str
-    sharedStatus: str
-    securityGroupUID: any
-    accessGroupUIDs: any
-    liftAccessGroupUIDs: any
-    lastDownloadTime: any
-    lastInOutArea: any
-    lastInOutReaderUID: any
-    lastInOutDate: any
-    lastAreaReaderDate: any
-    lastAreaReaderUID: any
-    lastPassDate: any
-    lastReaderPassUID: any
-    insideAreaUID: any
-    cards: list
+    uid: str = ""
+    lastName: str = ""
+    firstName: str = ""
+    cardholderIdNumber: any = None
+    status: str = ""
+    fromDateValid: any = None
+    isFromDateActive: bool = False
+    toDateValid: any = None
+    isToDateActive: bool = False
+    photo: any = None
+    cardholderType: CardholderType = None
+    securityGroup: SecurityGroup = None
+    cardholderPersonalDetail: CardholderPersonalDetail = None
+    cardholderCustomizedField: CardholderCustomizedField = None
+    insideArea: Area = None
+    ownerSiteUID: any = None
+    securityGroupApiKey: any = None
+    ownerSiteApiKey: any = None
+    accessGroupApiKeys: any = None
+    liftAccessGroupApiKeys: any = None
+    cardholderTypeUID: str = "11111111-1111-1111-1111-111111111111"
+    departmentUID: any = None
+    description: str = ""
+    grantAccessForSupervisor: bool = False
+    isSupervisor: bool = False
+    needEscort: bool = False
+    personalWeeklyProgramUID: any = None
+    pinCode: str = ""
+    sharedStatus: any = None
+    securityGroupUID: any = None
+    accessGroupUIDs: any = None
+    liftAccessGroupUIDs: any = None
+    lastDownloadTime: any = None
+    lastInOutArea: any = None
+    lastInOutReaderUID: any = None
+    lastInOutDate: any = None
+    lastAreaReaderDate: any = None
+    lastAreaReaderUID: any = None
+    lastPassDate: any = None
+    lastReaderPassUID: any = None
+    insideAreaUID: any = None
+    cards: list = None
 
-    def __init__(self, cardholder_dict: dict):
+    def __init__(self, *args, **kwargs):
+        cardholder_dict = dict()
+        for arg in args:
+            if isinstance(arg, dict):
+                cardholder_dict = arg
+
+        for k, v in kwargs.items():
+            cardholder_dict[k] = v
         super().__init__()
+
         for property_name in cardholder_dict:
             # If we have a list - For example, a cardholder has many cards - we only take the first entry
             if isinstance(cardholder_dict[property_name], list):
@@ -450,6 +458,8 @@ class Cardholder(Observable):
     def _remove_non_editable(ch: dict):
         if 'uid' in ch:
             ch.pop('uid')
+        if 'ownerSiteUID' in ch:
+            ch.pop('ownerSiteUID')
         if 'lastDownloadTime' in ch:
             ch.pop('lastDownloadTime')
         if 'lastInOutArea' in ch:
@@ -480,6 +490,10 @@ class Cardholder(Observable):
             ch.pop('securityGroup')
         if 'cards' in ch:
             ch.pop('cards')
+        if 'accessGroupUIDs' in ch:
+            ch.pop('accessGroupUIDs')
+        if 'liftAccessGroupUIDs' in ch:
+            ch.pop('liftAccessGroupUIDs')
 
         return ch
 

@@ -68,9 +68,10 @@ class CardholdersAPI:
 
         return True
 
-    def add_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False):
+    def new_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False):
 
-        url = "/odata/API_Cardholders/CreateFullCardholder"
+        #url = "/odata/API_Cardholders/CreateFullCardholder"
+        url = "/odata/API_Cardholders"
 
         headers = {
             'Content-Type': 'application/json',
@@ -78,32 +79,18 @@ class CardholdersAPI:
             'IgnoreNonEditable': ''
         }
 
-        ch = cardholder.dict()
+        ch = cardholder.dict(editable_only=True)
 
-        # Filter out un-settable variables
-        if 'uid' in ch:
-            ch.pop('uid')
-        if 'status' in ch:
-            ch.pop('status')
-        # if 'cardholderType' in body['cardholder']:
-        #    body['cardholder'].pop('cardholderType')
-        if 'securityGroup' in ch:
-            ch.pop('securityGroup')
-        if 'cards' in ch:  # Need to add cards in a second call
-            for card in ch['cards']:
-                if 'uid' in card:
-                    card.pop('uid')
-
-        body = {'cardholder': ch}
+        # When using CreateFullCardholder
+        #body = {'cardholder': ch}
         # print(json.dumps(body))
-        code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
+        code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
 
         if code == 201:  # HTTP CREATED
-            return json_body['value'][0]
+            return Cardholder(json_body)
         elif code == 422:  # unprocessable Entity
             if "errorMessages" in json_body:
-                if json_body["errorMessages"][0]["errorCode"] == 59:  # Cardholder_0_AlreadyExists
-                    self.update_card_holder(cardholder)
+                raise GuardPointError(f'{json_body["errorMessages"][0]["message"]}-{json_body["errorMessages"][0]["other"]}')
         else:
             if "errorMessages" in json_body:
                 raise GuardPointError(json_body["errorMessages"][0]["other"])
