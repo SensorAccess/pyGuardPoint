@@ -1,9 +1,22 @@
 from datetime import datetime
+
+from DateTime import DateTime
+
 from .guardpoint_dataclasses import Area
 
 
-def _compose_filter(search_words=None, areas=None, cardholder_type_name=None, filter_expired=False):
+def _compose_filter(search_words=None,
+                    areas=None,
+                    cardholder_type_name=None,
+                    filter_expired=False,
+                    earliest_last_pass=None):
     filter_phrases = []
+
+    if earliest_last_pass:
+        if isinstance(earliest_last_pass, datetime):
+            last_pass_date = earliest_last_pass.strftime('%Y-%m-%dT%H:%M:%SZ')
+            filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date})')
+
     # Filter out expired cardholders
     if filter_expired:
         # end_of_day = datetime.utcnow().strftime('%Y-%m-%dT23:59:59Z')

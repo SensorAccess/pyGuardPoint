@@ -50,6 +50,7 @@ if __name__ == "__main__":
             cardholder = gp.get_card_holder(uid=cardholder.uid)
             print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Updated")
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
+            print(f"\tcF_StringField_20: {cardholder.cardholderCustomizedField.cF_StringField_20}")
             print(f"\tCards: {cardholder.cards}")
             # cardholder.pretty_print()
 

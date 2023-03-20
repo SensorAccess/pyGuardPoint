@@ -1,4 +1,7 @@
+from datetime import datetime
+
 import validators
+from DateTime import DateTime
 
 from ._odata_filter import _compose_filter
 from ._str_match_algo import fuzzy_match
@@ -52,7 +55,7 @@ class CardholdersAPI:
 
         ch = cardholder.dict(editable_only=True, changed_only=True)
 
-        if len(ch) < 1: # Nothing to update
+        if len(ch) < 1:  # Nothing to update
             return True
 
         url = "/odata/API_Cardholders"
@@ -61,10 +64,8 @@ class CardholdersAPI:
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            #'IgnoreNonEditable': ''
+            # 'IgnoreNonEditable': ''
         }
-
-
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
@@ -80,7 +81,7 @@ class CardholdersAPI:
 
     def new_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False):
 
-        #url = "/odata/API_Cardholders/CreateFullCardholder"
+        # url = "/odata/API_Cardholders/CreateFullCardholder"
         url = "/odata/API_Cardholders"
 
         headers = {
@@ -92,7 +93,7 @@ class CardholdersAPI:
         ch = cardholder.dict(editable_only=True, changed_only=True)
 
         # When using CreateFullCardholder
-        #body = {'cardholder': ch}
+        # body = {'cardholder': ch}
         # print(json.dumps(body))
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
 
@@ -109,7 +110,8 @@ class CardholdersAPI:
 
         elif code == 422:  # unprocessable Entity
             if "errorMessages" in json_body:
-                raise GuardPointError(f'{json_body["errorMessages"][0]["message"]}-{json_body["errorMessages"][0]["other"]}')
+                raise GuardPointError(
+                    f'{json_body["errorMessages"][0]["message"]}-{json_body["errorMessages"][0]["other"]}')
         else:
             if "errorMessages" in json_body:
                 raise GuardPointError(json_body["errorMessages"][0]["other"])
@@ -161,12 +163,15 @@ class CardholdersAPI:
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
-                         count = False):
+                         count: bool = False, earliest_last_pass: datetime = None):
 
         url = "/odata/API_Cardholders"
 
-        filter_str = _compose_filter(search_words=search_terms, areas=areas, filter_expired=filter_expired,
-                                     cardholder_type_name=cardholder_type_name)
+        filter_str = _compose_filter(search_words=search_terms,
+                                     areas=areas,
+                                     filter_expired=filter_expired,
+                                     cardholder_type_name=cardholder_type_name,
+                                     earliest_last_pass=earliest_last_pass)
 
         url_query_params = ("?" + filter_str)
 
@@ -174,13 +179,13 @@ class CardholdersAPI:
             url_query_params += "$count=true&$top=0"
         else:
             url_query_params += "$expand=" \
-                                    "cardholderType($select=typeName)," \
-                                    "cards," \
-                                    "cardholderPersonalDetail," \
-                                    "cardholderCustomizedField," \
-                                    "insideArea," \
-                                    "securityGroup&" \
-                                    "$orderby=fromDateValid%20desc&"
+                                "cardholderType($select=typeName)," \
+                                "cards," \
+                                "cardholderPersonalDetail," \
+                                "cardholderCustomizedField," \
+                                "insideArea," \
+                                "securityGroup&" \
+                                "$orderby=fromDateValid%20desc&"
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
