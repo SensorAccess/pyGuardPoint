@@ -27,30 +27,50 @@ class Observable:
         self.observed[name].append(lambda name: self.changed_attributes.add(name))
 
 
-
 @dataclass
-class Card:
+class Card(Observable):
     technologyType: int = 0
     description: str = ""
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
     cardType: str = "Magnetic"
-    readerFunctionUID: str = ""
+    readerFunctionUID: any = None
     uid: str = ""
 
-    def __init__(self, card_dict: dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        card_dict = dict()
+        for arg in args:
+            if isinstance(arg, dict):
+                card_dict = arg
+
+        for k, v in kwargs.items():
+            if hasattr(Card, k):
+                card_dict[k] = v
+                self.changed_attributes.add(k)
+            else:
+                raise ValueError(f"No such attribute: {k}")
+
         for property_name in card_dict:
             if isinstance(card_dict[property_name], str):
                 setattr(self, property_name, card_dict[property_name])
+                self.add_observer(property_name)
 
             if isinstance(card_dict[property_name], type(None)):
                 setattr(self, property_name, None)
+                self.add_observer(property_name)
 
             if isinstance(card_dict[property_name], bool):
                 setattr(self, property_name, bool(card_dict[property_name]))
+                self.add_observer(property_name)
 
-    def dict(self, editable_only=False):
+    def _remove_non_changed(self, ch: dict):
+        for key, value in list(ch.items()):
+            if key not in self.changed_attributes:
+                ch.pop(key)
+        return ch
+    def dict(self, editable_only=False, changed_only=False):
         c = {}
         for k, v in asdict(self).items():
             if isinstance(v, list):
@@ -69,6 +89,11 @@ class Card:
         if editable_only:
             if 'uid' in c:
                 c.pop('uid')
+            if 'readerFunctionUID' in c:
+                c.pop('readerFunctionUID')
+
+        if changed_only:
+            c = self._remove_non_changed(c)
 
         return c
 
@@ -116,37 +141,44 @@ class SecurityGroup:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+
 @dataclass
-class ScheduledMag:
+class ScheduledMag(Observable):
     uid: str = ""
     securityGroupAPIKey: str = ""
     scheduledSecurityGroupUID: str = ""
     cardholderUID: str = ""
-    toDateValid:str = ""
-    fromDateValid:str = ""
+    toDateValid: str = ""
+    fromDateValid: str = ""
     status: str = ""
 
     def __init__(self, *args, **kwargs):
+        super().__init__()
         scheduled_mags_dict = dict()
         for arg in args:
             if isinstance(arg, dict):
                 scheduled_mags_dict = arg
 
-        for k,v in kwargs.items():
-            scheduled_mags_dict[k] = v
+        for k, v in kwargs.items():
+            if hasattr(ScheduledMag, k):
+                scheduled_mags_dict[k] = v
+                self.changed_attributes.add(k)
+            else:
+                raise ValueError(f"No such attribute: {k}")
 
-        super().__init__()
-
-        #Initialise clss attributes from dictionary
+        # Initialise clss attributes from dictionary
         for property_name in scheduled_mags_dict:
             if isinstance(scheduled_mags_dict[property_name], str):
                 setattr(self, property_name, scheduled_mags_dict[property_name])
+                self.add_observer(property_name)
 
             if isinstance(scheduled_mags_dict[property_name], type(None)):
                 setattr(self, property_name, None)
+                self.add_observer(property_name)
 
             if isinstance(scheduled_mags_dict[property_name], bool):
                 setattr(self, property_name, bool(scheduled_mags_dict[property_name]))
+                self.add_observer(property_name)
 
     def dict(self, editable_only=False):
         c = {}
@@ -171,6 +203,8 @@ class ScheduledMag:
                 c.pop('status')
 
         return c
+
+
 @dataclass
 class CardholderCustomizedField(Observable):
     uid: str = ""
@@ -210,8 +244,20 @@ class CardholderCustomizedField(Observable):
     cF_StringField_19: str = ""
     cF_StringField_20: str = ""
 
-    def __init__(self, custom_fields_dict: dict):
+    def __init__(self, *args, **kwargs):
         super().__init__()
+        custom_fields_dict = dict()
+        for arg in args:
+            if isinstance(arg, dict):
+                custom_fields_dict = arg
+
+        for k, v in kwargs.items():
+            if hasattr(CardholderCustomizedField, k):
+                custom_fields_dict[k] = v
+                self.changed_attributes.add(k)
+            else:
+                raise ValueError(f"No such attribute: {k}")
+
         for property_name in custom_fields_dict:
             if isinstance(custom_fields_dict[property_name], str):
                 setattr(self, property_name, custom_fields_dict[property_name])
@@ -255,20 +301,32 @@ class CardholderCustomizedField(Observable):
 
 @dataclass
 class CardholderPersonalDetail(Observable):
-    officePhone: any
-    cityOrDistrict: str
-    streetOrApartment: str
-    postCode: str
-    privatePhoneOrFax: str
-    mobile: str
-    email: str
-    carRegistrationNum: str
-    company: str
-    idFreeText: str
+    officePhone: str = ""
+    cityOrDistrict: str = ""
+    streetOrApartment: str = ""
+    postCode: str = ""
+    privatePhoneOrFax: str = ""
+    mobile: str = ""
+    email: str = ""
+    carRegistrationNum: str = ""
+    company: str = ""
+    idFreeText: str = ""
     idType: str = "IdentityCard"
 
-    def __init__(self, person_details_dict: dict):
+    def __init__(self, *args, **kwargs):
         super().__init__()
+        person_details_dict = dict()
+        for arg in args:
+            if isinstance(arg, dict):
+                person_details_dict = arg
+
+        for k, v in kwargs.items():
+            if hasattr(CardholderPersonalDetail, k):
+                person_details_dict[k] = v
+                self.changed_attributes.add(k)
+            else:
+                raise ValueError(f"No such attribute: {k}")
+
         for property_name in person_details_dict:
             if isinstance(person_details_dict[property_name], str):
                 setattr(self, property_name, person_details_dict[property_name])
@@ -360,14 +418,18 @@ class Cardholder(Observable):
     cards: list = None
 
     def __init__(self, *args, **kwargs):
+        super().__init__()
         cardholder_dict = dict()
         for arg in args:
             if isinstance(arg, dict):
                 cardholder_dict = arg
 
         for k, v in kwargs.items():
-            cardholder_dict[k] = v
-        super().__init__()
+            if hasattr(Cardholder, k):
+                cardholder_dict[k] = v
+                self.changed_attributes.add(k)
+            else:
+                raise ValueError(f"No such attribute: {k}")
 
         for property_name in cardholder_dict:
             # If we have a list - For example, a cardholder has many cards - we only take the first entry
@@ -378,6 +440,14 @@ class Cardholder(Observable):
                         self.cards.append(Card(card_entry))
                 else:
                     setattr(self, property_name, cardholder_dict[property_name])
+
+            if property_name == "cardholderPersonalDetail":
+                if isinstance(cardholder_dict[property_name], CardholderPersonalDetail):
+                    self.cardholderPersonalDetail = cardholder_dict[property_name]
+
+            if property_name == "cardholderCustomizedField":
+                if isinstance(cardholder_dict[property_name], CardholderCustomizedField):
+                    self.cardholderCustomizedField = cardholder_dict[property_name]
 
             if isinstance(cardholder_dict[property_name], dict):
                 if property_name == "insideArea":

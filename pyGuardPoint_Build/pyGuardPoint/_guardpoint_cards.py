@@ -62,7 +62,34 @@ class CardsAPI:
 
         return True
 
-    def add_card(self, card: Card):
+    def update_card(self, card:Card):
+        if not validators.uuid(card.uid):
+            raise ValueError(f'Malformed Card UID {card.uid}')
+
+        url = "/odata/API_Cards"
+        url_query_params = f"({card.uid})"
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            # 'IgnoreNonEditable': ''
+        }
+
+        ch = card.dict(changed_only=True)
+
+        code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
+
+        if code != 204:  # HTTP NO_CONTENT
+            if 'error' in json_body:
+                raise GuardPointError(json_body['error'])
+            elif 'message' in json_body:
+                raise GuardPointError(json_body['message'])
+            else:
+                raise GuardPointError(str(code))
+
+        return True
+
+    def new_card(self, card: Card):
         url = "/odata/API_Cards"
         headers = {
             'Content-Type': 'application/json',
@@ -73,14 +100,40 @@ class CardsAPI:
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
         if code == 201:  # HTTP CREATED
-            return json_body['uid']
+            return Card(json_body)
         else:
             if "errorMessages" in json_body:
                 raise GuardPointError(json_body["errorMessages"][0]["other"])
-            elif "error" in json_body:
-                raise GuardPointError(json_body["error"]['message'])
+            elif "message" in json_body:
+                raise GuardPointError(json_body['message'])
             else:
                 raise GuardPointError(str(code))
+
+    def get_card(self, card_uid: str):
+        url = "/odata/API_Cards"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        url_query_params = f"({card_uid})"
+
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
+            else:
+                raise GuardPointError(str(code))
+
+        # Check response body is formatted as expected
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+
+        return Card(json_body['value'])
 
     def get_cardholder_by_card_code(self, card_code):
         url = "/odata/API_Cards"
