@@ -21,7 +21,7 @@ class ConvertBase64:
 
 class GuardPointResponse:
     @staticmethod
-    def check_body(response_body):
+    def check_odata_body_structure(response_body):
         if not isinstance(response_body, dict):
             raise GuardPointError("Non-JSON Response Body")
         if '@odata.context' not in response_body:

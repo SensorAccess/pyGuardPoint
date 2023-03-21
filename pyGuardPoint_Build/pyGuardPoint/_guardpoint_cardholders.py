@@ -20,7 +20,7 @@ class CardholdersAPI:
         code, json_body = self.gp_json_query("DELETE", url=(url + url_query_params))
         # Check response body is formatted correctly
         if json_body:
-            GuardPointResponse.check_body(json_body)
+            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
             try:
@@ -72,7 +72,7 @@ class CardholdersAPI:
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
         # Check response body is formatted correctly
         if json_body:
-            GuardPointResponse.check_body(json_body)
+            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
             if 'error' in json_body:
@@ -103,7 +103,7 @@ class CardholdersAPI:
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
         # Check response body is formatted correctly
         if json_body:
-            GuardPointResponse.check_body(json_body)
+            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code == 201:  # HTTP CREATED
             new_cardholder = Cardholder(json_body)
@@ -154,7 +154,7 @@ class CardholdersAPI:
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
         # Check response body is formatted correctly
         if json_body:
-            GuardPointResponse.check_body(json_body)
+            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             if isinstance(json_body, dict):
@@ -196,7 +196,7 @@ class CardholdersAPI:
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
         # Check response body is formatted correctly
         if json_body:
-            GuardPointResponse.check_body(json_body)
+            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             if 'error' in json_body:
