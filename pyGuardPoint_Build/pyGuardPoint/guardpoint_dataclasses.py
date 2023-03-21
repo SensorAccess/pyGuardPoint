@@ -6,7 +6,24 @@ from enum import Enum
 log = logging.getLogger(__name__)
 
 
-def sanitise_args(obj: any, args, kwargs):
+class Observable:
+    # A set of all attributes which get changed
+    changed_attributes = set()
+
+    def __init__(self):
+        self.observed = defaultdict(list)
+
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+
+        for observer in self.observed.get(name, []):
+            observer(name)
+
+    def add_observer(self, name):
+        self.observed[name].append(lambda name: self.changed_attributes.add(name))
+
+
+def sanitise_args(obj: Observable, args, kwargs):
     kwarg_dict = dict()
 
     for arg in args:
@@ -19,7 +36,7 @@ def sanitise_args(obj: any, args, kwargs):
             obj.changed_attributes.add(k)
         else:
             log.debug(f"{obj.__class__.__name__}.{k} - attribute ignored.")
-            #raise ValueError(f"No such attribute: {k}")
+            # raise ValueError(f"No such attribute: {k}")
 
     return kwarg_dict
 
@@ -27,22 +44,6 @@ def sanitise_args(obj: any, args, kwargs):
 class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0,
     FUZZY_MATCH = 1
-
-
-class Observable:
-    def __init__(self):
-        self.observed = defaultdict(list)
-        # A set of all attributes which get changed
-        self.changed_attributes = set()
-
-    def __setattr__(self, name, value):
-        super().__setattr__(name, value)
-
-        for observer in self.observed.get(name, []):
-            observer(name)
-
-    def add_observer(self, name):
-        self.observed[name].append(lambda name: self.changed_attributes.add(name))
 
 
 @dataclass
@@ -144,7 +145,6 @@ class ScheduledMag(Observable):
             if isinstance(scheduled_mags_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, scheduled_mags_dict[property_name])
                 self.add_observer(property_name)
-
 
     def dict(self, editable_only=False):
         c = {}
