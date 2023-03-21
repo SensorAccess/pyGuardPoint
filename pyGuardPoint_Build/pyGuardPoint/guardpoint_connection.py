@@ -3,7 +3,7 @@ import http.client
 import json
 from enum import Enum
 from json import JSONDecodeError
-from .guardpoint_utils import Stopwatch, ConvertBase64
+from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
 import time
 
 

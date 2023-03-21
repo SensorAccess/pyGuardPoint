@@ -1,4 +1,6 @@
 import logging, sys
+from _socket import gaierror
+
 import pkg_resources
 
 sys.path.insert(1, 'pyGuardPoint_Build')
@@ -32,15 +34,14 @@ if __name__ == "__main__":
 
         # New Card
         card = Card(cardType="Magnetic", cardCode="1A1B1C8B")
-        #If we make a new card independently - we must set cardholderUID and status
-        #card = gp.new_card(card=card)
-        #card.cardholderUID = cardholder.uid
-        #card.status = "Used"
+        # If we make a new card independently - we must set cardholderUID and status
+        # card = gp.new_card(card=card)
+        # card.cardholderUID = cardholder.uid
+        # card.status = "Used"
 
         cardholder.cards.append(card)
         cardholder.firstName = "Frank100"
         print(cardholder.changed_attributes)
-
 
         if gp.update_card_holder(cardholder):
             cardholder = gp.get_card_holder(uid=cardholder.uid)
@@ -49,9 +50,9 @@ if __name__ == "__main__":
             print(f"\tCards: {cardholder.cards}")
             # cardholder.pretty_print()
 
-
-
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
+    except gaierror as e:
+        print(f"Get Address Info Failed")
     except Exception as e:
-        print(f"Exception: {e}")
+        print(f"Exception: {type(e)}-{e}")

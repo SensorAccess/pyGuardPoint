@@ -1,12 +1,11 @@
 from datetime import datetime
 
 import validators
-from DateTime import DateTime
-
 from ._odata_filter import _compose_filter
 from ._str_match_algo import fuzzy_match
 from .guardpoint_dataclasses import Cardholder, SortAlgorithm
 from .guardpoint_error import GuardPointError
+from .guardpoint_utils import GuardPointResponse
 
 
 class CardholdersAPI:
@@ -19,6 +18,9 @@ class CardholdersAPI:
         url_query_params = "(" + cardholder.uid + ")"
 
         code, json_body = self.gp_json_query("DELETE", url=(url + url_query_params))
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_body(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
             try:
@@ -68,6 +70,9 @@ class CardholdersAPI:
         }
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_body(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
             if 'error' in json_body:
@@ -96,6 +101,9 @@ class CardholdersAPI:
         # body = {'cardholder': ch}
         # print(json.dumps(body))
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_body(json_body)
 
         if code == 201:  # HTTP CREATED
             new_cardholder = Cardholder(json_body)
@@ -144,6 +152,9 @@ class CardholdersAPI:
                                        "insideArea"
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_body(json_body)
 
         if code != 200:
             if isinstance(json_body, dict):
@@ -151,12 +162,6 @@ class CardholdersAPI:
                     raise GuardPointError(json_body['error'])
             else:
                 raise GuardPointError(str(code))
-
-        # Check response body is formatted as expected
-        if not isinstance(json_body, dict):
-            raise GuardPointError("Badly formatted response.")
-        if 'value' not in json_body:
-            raise GuardPointError("Badly formatted response.")
 
         return Cardholder(json_body['value'][0])
 
@@ -189,18 +194,15 @@ class CardholdersAPI:
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_body(json_body)
 
         if code != 200:
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
-
-        if not isinstance(json_body, dict):
-            raise GuardPointError("Badly formatted response.")
-        if 'value' not in json_body:
-            raise GuardPointError("Badly formatted response.")
-        if not isinstance(json_body['value'], list):
-            raise GuardPointError("Badly formatted response.")
+            if 'error' in json_body:
+                raise GuardPointError(f"{json_body['error']} - ({code})")
+            else:
+                raise GuardPointError(f"No error message - ({code})")
 
         if count:
             return json_body['@odata.count']

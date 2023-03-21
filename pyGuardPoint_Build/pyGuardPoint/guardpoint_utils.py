@@ -2,6 +2,8 @@ import binascii
 import time
 import base64
 
+from .guardpoint_error import GuardPointError
+
 
 class ConvertBase64:
 
@@ -15,6 +17,23 @@ class ConvertBase64:
             return base64.b64decode(text.encode('ascii')).decode('ascii')
         except binascii.Error:
             return base64.b64decode(text.encode('ascii') + b"==").decode('ascii')
+
+
+class GuardPointResponse:
+    @staticmethod
+    def check_body(response_body):
+        if not isinstance(response_body, dict):
+            raise GuardPointError("Non-JSON Response Body")
+        if '@odata.context' not in response_body:
+            raise GuardPointError("Non-ODATA Response Body")
+        if not str(response_body['@odata.context']).endswith("$entity"):
+            # Non entities seem to always appear to contain 'value'
+            if 'value' not in response_body:
+                raise GuardPointError("Empty Response Body")
+            if not isinstance(response_body['value'], list):
+                raise GuardPointError("Malformed Value in Response Body")
+
+        return response_body
 
 
 class Stopwatch:
