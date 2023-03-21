@@ -7,8 +7,6 @@ from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
 
 import pkg_resources
 
-from pyGuardPoint_Build.pyGuardPoint import SortAlgorithm
-
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 if __name__ == "__main__":
