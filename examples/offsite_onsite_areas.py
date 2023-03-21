@@ -16,22 +16,7 @@ if py_gp_version_int < 52:
     exit()
 
 
-def print_class_attributes(obj):
-    if not hasattr(obj, '__dict__'):
-        # obj is not user defined class
-        return
-
-    for attribute_name in obj.__dict__:
-        attribute = getattr(obj, attribute_name)
-        if hasattr(attribute, '__dict__'):
-            print(f"{attribute_name}:")
-            print_class_attributes(attribute)
-        else:
-            print(f"\t{attribute_name:<25}" + str(attribute))
-
-
 if __name__ == "__main__":
-    print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
