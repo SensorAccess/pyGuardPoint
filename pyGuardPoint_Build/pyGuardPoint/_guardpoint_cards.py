@@ -1,6 +1,7 @@
 import json
 import validators
 
+from ._odata_filter import _compose_select
 from .guardpoint_dataclasses import Card, Cardholder
 from .guardpoint_error import GuardPointError
 
@@ -62,7 +63,7 @@ class CardsAPI:
 
         return True
 
-    def update_card(self, card:Card):
+    def update_card(self, card: Card):
         if not validators.uuid(card.uid):
             raise ValueError(f'Malformed Card UID {card.uid}')
 
@@ -137,15 +138,16 @@ class CardsAPI:
 
     def get_cardholder_by_card_code(self, card_code):
         url = "/odata/API_Cards"
-        url_query_params = f"?$filter=cardcode%20eq%20'{card_code}'%20and%20status%20eq%20'Used'%20" \
-                           "&$expand=cardholder(" \
+        filter_str = f"?$filter=cardcode%20eq%20'{card_code}'%20and%20status%20eq%20'Used'%20&"
+        url_query_params = f"{filter_str}" \
+                           f"$expand=cardholder(" \
                            "$expand=securityGroup($select=name)," \
                            "cardholderType($select=typeName)," \
                            "cards," \
                            "cardholderPersonalDetail," \
                            "cardholderCustomizedField," \
                            "securityGroup," \
-                           "insideArea)"
+                           "insideArea)" \
 
         headers = {
             'Content-Type': 'application/json',

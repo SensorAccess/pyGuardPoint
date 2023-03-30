@@ -137,6 +137,26 @@ class CardholdersAPI:
         else:
             return self._get_card_holder(uid)
 
+    def get_card_holder_photo(self, uid):
+        if not validators.uuid(uid):
+            raise ValueError(f'Malformed UID {uid}')
+
+        url = "/odata/API_Cardholders"
+        url_query_params = "(" + uid + ")?$select=photo"
+
+        code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
+        # Check response body is formatted correctly
+        if json_body:
+            GuardPointResponse.check_odata_body_structure(json_body)
+
+        if code != 200:
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    raise GuardPointError(json_body['error'])
+            else:
+                raise GuardPointError(str(code))
+
+        return json_body['value'][0]['photo']
     def _get_card_holder(self, uid):
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')
@@ -181,7 +201,7 @@ class CardholdersAPI:
         select_str = _compose_select(property_ignore_list)
 
         url_query_params = ("?" + select_str + filter_str)
-        #url_query_params = ("?" + filter_str)
+        # url_query_params = ("?" + filter_str)
 
         if count:
             url_query_params += "$count=true&$top=0"

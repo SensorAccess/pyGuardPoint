@@ -16,12 +16,17 @@ if __name__ == "__main__":
 
     try:
         #cardholder = gp.get_card_holder(card_code='1B1A1B1C')
-        #cardholder = gp.get_card_holder(uid='0eb37f82-829a-425c-9a37-48f45a350600')
+        #print("Cardholder:")
+        #cardholder.pretty_print()
+
         cardholders = gp.get_card_holders(search_terms="Ada Lovelace",
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
                                           property_ignore_list=['firstName', 'ownerSiteUID', 'photo'])
         print("Cardholder:")
         cardholders[0].pretty_print()
+
+        photo = gp.get_card_holder_photo(uid=cardholders[0].uid)
+        print(f"Photo:{photo}")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
