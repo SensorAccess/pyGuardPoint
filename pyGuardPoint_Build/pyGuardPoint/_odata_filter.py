@@ -1,10 +1,27 @@
 from datetime import datetime
-
-from DateTime import DateTime
-
-from .guardpoint_dataclasses import Area
+from .guardpoint_dataclasses import Area, Cardholder
 
 
+def _compose_select(ignore_list):
+    if not ignore_list:
+        return "$select=*&"
+
+    ch = Cardholder()
+    ch_dict = ch.dict()
+    select_properties = []
+    for k in ch_dict:
+        if k not in ignore_list:
+            select_properties.append(k)
+
+    select_str = ""
+    if len(select_properties) > 0:
+        select_str += "$select="
+        select_str += f"{','.join(select_properties)}"
+        select_str += "&"
+    else:
+        select_str = "$select=*&"
+
+    return select_str
 def _compose_filter(search_words=None,
                     areas=None,
                     cardholder_type_name=None,

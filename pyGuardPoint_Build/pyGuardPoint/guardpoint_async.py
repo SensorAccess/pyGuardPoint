@@ -26,13 +26,15 @@ class GuardPointAsync:
                          sort_algorithm=SortAlgorithm.SERVER_DEFAULT,
                          threshold=75,
                          count=False,
-                         earliest_last_pass=None):
+                         earliest_last_pass=None,
+                         property_ignore_list=None):
 
         future = self.executor.submit(self.gp.get_card_holders, offset=offset, limit=limit, search_terms=search_terms,
                                       cardholder_type_name=cardholder_type_name, areas=areas,
                                       filter_expired=filter_expired,
                                       sort_algorithm=sort_algorithm, threshold=threshold,
-                                      count=count, earliest_last_pass=earliest_last_pass)
+                                      count=count, earliest_last_pass=earliest_last_pass,
+                                      property_ignore_list=property_ignore_list)
         callback = GPAsyncCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
