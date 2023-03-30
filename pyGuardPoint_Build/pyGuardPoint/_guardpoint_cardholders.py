@@ -199,10 +199,13 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
-            if 'error' in json_body:
-                raise GuardPointError(f"{json_body['error']} - ({code})")
+            if json_body:
+                if 'error' in json_body:
+                    raise GuardPointError(f"{json_body['error']} - ({code})")
+                else:
+                    raise GuardPointError(f"No error message - ({code})")
             else:
-                raise GuardPointError(f"No error message - ({code})")
+                raise GuardPointError(f"No body - ({code})")
 
         if count:
             return json_body['@odata.count']

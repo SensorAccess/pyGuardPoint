@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 class GuardPointConnection:
 
-    def __init__(self, host, port, auth, user, pwd, key):
+    def __init__(self, host, port, auth, user, pwd, key, token=None):
         self.host = host
         self.port = port
         if not isinstance(auth, GuardPointAuthType):
@@ -27,12 +27,19 @@ class GuardPointConnection:
         self.pwd = pwd
         self.key = key
         self.baseurl = f"http://{host}:{port}"
-        self.token = None
-        self.token_issued = 0
-        self.token_expiry = 0
+        if token:
+            self.set_token(token)
+        else:
+            self.token = None
+            self.token_issued = 0
+            self.token_expiry = 0
         log.info(f"GP10 server connection: {host}:{port}")
         self.connection = http.client.HTTPConnection(self.host, self.port)
 
+    def get_token(self):
+        if not self.token:
+            self._new_token()
+        return self.token
     def set_token(self, gp_token):
         self.token = gp_token
         token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))

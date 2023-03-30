@@ -24,7 +24,8 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         user = kwargs.get('username', "admin")
         pwd = kwargs.get('pwd', "admin")
         key = kwargs.get('key', "00000000-0000-0000-0000-000000000000")
-        super().__init__(host=host, port=port, auth=auth, user=user, pwd=pwd, key=key)
+        token = kwargs.get('token', None)
+        super().__init__(host=host, port=port, auth=auth, user=user, pwd=pwd, key=key, token=token)
 
 
 
