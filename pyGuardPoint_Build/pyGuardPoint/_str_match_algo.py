@@ -6,6 +6,9 @@ import Levenshtein
 
 
 def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
+    if not search_words:
+        return cardholders
+
     cardholder_patterns = []
     for cardholder in cardholders:
         cardholder_patterns.append(cardholder.to_search_pattern())

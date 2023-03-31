@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import validators
-from ._odata_filter import _compose_filter, _compose_select
+from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
 from .guardpoint_dataclasses import Cardholder, SortAlgorithm
 from .guardpoint_error import GuardPointError
@@ -188,7 +188,8 @@ class CardholdersAPI:
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
-                         count: bool = False, earliest_last_pass: datetime = None, property_ignore_list: list = None):
+                         count: bool = False, earliest_last_pass: datetime = None,
+                         select_ignore_list: list = None, select_include_list: list = None):
 
         url = "/odata/API_Cardholders"
 
@@ -198,22 +199,17 @@ class CardholdersAPI:
                                      cardholder_type_name=cardholder_type_name,
                                      earliest_last_pass=earliest_last_pass)
 
-        select_str = _compose_select(property_ignore_list)
+        select_str = _compose_select(select_ignore_list, select_include_list)
 
-        url_query_params = ("?" + select_str + filter_str)
+        expand_str = _compose_expand(select_ignore_list, select_include_list)
+
+        url_query_params = ("?" + select_str + expand_str + filter_str)
         # url_query_params = ("?" + filter_str)
 
         if count:
             url_query_params += "$count=true&$top=0"
         else:
-            url_query_params += "$expand=" \
-                                "cardholderType($select=typeName)," \
-                                "cards," \
-                                "cardholderPersonalDetail," \
-                                "cardholderCustomizedField," \
-                                "insideArea," \
-                                "securityGroup&" \
-                                "$orderby=fromDateValid%20desc&"
+            url_query_params += "$orderby=fromDateValid%20desc&"
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))

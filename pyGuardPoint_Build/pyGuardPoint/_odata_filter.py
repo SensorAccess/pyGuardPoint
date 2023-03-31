@@ -2,16 +2,60 @@ from datetime import datetime
 from .guardpoint_dataclasses import Area, Cardholder
 
 
-def _compose_select(ignore_list):
-    if not ignore_list:
+def _compose_expand(ignore_list, include_list):
+    expand_attribs = ['cardholderType', 'cards', 'cardholderPersonalDetail', 'cardholderCustomizedField', 'insideArea',
+                      'securityGroup']
+    expand_str = ""
+    if not ignore_list and not include_list:
+        expand_str += "$expand="
+        expand_str += f"{','.join(expand_attribs)}"
+        expand_str += "&"
+        return expand_str
+
+    expand_list = []
+    if include_list:
+        for e in expand_attribs:
+            if e in include_list:
+                if ignore_list:
+                    if e not in ignore_list:
+                        expand_list.append(e)
+                else:
+                    expand_list.append(e)
+    else:
+        if ignore_list:
+            for e in expand_attribs:
+                if e not in ignore_list:
+                    expand_list.append(e)
+
+    expand_str = ""
+    if len(expand_list) > 0:
+        expand_str += "$expand="
+        expand_str += f"{','.join(expand_list)}"
+        expand_str += "&"
+
+    return expand_str
+
+
+def _compose_select(ignore_list, include_list):
+    if not ignore_list and not include_list:
         return "$select=*&"
 
     ch = Cardholder()
     ch_dict = ch.dict()
     select_properties = []
-    for k in ch_dict:
-        if k not in ignore_list:
-            select_properties.append(k)
+    if include_list:
+        for k in ch_dict:
+            if k in include_list:
+                if ignore_list:
+                    if k not in ignore_list:
+                        select_properties.append(k)
+                else:
+                    select_properties.append(k)
+    else:
+        if ignore_list:
+            for k in ch_dict:
+                if k not in ignore_list:
+                    select_properties.append(k)
 
     select_str = ""
     if len(select_properties) > 0:
@@ -22,6 +66,8 @@ def _compose_select(ignore_list):
         select_str = "$select=*&"
 
     return select_str
+
+
 def _compose_filter(search_words=None,
                     areas=None,
                     cardholder_type_name=None,
@@ -49,7 +95,7 @@ def _compose_filter(search_words=None,
         if isinstance(areas, Area):
             filter_phrases.append(f"(insideAreaUID%20eq%20{areas.uid})")
         if isinstance(areas, list):
-            if len(areas) > 0 :
+            if len(areas) > 0:
                 area_phrases = []
                 for area in areas:
                     if isinstance(area, Area):

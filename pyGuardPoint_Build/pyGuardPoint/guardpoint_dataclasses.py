@@ -377,22 +377,27 @@ class Cardholder(Observable):
             pattern += self.firstName + " "
         if self.lastName:
             pattern += self.lastName + " "
-        if self.cardholderPersonalDetail.company:
-            pattern += self.cardholderPersonalDetail.company + " "
-        if self.cardholderPersonalDetail.email:
-            pattern += self.cardholderPersonalDetail.email
+        if self.cardholderPersonalDetail:
+            if self.cardholderPersonalDetail.company:
+                pattern += self.cardholderPersonalDetail.company + " "
+            if self.cardholderPersonalDetail.email:
+                pattern += self.cardholderPersonalDetail.email
         return pattern
 
     def pretty_print(self, obj: object = None):
-        if obj == None:
+        if obj is None:
             obj = self
         for attribute_name in obj.__dict__:
-            attribute = getattr(obj, attribute_name)
-            if hasattr(attribute, '__dict__'):
-                print(f"{attribute_name}:")
-                obj.pretty_print(attribute)
-            else:
-                print(f"\t{attribute_name:<25}" + str(attribute))
+            if attribute_name != 'observed':
+                attribute = getattr(obj, attribute_name)
+                if isinstance(attribute, list):
+                    print(f"{attribute_name}:")
+                    print(f"\t{str(attribute)}")
+                elif hasattr(attribute, '__dict__'):
+                    print(f"{attribute_name}:")
+                    obj.pretty_print(attribute)
+                else:
+                    print(f"\t{attribute_name:<25}" + str(attribute))
 
     def dict(self, editable_only=False, changed_only=False):
         ch = dict()
