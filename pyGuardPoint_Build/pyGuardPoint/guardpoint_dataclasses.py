@@ -262,17 +262,23 @@ class CardholderPersonalDetail(Observable):
                 self.add_observer(property_name)
 
     def dict(self, changed_only=False):
-        ch_pd = dict()
+        ch = dict()
         for k, v in asdict(self).items():
-            if isinstance(v, type(None)):
-                ch_pd[k] = None
+            if isinstance(v, (list, dict, bool, int)):
+                ch[k] = v
+            elif isinstance(v, type(None)):
+                pass
+                # ch[k] = None
+            elif isinstance(v, str):
+                if len(v) > 0:
+                    ch[k] = str(v)
             else:
-                ch_pd[k] = str(v)
+                pass
 
         if changed_only:
-            ch_pd = self._remove_non_changed(ch_pd)
+            ch = self._remove_non_changed(ch)
 
-        return ch_pd
+        return ch
 
     def _remove_non_changed(self, ch: dict):
         for key, value in list(ch.items()):
@@ -295,11 +301,11 @@ class Cardholder(Observable):
     lastName: str = ""
     firstName: str = ""
     cardholderIdNumber: any = None
-    status: str = ""
+    status: any = None
     fromDateValid: any = None
-    isFromDateActive: bool = False
+    isFromDateActive: any = None
     toDateValid: any = None
-    isToDateActive: bool = False
+    isToDateActive: any = None
     photo: any = None
     cardholderType: CardholderType = None
     securityGroup: SecurityGroup = None
@@ -314,9 +320,9 @@ class Cardholder(Observable):
     cardholderTypeUID: str = ""
     departmentUID: any = None
     description: str = ""
-    grantAccessForSupervisor: bool = False
-    isSupervisor: bool = False
-    needEscort: bool = False
+    grantAccessForSupervisor: any = None
+    isSupervisor: any = None
+    needEscort: any = None
     personalWeeklyProgramUID: any = None
     pinCode: str = ""
     sharedStatus: str = ""
@@ -405,9 +411,13 @@ class Cardholder(Observable):
             if isinstance(v, (list, dict, bool, int)):
                 ch[k] = v
             elif isinstance(v, type(None)):
-                ch[k] = None
+                pass
+                #ch[k] = None
+            elif isinstance(v, str):
+                if len(v) > 0:
+                    ch[k] = str(v)
             else:
-                ch[k] = str(v)
+                pass
 
         if editable_only:
             ch = self._remove_non_editable(ch)

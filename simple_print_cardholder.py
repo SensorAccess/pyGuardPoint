@@ -1,4 +1,6 @@
 import logging, sys
+from pprint import pprint
+
 import pkg_resources
 # Use PyPi Module
 #from pyGuardPoint import GuardPoint, GuardPointError
@@ -27,7 +29,8 @@ if __name__ == "__main__":
                                           select_ignore_list=['cardholderCustomizedField', 'ownerSiteUID',
                                                               'photo'])
         print("Cardholder:")
-        cardholders[0].pretty_print()
+        #cardholders[0].pretty_print()
+        pprint(cardholders[0].dict())
 
         photo = gp.get_card_holder_photo(uid=cardholders[0].uid)
         print(f"Photo:{photo}")
