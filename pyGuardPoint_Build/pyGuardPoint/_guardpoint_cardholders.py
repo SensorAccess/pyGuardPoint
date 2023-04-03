@@ -3,7 +3,7 @@ from datetime import datetime
 import validators
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
-from .guardpoint_dataclasses import Cardholder, SortAlgorithm
+from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area
 from .guardpoint_error import GuardPointError
 from .guardpoint_utils import GuardPointResponse
 
@@ -32,6 +32,19 @@ class CardholdersAPI:
                 raise GuardPointError(str(code))
 
         return True
+
+    def update_card_holder_area(self, cardholder_uid: str, area: Area):
+        if not validators.uuid(cardholder_uid):
+            raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
+
+        if not validators.uuid(area.uid):
+            raise ValueError(f'Malformed Area UID {area.uid}')
+
+        cardholder = Cardholder()
+        cardholder.uid = cardholder_uid
+        cardholder.insideAreaUID = area.uid
+
+        return self.update_card_holder(cardholder)
 
     def update_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
@@ -157,6 +170,7 @@ class CardholdersAPI:
                 raise GuardPointError(str(code))
 
         return json_body['value'][0]['photo']
+
     def _get_card_holder(self, uid):
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')

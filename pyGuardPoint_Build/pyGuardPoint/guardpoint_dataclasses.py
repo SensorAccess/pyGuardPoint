@@ -375,7 +375,12 @@ class Cardholder(Observable):
 
             if isinstance(cardholder_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, cardholder_dict[property_name])
-                self.add_observer(property_name)
+
+        # Monitor Changes
+        for k, v in asdict(self).items():
+            if isinstance(v, (str, type(None), bool, int)):
+                self.add_observer(k)
+
 
     def to_search_pattern(self):
         pattern = ""

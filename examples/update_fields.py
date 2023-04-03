@@ -1,6 +1,7 @@
 import logging, sys
 import pkg_resources
-from pyGuardPoint import GuardPoint, GuardPointError
+from pyGuardPoint import GuardPoint, GuardPointError, Cardholder
+
 #from strgen import StringGenerator # pip install StringGenerator
 #Test
 
@@ -43,6 +44,10 @@ if __name__ == "__main__":
             print(f"\tcF_StringField_20: {updated_cardholder.cardholderCustomizedField.cF_StringField_20}")
             print(f"\tdescription: {updated_cardholder.description}")
             print(f"\tcityOrDistrict: {updated_cardholder.cardholderPersonalDetail.cityOrDistrict}")
+
+
+
+
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
