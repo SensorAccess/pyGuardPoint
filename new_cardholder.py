@@ -10,7 +10,7 @@ from pyGuardPoint_Build.pyGuardPoint.guardpoint_dataclasses import CardholderPer
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="password")
 
     try:
         cardholders = gp.get_card_holders(search_terms="Owen9700")

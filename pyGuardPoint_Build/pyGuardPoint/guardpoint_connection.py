@@ -17,24 +17,37 @@ log = logging.getLogger(__name__)
 
 class GuardPointConnection:
 
-    def __init__(self, host, port, auth, user, pwd, key, token=None):
-        self.host = host
-        self.port = port
+    def __init__(self, url_components, auth, user, pwd, key, token=None):
+        self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
             raise ValueError("Parameter authType must be instance of GuardPointAuthType")
         self.authType = auth
         self.user = user
         self.pwd = pwd
         self.key = key
-        self.baseurl = f"http://{host}:{port}"
+        if url_components['host'] == '':
+            raise ValueError("Invalid Connection URL")
+        if url_components['scheme'] == '':
+            url_components['scheme'] = 'http'
+        if not url_components['port']:
+            if url_components['scheme'] == 'http':
+                url_components['port'] = 80
+            elif url_components['scheme'] == 'https':
+                url_components['port'] = 443
+        self.baseurl = f"{url_components['scheme']}://{url_components['host']}:{url_components['port']}"
         if token:
             self.set_token(token)
         else:
             self.token = None
             self.token_issued = 0
             self.token_expiry = 0
-        log.info(f"GP10 server connection: {host}:{port}")
-        self.connection = http.client.HTTPConnection(self.host, self.port)
+        log.info(f"GP10 server connection: {self.baseurl}")
+        if url_components['scheme'] == 'https':
+            self.connection = http.client.HTTPSConnection(host=url_components['host'], port=url_components['port'])
+        elif url_components['scheme'] == 'http':
+            self.connection = http.client.HTTPConnection(host=url_components['host'], port=url_components['port'])
+        else:
+            raise ValueError("Invalid Connection Scheme")
 
     def get_token(self):
         if not self.token:
@@ -85,7 +98,7 @@ class GuardPointConnection:
         if auth_str:
             headers['Authorization'] = auth_str
 
-        log.debug(f"Request data: host={self.host}:{self.port}, {method}, {url}, {headers}, {raw_body}")
+        log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
         timer = Stopwatch().start()
 
         self.connection.request(method, url, raw_body, headers)

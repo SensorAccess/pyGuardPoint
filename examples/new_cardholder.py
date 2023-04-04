@@ -6,14 +6,14 @@ from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPers
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
 py_gp_version_int = int(py_gp_version.replace('.', ''))
-if py_gp_version_int < 55:
+if py_gp_version_int < 65:
     print("Please Update pyGuardPoint")
     print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
     exit()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="http://sensoraccess.duckdns.org:10695", pwd="password")
 
     try:
         cardholders = gp.get_card_holders(search_terms="Owen9700")

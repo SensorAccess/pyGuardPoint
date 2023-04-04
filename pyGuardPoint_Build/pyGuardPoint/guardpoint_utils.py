@@ -1,8 +1,30 @@
 import binascii
 import time
 import base64
+from urllib.parse import urlparse
 
 from .guardpoint_error import GuardPointError
+
+
+def url_parser(url):
+    parts = urlparse(url)
+    directories = parts.path.strip('/').split('/')
+    queries = parts.query.strip('&').split('&')
+    host = parts.netloc.strip(':').split(':')[0]
+
+    elements = {
+        'scheme': parts.scheme,
+        'host': host,
+        'path': parts.path,
+        'params': parts.params,
+        'query': parts.query,
+        'port': parts.port,
+        'fragment': parts.fragment,
+        'directories': directories,
+        'queries': queries,
+    }
+
+    return elements
 
 
 class ConvertBase64:

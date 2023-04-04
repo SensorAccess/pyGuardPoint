@@ -15,7 +15,7 @@ if py_gp_version_int < 63:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="http://sensoraccess.duckdns.org", pwd="password")
 
     try:
         areas = gp.get_areas()
