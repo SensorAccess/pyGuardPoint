@@ -25,12 +25,13 @@ if __name__ == "__main__":
                 print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Deleted")
 
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
-        cardholder_cf = CardholderCustomizedField(cF_StringField_20="hello")
+        cardholder_cf = CardholderCustomizedField()
+        setattr(cardholder_cf, "cF_StringField_20", "hello")
         cardholder = Cardholder(firstName="John", lastName="Owen9700",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf)
         cardholder = gp.new_card_holder(cardholder)
-        print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Created")
+        print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
 
         # New Card
         card = Card(cardType="Magnetic", cardCode="1A1B1C8B")

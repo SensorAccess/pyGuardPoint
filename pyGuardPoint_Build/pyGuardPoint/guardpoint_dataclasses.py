@@ -211,7 +211,11 @@ class CardholderCustomizedField(Observable):
         for property_name in custom_fields_dict:
             if isinstance(custom_fields_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, custom_fields_dict[property_name])
-                self.add_observer(property_name)
+
+        # Monitor Changes
+        for k, v in asdict(self).items():
+            if isinstance(v, (str, type(None), bool, int)):
+                self.add_observer(k)
 
     def dict(self, changed_only=False):
         c = dict()
@@ -259,7 +263,11 @@ class CardholderPersonalDetail(Observable):
         for property_name in person_details_dict:
             if isinstance(person_details_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, person_details_dict[property_name])
-                self.add_observer(property_name)
+
+        # Monitor Changes
+        for k, v in asdict(self).items():
+            if isinstance(v, (str, type(None), bool, int)):
+                self.add_observer(k)
 
     def dict(self, changed_only=False):
         ch = dict()
