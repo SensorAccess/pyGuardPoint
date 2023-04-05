@@ -1,13 +1,19 @@
 import json
 import validators
 
-from ._odata_filter import _compose_select
+from ._odata_filter import _compose_select, _compose_filter
 from .guardpoint_dataclasses import Card, Cardholder
 from .guardpoint_error import GuardPointError
 
 
 class CardsAPI:
-    def get_cards(self, count=False):
+    def get_cards(self, count=False, **card_kwargs):
+        # Filter arguments which have to exact match
+        match_args = dict()
+        for k, v in card_kwargs.items():
+            if hasattr(Card, k):
+                match_args[k] = v
+
         url = "/odata/API_Cards"
         headers = {
             'Content-Type': 'application/json',
@@ -15,9 +21,12 @@ class CardsAPI:
         }
 
         if count:
-            url += "?$count=true&$top=0"
+            url_query_params = "?$count=true&$top=0"
+        else:
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params = ("?" + filter_str)
 
-        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
 
         if code != 200:
             if isinstance(json_body, dict):
