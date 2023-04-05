@@ -25,6 +25,7 @@ class Observable:
 
 def sanitise_args(obj: Observable, args, kwargs):
     kwarg_dict = dict()
+    obj.changed_attributes = set()
 
     for arg in args:
         if isinstance(arg, dict):
@@ -64,7 +65,11 @@ class Card(Observable):
         for property_name in card_dict:
             if isinstance(card_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, card_dict[property_name])
-                self.add_observer(property_name)
+
+        # Monitor Changes
+        for k, v in asdict(self).items():
+            if isinstance(v, (str, type(None), bool, int)):
+                self.add_observer(k)
 
     def _remove_non_changed(self, ch: dict):
         for key, value in list(ch.items()):
@@ -357,7 +362,10 @@ class Cardholder(Observable):
                 if property_name == "cards":
                     setattr(self, property_name, [])
                     for card_entry in cardholder_dict[property_name]:
-                        self.cards.append(Card(card_entry))
+                        if isinstance(card_entry, Card):
+                            self.cards.append(card_entry)
+                        else:
+                            self.cards.append(Card(card_entry))
                 else:
                     setattr(self, property_name, cardholder_dict[property_name])
 

@@ -24,6 +24,7 @@ if __name__ == "__main__":
             if gp.delete_card_holder(cardholder):
                 print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Deleted")
 
+        #card = Card(cardType="Magnetic", cardCode="3F1B1C8E")
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")

@@ -126,6 +126,14 @@ class CardholdersAPI:
             if cardholder.cardholderCustomizedField:
                 self.update_custom_fields(cardholder_uid=new_cardholder.uid,
                                           customFields=cardholder.cardholderCustomizedField)
+            if cardholder.cards:
+                if isinstance(cardholder.cards, list):
+                    for card in cardholder.cards:
+                        if validators.uuid(card.uid):
+                            self.update_card(card)
+                        else:
+                            card.cardholderUID = new_cardholder.uid
+                            self.new_card(card)
 
             return self._get_card_holder(new_cardholder.uid)
 
