@@ -1,5 +1,6 @@
 from datetime import datetime
 from .guardpoint_dataclasses import Area, Cardholder
+from urllib.parse import quote
 
 
 def _compose_expand(ignore_list, include_list):
@@ -79,7 +80,7 @@ def _compose_filter(search_words=None,
     if exact_match:
         if isinstance(exact_match, dict):
             for k,v in exact_match.items():
-                filter_phrases.append(f"({k}%20eq%20'{v}')")
+                filter_phrases.append(f"({k}%20eq%20'{quote(v)}')")
 
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):

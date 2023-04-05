@@ -13,7 +13,7 @@ if __name__ == "__main__":
     gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="password")
 
     try:
-        cardholders = gp.get_card_holders(search_terms="Owen9700")
+        cardholders = gp.get_card_holders(search_terms="Owen456")
         for cardholder in cardholders:
             # Delete all cardholders cards first
             for card in cardholder.cards:
@@ -27,7 +27,7 @@ if __name__ == "__main__":
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")
-        cardholder = Cardholder(firstName="John", lastName="Owen9700",
+        cardholder = Cardholder(firstName="John", lastName="Trent Owen456",
                                 insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf)
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
 
         # New Card
-        card = Card(cardType="Magnetic", cardCode="1A1B1C8B")
+        card = Card(cardType="Magnetic", cardCode="1A1B1C8C")
         # If we make a new card independently - we must set cardholderUID and status
         # card = gp.new_card(card=card)
         # card.cardholderUID = cardholder.uid
