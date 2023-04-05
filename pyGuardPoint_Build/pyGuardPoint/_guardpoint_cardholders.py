@@ -203,7 +203,14 @@ class CardholdersAPI:
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
                          count: bool = False, earliest_last_pass: datetime = None,
-                         select_ignore_list: list = None, select_include_list: list = None):
+                         select_ignore_list: list = None, select_include_list: list = None,
+                         **cardholder_kwargs):
+
+        # Filter arguments which have to exact match
+        match_args = dict()
+        for k, v in cardholder_kwargs.items():
+            if hasattr(Cardholder, k):
+                match_args[k] = v
 
         url = "/odata/API_Cardholders"
 
@@ -211,7 +218,8 @@ class CardholdersAPI:
                                      areas=areas,
                                      filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name,
-                                     earliest_last_pass=earliest_last_pass)
+                                     earliest_last_pass=earliest_last_pass,
+                                     exact_match=match_args)
 
         select_str = _compose_select(select_ignore_list, select_include_list)
 

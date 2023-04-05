@@ -28,6 +28,7 @@ if __name__ == "__main__":
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")
         cardholder = Cardholder(firstName="John", lastName="Owen9700",
+                                insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf)
         cardholder = gp.new_card_holder(cardholder)

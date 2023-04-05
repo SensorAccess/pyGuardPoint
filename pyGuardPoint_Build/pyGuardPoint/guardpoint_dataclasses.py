@@ -424,8 +424,7 @@ class Cardholder(Observable):
             if isinstance(v, (list, dict, bool, int)):
                 ch[k] = v
             elif isinstance(v, type(None)):
-                pass
-                #ch[k] = None
+                ch[k] = None
             elif isinstance(v, str):
                 if len(v) > 0:
                     ch[k] = str(v)

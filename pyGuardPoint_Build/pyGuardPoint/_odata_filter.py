@@ -72,8 +72,14 @@ def _compose_filter(search_words=None,
                     areas=None,
                     cardholder_type_name=None,
                     filter_expired=False,
-                    earliest_last_pass=None):
+                    earliest_last_pass=None,
+                    exact_match=None):
     filter_phrases = []
+
+    if exact_match:
+        if isinstance(exact_match, dict):
+            for k,v in exact_match.items():
+                filter_phrases.append(f"({k}%20eq%20'{v}')")
 
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):
