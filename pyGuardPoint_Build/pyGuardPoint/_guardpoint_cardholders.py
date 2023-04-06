@@ -198,6 +198,9 @@ class CardholdersAPI:
         if json_body:
             GuardPointResponse.check_odata_body_structure(json_body)
 
+        if code == 404: # Not Found
+            return None
+
         if code != 200:
             if isinstance(json_body, dict):
                 if 'error' in json_body:

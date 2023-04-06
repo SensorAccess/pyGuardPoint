@@ -11,16 +11,35 @@ if py_gp_version_int < 61:
     print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
     exit()
 
-
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
     try:
-        #cardholder = gp.get_card_holder(card_code='1B1A1B1C')
-        #print("Cardholder:")
-        #cardholder.pretty_print()
+        gp.get_card_holder(uid='7922a114-2f56-472c-9aeb-53903dba69cb')
+        # cardholder = gp.get_card_holder(card_code='1B1A1B1C')
+        # print("Cardholder:")
+        # cardholder.pretty_print()
+        cardholders = gp.get_card_holders(search_terms="john owen78",
+                                          cardholder_type_name='Visitor',
+                                          select_ignore_list=['cardholderCustomizedField',
+                                                              'cardholderPersonalDetail',
+                                                              'securityGroup',
+                                                              'cards',
+                                                              'photo'],
+                                          select_include_list=['uid', 'lastName', 'firstName', 'lastPassDate',
+                                                               'insideArea'],
+                                          sort_algorithm=SortAlgorithm.FUZZY_MATCH,
+                                          threshold=70
+                                          )
+        for cardholder in cardholders:
+            print("Cardholder:")
+            print(f"\t{cardholder.lastName}")
+            print(cardholder.dict(non_empty_only=True))
+            #cardholder.pretty_print()
 
+        # Example Using Fuzzy Matching & select_lists
+        '''
         cardholders = gp.get_card_holders(search_terms="Ada Lovelace",
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
                                           threshold=100,
@@ -34,6 +53,7 @@ if __name__ == "__main__":
             cardholder.pretty_print()
             photo = gp.get_card_holder_photo(uid=cardholder.uid)
             print(f"Photo:{photo}")
+        '''
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

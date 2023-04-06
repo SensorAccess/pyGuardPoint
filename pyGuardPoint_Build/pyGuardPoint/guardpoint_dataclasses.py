@@ -397,7 +397,6 @@ class Cardholder(Observable):
             if isinstance(v, (str, type(None), bool, int)):
                 self.add_observer(k)
 
-
     def to_search_pattern(self):
         pattern = ""
         if self.firstName:
@@ -426,15 +425,19 @@ class Cardholder(Observable):
                 else:
                     print(f"\t{attribute_name:<25}" + str(attribute))
 
-    def dict(self, editable_only=False, changed_only=False):
+    def dict(self, editable_only=False, changed_only=False, non_empty_only=False):
         ch = dict()
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
                 ch[k] = v
             elif isinstance(v, type(None)):
-                ch[k] = None
+                if not non_empty_only:
+                    ch[k] = None
             elif isinstance(v, str):
-                if len(v) > 0:
+                if non_empty_only:
+                    if len(v) > 0:
+                        ch[k] = str(v)
+                else:
                     ch[k] = str(v)
             else:
                 pass
