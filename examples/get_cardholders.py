@@ -20,8 +20,9 @@ if __name__ == "__main__":
         # cardholder = gp.get_card_holder(card_code='1B1A1B1C')
         # print("Cardholder:")
         # cardholder.pretty_print()
-        cardholders = gp.get_card_holders(search_terms="john owen78",
+        cardholders = gp.get_card_holders(search_terms="Peter Brook",
                                           cardholder_type_name='Visitor',
+                                          filter_expired=True,
                                           select_ignore_list=['cardholderCustomizedField',
                                                               'cardholderPersonalDetail',
                                                               'securityGroup',
