@@ -20,16 +20,16 @@ if __name__ == "__main__":
         # cardholder = gp.get_card_holder(card_code='1B1A1B1C')
         # print("Cardholder:")
         # cardholder.pretty_print()
-        cardholders = gp.get_card_holders(search_terms="nick brown",
+        cardholders = gp.get_card_holders(search_terms="john owen5",
                                           cardholder_type_name='Visitor',
-                                          filter_expired=True,
+                                          #filter_expired=True,
                                           select_ignore_list=['cardholderCustomizedField',
                                                               'cardholderPersonalDetail',
                                                               'securityGroup',
                                                               'cards',
                                                               'photo'],
                                           select_include_list=['uid', 'lastName', 'firstName', 'lastPassDate',
-                                                               'insideArea'],
+                                                               'insideArea', 'fromDateTime'],
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
                                           threshold=10
                                           )
@@ -37,7 +37,7 @@ if __name__ == "__main__":
             print("Cardholder:")
             print(f"\t{cardholder.lastName}")
             print(cardholder.dict(non_empty_only=True))
-            #cardholder.pretty_print()
+            cardholder.pretty_print()
 
         # Example Using Fuzzy Matching & select_lists
         '''

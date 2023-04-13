@@ -24,6 +24,8 @@ class CardholdersAPI:
 
         if code != 204:  # HTTP NO_CONTENT
             try:
+                if "errorMessages" in json_body:
+                    raise GuardPointError(json_body["errorMessages"][0]["other"])
                 if 'error' in json_body:
                     raise GuardPointError(json_body['error'])
                 else:

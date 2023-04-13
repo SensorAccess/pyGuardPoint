@@ -50,8 +50,8 @@ class GuardPointResponse:
             raise GuardPointError("Non-ODATA Response Body")
         if not str(response_body['@odata.context']).endswith("$entity"):
             # Non entities seem to always appear to contain 'value'
-            if 'value' not in response_body:
-                raise GuardPointError("Empty Response Body")
+            if 'value' or 'errorMessages' not in response_body:
+                raise GuardPointError("Response Body does not contain 'value' or 'errorMessages'")
             if not isinstance(response_body['value'], list):
                 raise GuardPointError("Malformed Value in Response Body")
 
