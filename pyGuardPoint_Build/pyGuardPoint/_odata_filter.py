@@ -1,5 +1,5 @@
 from datetime import datetime
-from .guardpoint_dataclasses import Area, Cardholder
+from .guardpoint_dataclasses import Area, Cardholder, CardholderPersonalDetail
 from urllib.parse import quote
 
 
@@ -80,7 +80,12 @@ def _compose_filter(search_words=None,
     if exact_match:
         if isinstance(exact_match, dict):
             for k,v in exact_match.items():
-                filter_phrases.append(f"({k}%20eq%20'{quote(v)}')")
+                if isinstance(v, (str, bool, int)):
+                    filter_phrases.append(f"({k}%20eq%20'{quote(v)}')")
+                if k == "cardholderPersonalDetail" and v.__class__.__name__ == "CardholderPersonalDetail":
+                    details = v.dict(changed_only=True)
+                    for dk, dv in details.items():
+                        filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
 
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):

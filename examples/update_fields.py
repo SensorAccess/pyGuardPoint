@@ -19,6 +19,10 @@ if __name__ == "__main__":
 
     try:
         cardholder = gp.get_card_holder(card_code='1B1A1B1C')
+        print(f"\tcityOrDistrict: {cardholder.cardholderPersonalDetail.company}")
+
+
+
 
         print("Updating the following fields:")
         print(f"\tcF_StringField_20: {cardholder.cardholderCustomizedField.cF_StringField_20}")
