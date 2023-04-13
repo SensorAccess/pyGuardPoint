@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name="pyGuardPoint",
-      version="0.7.4",
+      version="0.7.7",
       description="Easy-to-use Python module implementing GuardPoint's WebAPI",
       maintainer_email="sales@sensoraccess.co.uk",
       install_requires=['validators', 'fuzzywuzzy', 'Levenshtein'],

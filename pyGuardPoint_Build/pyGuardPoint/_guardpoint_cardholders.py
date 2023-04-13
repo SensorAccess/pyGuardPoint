@@ -23,15 +23,13 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
-            try:
-                if "errorMessages" in json_body:
-                    raise GuardPointError(json_body["errorMessages"][0]["other"])
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
-                else:
-                    raise GuardPointError(str(code))
-            except Exception:
+            if "errorMessages" in json_body:
+                raise GuardPointError(json_body["errorMessages"][0]["other"])
+            if 'error' in json_body:
+                raise GuardPointError(json_body['error'])
+            else:
                 raise GuardPointError(str(code))
+
 
         return True
 
