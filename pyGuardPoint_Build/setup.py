@@ -1,8 +1,13 @@
 from setuptools import setup
 
+long_description = open('README.rst').read()
+
 setup(name="pyGuardPoint",
-      version="0.7.7",
+      version="0.8.2",
+      author="John Owen",
       description="Easy-to-use Python module implementing GuardPoint's WebAPI",
+      long_description_content_type='text/markdown',
+      long_description=long_description,
       maintainer_email="sales@sensoraccess.co.uk",
       install_requires=['validators', 'fuzzywuzzy', 'Levenshtein'],
       packages=['pyGuardPoint'],

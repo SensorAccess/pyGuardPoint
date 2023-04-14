@@ -1,6 +1,9 @@
 # Build pyGuardPoint Module
 py -m build
 
+#Test
+py -m twine check dist/*
+
 # Upload to TestPyPi
 py -m twine upload --repository testpypi dist/*
 
