@@ -22,6 +22,7 @@ For example, to retrieve a list of cardholders:
     gp = GuardPoint(host="10.0.0.1", pwd="password")
     cardholders = gp.get_card_holders(search_terms="Jeff Buckley")
     for cardholder in cardholders:
+        print(cardholder.lastName)
 
 To create a new cardholder:
 
