@@ -1,16 +1,20 @@
 pyGuardPoint
 ===============
 
-pyGuardPoint providers pythonic programming interface to the WebAPI of GuardPoint 10 (GP10).
+pyGuardPoint is a Python wrapper for the GuardPoint 10 API, which allows developers to easily integrate with the GuardPoint 10 physical access control system (ACS).
+
+pyGuardPoint aims to provide a pythonic OOP style programming interface to the WebAPI of GuardPoint 10 (GP10), perfect for quickly building proof-of-concepts.
+GuardPoint 10 controls and monitors doors,lifts,readers etc. pyGuardPoint currently focuses more on the management of Cardholders over the monitoring and setup of the physical infrastructure.
+
 At the time of writing the current version of GuardPoint 10 is Version 1.90.3.
-GuardPoint 10 is an Access Control System(ACS) - Learn more about GuardPoint 10 here https://www.sensoraccess.co.uk/guardpoint10/
-GuardPoint 10 controls and monitors doors,lifts,readers etc. PyGuardPoint currently focuses more on the management of Cardholders over monitoring and setup of the physical infrastructure.
+Learn more about the GuardPoint 10 ACS here https://www.sensoraccess.co.uk/guardpoint10/
+
 pyGuardPoint is not compatible with the legacy ACS GuardPoint Pro.
 
 What is it good for?
 ------------------
 Rapid development of applications and scripts using the GuardPoint ACS.
-pyGuardPoint manages your authenticated connection to GuardPoint-10, so there is know need to construct complex OData URLs.
+pyGuardPoint manages your authenticated connection to GuardPoint 10, so there is know need to construct complex OData URLs.
 The Python object Cardholder represents a user/person on the system.
 Modify your Cardholder's attributes and update them with just a couple of lines of code.
 
