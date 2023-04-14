@@ -11,7 +11,7 @@ What is it good for?
 ------------------
 Rapid development of applications and scripts using the GuardPoint ACS.
 pyGuardPoint manages your authenticated connection to GuardPoint-10, so there is know need to construct complex OData URLs.
-The Python object Cardholder represent a user/person on the system.
+The Python object Cardholder represents a user/person on the system.
 Modify your Cardholder's attributes and update them with just a couple of lines of code.
 
 Examples
