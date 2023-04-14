@@ -3,7 +3,7 @@ pyGuardPoint
 
 pyGuardPoint providers pythonic programming interface to GuardPoint-10.
 GuardPoint-10 is an Access Control System(ACS) - Learn more about GuardPoint-10 here https://www.sensoraccess.co.uk/guardpoint10/
-GuardPoint-10 controls and monitors doors,lifts,readers etc. PyGuardPoint currently focuses more on the management of Cardholders over monitoring of setup of the physical infrastructure.
+GuardPoint-10 controls and monitors doors,lifts,readers etc. PyGuardPoint currently focuses more on the management of Cardholders over monitoring and setup of the physical infrastructure.
 
 What is it good for?
 ------------------
