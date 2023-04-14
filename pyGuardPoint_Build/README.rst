@@ -49,7 +49,7 @@ To create a card for the cardholder - A card can represent an assortment of Iden
         print(f"\tEmail: {updated_cardholder.cardholderPersonalDetail.email}")
         print(f"\tCards: {updated_cardholder.cards}")
 
-The get_cardholders method can be used with a whole host of flags for filtering:
+The get_card_holders method can be used with a whole host of flags for filtering:
 
     cardholders = gp.get_card_holders(search_terms="Frank Smith Countermac",
                                           cardholder_type_name='Visitor',
