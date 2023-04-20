@@ -15,11 +15,12 @@ if __name__ == "__main__":
 
     try:
 
-        cardholders = gp.get_card_holders(sort_algorithm=SortAlgorithm.FUZZY_MATCH,
-                                          lastName="Trent Owen456", limit=20)
+        cardholders = gp.get_card_holders(cardholderTypeUID="22222222-2222-2222-2222-222222222222",
+                                          sort_algorithm=SortAlgorithm.FUZZY_MATCH,
+                                          lastName="Owen", limit=20)
         if len(cardholders) > 0:
             print("Cardholder:")
-            #cardholders[0].pretty_print()
+            # cardholders[0].pretty_print()
             pprint(cardholders[0].dict())
 
     except GuardPointError as e:
