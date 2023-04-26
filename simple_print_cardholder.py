@@ -23,6 +23,7 @@ if __name__ == "__main__":
 
         cardholders = gp.get_card_holders(search_terms="Ada Lovelace",
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
+                                          threshold=60,
                                           select_include_list=['uid', 'firstName', 'lastName', 'photo',
                                                                'cardholderPersonalDetail', 'cardholderType',
                                                                'cardholderCustomizedField'],

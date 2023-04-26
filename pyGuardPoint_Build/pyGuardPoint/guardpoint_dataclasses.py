@@ -302,7 +302,14 @@ class CardholderPersonalDetail(Observable):
 
 @dataclass
 class CardholderType:
-    typeName: str
+    uid: str = ""
+    typeName: str = ""
+    defaultBPTemplate: str = ""
+
+    def __init__(self, cardholder_type_dict:dict):
+        for property_name in cardholder_type_dict:
+            if isinstance(cardholder_type_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, cardholder_type_dict[property_name])
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
@@ -383,7 +390,7 @@ class Cardholder(Observable):
                 if property_name == "securityGroup":
                     self.securityGroup = SecurityGroup(cardholder_dict[property_name])
                 if property_name == "cardholderType":
-                    self.cardholderType = CardholderType(typeName=cardholder_dict[property_name]['typeName'])
+                    self.cardholderType = CardholderType(cardholder_dict[property_name])
                 if property_name == "cardholderPersonalDetail":
                     self.cardholderPersonalDetail = CardholderPersonalDetail(cardholder_dict[property_name])
                 if property_name == "cardholderCustomizedField":

@@ -6,7 +6,6 @@ from json import JSONDecodeError
 from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
 import time
 
-
 class GuardPointAuthType(Enum):
     BASIC = 1
     BEARER_TOKEN = 2
@@ -104,15 +103,20 @@ class GuardPointConnection:
         self.connection.request(method, url, raw_body, headers)
 
         timer.stop()
+
         response = self.connection.getresponse()
-        body = response.read().decode("utf-8")
+        try:
+            body = response.read()
+        except http.client.IncompleteRead as e:
+            body = e.partial
+
         # log.debug("Response hdrs: " + str(response.headers))
         # log.debug("Response data: " + response.read().decode("utf-8"))
         # log.debug(f"Response \'{response.getcode()}\' received in {timer.print()}")
 
         # Try to convert body into json
         try:
-            json_body = json.loads(body)
+            json_body = json.loads(body.decode("utf-8"))
         except JSONDecodeError:
             json_body = None
         except Exception as e:

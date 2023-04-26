@@ -186,7 +186,7 @@ class CardholdersAPI:
         url = "/odata/API_Cardholders"
         url_query_params = "(" + uid + ")?" \
                                        "$expand=" \
-                                       "cardholderType($select=typeName)," \
+                                       "cardholderType," \
                                        "cards," \
                                        "cardholderCustomizedField," \
                                        "cardholderPersonalDetail," \
