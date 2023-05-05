@@ -10,20 +10,20 @@ from pyGuardPoint_Build.pyGuardPoint.guardpoint_dataclasses import CardholderPer
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="admin")
 
     try:
         cardholders = gp.get_card_holders(search_terms="Owen456")
         for cardholder in cardholders:
             # Delete all cardholders cards first
-            for card in cardholder.cards:
-                gp.delete_card(card)
-                print(f"Card: {card.cardCode} Deleted")
+            #for card in cardholder.cards:
+            #    gp.delete_card(card)
+            #    print(f"Card: {card.cardCode} Deleted")
 
             # Delete the cardholder
             if gp.delete_card_holder(cardholder):
                 print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Deleted")
-
+        '''
         #card = Card(cardType="Magnetic", cardCode="3F1B1C8E")
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
         cardholder_cf = CardholderCustomizedField()
@@ -52,7 +52,7 @@ if __name__ == "__main__":
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
             print(f"\tCards: {cardholder.cards}")
             # cardholder.pretty_print()
-
+    '''
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except gaierror as e:

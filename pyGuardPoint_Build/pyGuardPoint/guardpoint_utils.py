@@ -47,7 +47,10 @@ class GuardPointResponse:
         if not isinstance(response_body, dict):
             raise GuardPointError("Non-JSON Response Body")
         if '@odata.context' not in response_body:
-            raise GuardPointError("Non-ODATA Response Body")
+            if 'error' in response_body:
+                raise GuardPointError(response_body['error'])
+            else:
+                raise GuardPointError("Non-ODATA Response Body")
         if not str(response_body['@odata.context']).endswith("$entity"):
             # Non entities seem to always appear to contain 'value'
             check = False

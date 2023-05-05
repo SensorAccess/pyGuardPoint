@@ -13,7 +13,7 @@ if py_gp_version_int < 61:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="admin")
 
     try:
         gp.get_card_holder(uid='7922a114-2f56-472c-9aeb-53903dba69cb')

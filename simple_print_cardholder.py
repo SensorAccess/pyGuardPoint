@@ -14,27 +14,28 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="admin")
 
     try:
         #cardholder = gp.get_card_holder(card_code='1B1A1B1C')
         #print("Cardholder:")
         #cardholder.pretty_print()
 
-        cardholders = gp.get_card_holders(search_terms="Ada Lovelace",
+        cardholders = gp.get_card_holders(search_terms="Frida",
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
-                                          threshold=60,
+                                          threshold=10,
                                           select_include_list=['uid', 'firstName', 'lastName', 'photo',
                                                                'cardholderPersonalDetail', 'cardholderType',
                                                                'cardholderCustomizedField'],
                                           select_ignore_list=['cardholderCustomizedField', 'ownerSiteUID',
                                                               'photo'])
-        print("Cardholder:")
-        #cardholders[0].pretty_print()
-        pprint(cardholders[0].dict())
+        if len(cardholders) > 0:
+            print("Cardholder:")
+            #cardholders[0].pretty_print()
+            pprint(cardholders[0].dict())
 
-        photo = gp.get_card_holder_photo(uid=cardholders[0].uid)
-        print(f"Photo:{photo}")
+            photo = gp.get_card_holder_photo(uid=cardholders[0].uid)
+            print(f"Photo:{photo}")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
