@@ -14,7 +14,7 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10696, pwd="password")
 
     try:
         cardholder = gp.get_card_holder(card_code='1B1A1B1C')
@@ -27,6 +27,7 @@ if __name__ == "__main__":
         cardholder.cardholderCustomizedField.cF_StringField_20 = "cf20:" + StringGenerator("[\w\d]{10}").render()
         cardholder.description = "D:" + StringGenerator("[\w\d]{10}").render()
         cardholder.cardholderPersonalDetail.cityOrDistrict = "cOrD:" + StringGenerator("[\w\d]{10}").render()
+        cardholder.cardholderPersonalDetail.email = ""
 
         print("Detected the following changes:")
         print(cardholder.dict(editable_only=True, changed_only=True))
@@ -40,6 +41,7 @@ if __name__ == "__main__":
             print(f"\tcF_StringField_20: {updated_cardholder.cardholderCustomizedField.cF_StringField_20}")
             print(f"\tdescription: {updated_cardholder.description}")
             print(f"\tcityOrDistrict: {updated_cardholder.cardholderPersonalDetail.cityOrDistrict}")
+            print(f"\temail: {updated_cardholder.cardholderPersonalDetail.email}")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

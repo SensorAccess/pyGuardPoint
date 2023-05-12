@@ -19,7 +19,7 @@ class PersonalDetailsAPI:
             # 'IgnoreNonEditable': ''
         }
 
-        ch = personal_details.dict(changed_only=True)
+        ch = personal_details.dict(editable_only=True, changed_only=True)
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 

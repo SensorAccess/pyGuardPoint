@@ -274,8 +274,9 @@ class CardholderPersonalDetail(Observable):
             if isinstance(v, (str, type(None), bool, int)):
                 self.add_observer(k)
 
-    def dict(self, changed_only=False):
+    def dict(self, editable_only=False, changed_only=False, non_empty_only=False):
         ch = dict()
+
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
                 ch[k] = v
@@ -283,13 +284,19 @@ class CardholderPersonalDetail(Observable):
                 pass
                 # ch[k] = None
             elif isinstance(v, str):
-                if len(v) > 0:
+                if non_empty_only:
+                    if len(v) > 0:
+                        ch[k] = str(v)
+                else:
                     ch[k] = str(v)
             else:
                 pass
 
         if changed_only:
             ch = self._remove_non_changed(ch)
+
+        if editable_only:
+            ch = self._remove_non_editable(ch)
 
         return ch
 
@@ -299,6 +306,12 @@ class CardholderPersonalDetail(Observable):
                 ch.pop(key)
         return ch
 
+    @staticmethod
+    def _remove_non_editable(ch: dict):
+        if 'uid' in ch:
+            ch.pop('uid')
+        return ch
+
 
 @dataclass
 class CardholderType:
@@ -306,7 +319,7 @@ class CardholderType:
     typeName: str = ""
     defaultBPTemplate: str = ""
 
-    def __init__(self, cardholder_type_dict:dict):
+    def __init__(self, cardholder_type_dict: dict):
         for property_name in cardholder_type_dict:
             if isinstance(cardholder_type_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, cardholder_type_dict[property_name])
@@ -434,6 +447,7 @@ class Cardholder(Observable):
 
     def dict(self, editable_only=False, changed_only=False, non_empty_only=False):
         ch = dict()
+
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
                 ch[k] = v
@@ -449,11 +463,11 @@ class Cardholder(Observable):
             else:
                 pass
 
-        if editable_only:
-            ch = self._remove_non_editable(ch)
-
         if changed_only:
             ch = self._remove_non_changed(ch)
+
+        if editable_only:
+            ch = self._remove_non_editable(ch)
 
         return ch
 
