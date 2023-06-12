@@ -1,10 +1,12 @@
 import logging
 import http.client
 import json
+import ssl
 from enum import Enum
 from json import JSONDecodeError
 from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
 import time
+
 
 class GuardPointAuthType(Enum):
     BASIC = 1
@@ -13,10 +15,10 @@ class GuardPointAuthType(Enum):
 
 log = logging.getLogger(__name__)
 
-
 class GuardPointConnection:
 
-    def __init__(self, url_components, auth, user, pwd, key, token=None):
+    def __init__(self, url_components, auth, user, pwd, key, token=None,
+                 cert_file=None, key_file=None, ca_file=None):
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
             raise ValueError("Parameter authType must be instance of GuardPointAuthType")
@@ -28,12 +30,11 @@ class GuardPointConnection:
             raise ValueError("Invalid Connection URL")
         if url_components['scheme'] == '':
             url_components['scheme'] = 'http'
-        if not url_components['port']:
-            if url_components['scheme'] == 'http':
-                url_components['port'] = 80
-            elif url_components['scheme'] == 'https':
-                url_components['port'] = 443
-        self.baseurl = f"{url_components['scheme']}://{url_components['host']}:{url_components['port']}"
+
+        self.baseurl = f"{url_components['scheme']}://{url_components['host']}"
+        if url_components['port']:
+            self.baseurl = self.baseurl + f":{url_components['port']}"
+
         if token:
             self.set_token(token)
         else:
@@ -42,7 +43,21 @@ class GuardPointConnection:
             self.token_expiry = 0
         log.info(f"GP10 server connection: {self.baseurl}")
         if url_components['scheme'] == 'https':
-            self.connection = http.client.HTTPSConnection(host=url_components['host'], port=url_components['port'])
+            # Loading System Defaults for TLS Client
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+            if cert_file and key_file:
+                # Loading of client certificate
+                context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+
+            if ca_file:
+                # Loading of CA certificate.
+                context.load_verify_locations(cafile=ca_file)
+
+            self.connection = http.client.HTTPSConnection(
+                host=url_components['host'],
+                port=url_components['port'],
+                context=context)
         elif url_components['scheme'] == 'http':
             self.connection = http.client.HTTPConnection(host=url_components['host'], port=url_components['port'])
         else:
@@ -52,6 +67,7 @@ class GuardPointConnection:
         if not self.token:
             self._new_token()
         return self.token
+
     def set_token(self, gp_token):
         self.token = gp_token
         token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))

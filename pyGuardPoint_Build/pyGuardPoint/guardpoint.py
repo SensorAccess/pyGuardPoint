@@ -33,7 +33,11 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         pwd = kwargs.get('pwd', "admin")
         key = kwargs.get('key', "00000000-0000-0000-0000-000000000000")
         token = kwargs.get('token', None)
-        super().__init__(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token)
+        certfile = kwargs.get('cert_file', None)
+        keyfile = kwargs.get('key_file', None)
+        cafile = kwargs.get('ca_file', None)
+        super().__init__(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
+                         cert_file=certfile, key_file=keyfile, ca_file=cafile)
 
 
 

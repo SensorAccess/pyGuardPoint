@@ -1,7 +1,11 @@
-import logging, sys
+import logging
+import os
+
 import pkg_resources
 from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
     CardholderCustomizedField, SortAlgorithm
+
+from vms_ca import ca_file
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
@@ -13,14 +17,14 @@ if py_gp_version_int < 61:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="admin")
-
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", port=444, pwd="admin", ca_file=ca_file.name)
+    os.unlink(ca_file.name)
     try:
         gp.get_card_holder(uid='7922a114-2f56-472c-9aeb-53903dba69cb')
         # cardholder = gp.get_card_holder(card_code='1B1A1B1C')
         # print("Cardholder:")
         # cardholder.pretty_print()
-        cardholders = gp.get_card_holders(search_terms="john owen65",
+        cardholders = gp.get_card_holders(search_terms="test",
                                           cardholder_type_name='Visitor',
                                           #filter_expired=True,
                                           select_ignore_list=['cardholderCustomizedField',

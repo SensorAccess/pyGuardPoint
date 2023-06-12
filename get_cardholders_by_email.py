@@ -11,7 +11,7 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="admin")
 
     try:
         personalDetails = CardholderPersonalDetail(email="john.owen@countermac.com")
