@@ -47,7 +47,7 @@ if __name__ == "__main__":
     ca_file.write(ca_data.encode())
     ca_file.close()
     print(ca_file.name)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", port=444, pwd="admin", ca_file=ca_file.name)
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin", ca_file=ca_file.name)
 
     try:
         #cardholder = gp.get_card_holder(card_code='1B1A1B1C')

@@ -15,10 +15,11 @@ class GuardPointAuthType(Enum):
 
 log = logging.getLogger(__name__)
 
+
 class GuardPointConnection:
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
-                 cert_file=None, key_file=None, ca_file=None):
+                 cert_file=None, key_file=None, ca_file=None, timeout=5):
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
             raise ValueError("Parameter authType must be instance of GuardPointAuthType")
@@ -59,7 +60,10 @@ class GuardPointConnection:
                 port=url_components['port'],
                 context=context)
         elif url_components['scheme'] == 'http':
-            self.connection = http.client.HTTPConnection(host=url_components['host'], port=url_components['port'])
+            self.connection = http.client.HTTPConnection(
+                host=url_components['host'],
+                port=url_components['port'],
+                timeout=int(timeout))
         else:
             raise ValueError("Invalid Connection Scheme")
 

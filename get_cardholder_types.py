@@ -12,7 +12,7 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin")
 
     try:
         cardholder_types = gp.get_cardholder_types()

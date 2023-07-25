@@ -36,8 +36,9 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         certfile = kwargs.get('cert_file', None)
         keyfile = kwargs.get('key_file', None)
         cafile = kwargs.get('ca_file', None)
+        timeout = kwargs.get('timeout', 5)
         super().__init__(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
-                         cert_file=certfile, key_file=keyfile, ca_file=cafile)
+                         cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout)
 
 
 
