@@ -24,6 +24,14 @@ Firstly you will always need to import the module:
 
     from pyGuardPoint import GuardPoint, Cardholder, Card
 
+It is recommended to use a mutually authenticated secure connection to the GuardPoint server in production environments.
+
+To establish a secure connection with a PKCS#12(*.p12) credential file:
+
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+                        p12_file="MobileGuardDefault.p12",
+                        p12_pwd="test")
+
 To retrieve a list of cardholders:
 
     gp = GuardPoint(host="10.0.0.1", pwd="password")

@@ -1,11 +1,44 @@
 import logging
 import http.client
 import json
+import os
 import ssl
 from enum import Enum
 from json import JSONDecodeError
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption
+from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
+
 from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
 import time
+
+default_ca = """-----BEGIN CERTIFICATE-----
+MIIELTCCAxWgAwIBAgIURU7qH0JVb8BlRd7S/LdrHi9fBEAwDQYJKoZIhvcNAQEL
+BQAwgaUxCzAJBgNVBAYTAkdCMQ8wDQYDVQQIDAZTdXNzZXgxETAPBgNVBAcMCEJy
+aWdodG9uMRowGAYDVQQKDBFTZW5zb3IgQWNjZXNzIEx0ZDEMMAoGA1UECwwDVk1T
+MR8wHQYDVQQDDBZTZW5zb3IgQWNjZXNzIFZNUyBSb290MScwJQYJKoZIhvcNAQkB
+FhhzYWxlc0BzZW5zb3JhY2Nlc3MuY28udWswHhcNMjIwNDIwMDk0NTQ5WhcNMzIw
+NDE3MDk0NTQ5WjCBpTELMAkGA1UEBhMCR0IxDzANBgNVBAgMBlN1c3NleDERMA8G
+A1UEBwwIQnJpZ2h0b24xGjAYBgNVBAoMEVNlbnNvciBBY2Nlc3MgTHRkMQwwCgYD
+VQQLDANWTVMxHzAdBgNVBAMMFlNlbnNvciBBY2Nlc3MgVk1TIFJvb3QxJzAlBgkq
+hkiG9w0BCQEWGHNhbGVzQHNlbnNvcmFjY2Vzcy5jby51azCCASIwDQYJKoZIhvcN
+AQEBBQADggEPADCCAQoCggEBAKQQYYHRdfuwrvlPQ6qfaijtND2VIpo1KhN5AFnG
+U6q79Iu1BerKFlazdSL1TsPEWdmHIvBnpLkzuW7IF4gGRzgRDPSK0v4Wjhl6a1lD
+g1qKTOX/Z4Kc9espFIrlbA6B4TrbQsbePMSyca+Ru+qHvO30qqqZUNGR5s7G8wVl
+dIhzccUPWGm9C6TyjFfL8lwqBVjYcWDP/iAlDfw1tcPodL1qcEd3EKHkASL8D7iE
+nFoLSEcW15VZ68cdCufRPfxCmL7FjddmiQ/itildV2szX5hWxlQik6GRArDrKpnE
+Dqigx1vxyE5896fwHmu1z5jMK0kzx6pzgutDKqVpBxodUBUCAwEAAaNTMFEwHQYD
+VR0OBBYEFB00pM6wNS3yIFERdLKviHr0l6o2MB8GA1UdIwQYMBaAFB00pM6wNS3y
+IFERdLKviHr0l6o2MA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEB
+ACMXKnIGKAR3teHMmsHyu9cwm+T25FWQShRoI+YRGSpVemnnmz6xpetDs6KDRVy4
+nEMdq24QO03ME8Z7luCBu0VHaZCdteu4QBrd5obbDSbfkHYnPnhwBhG+FTQt6pc8
+hGsHW92XNwnQiAXATKNI/kxeqzsXxoMpKgfbDTT8bnNMLIXL1JxZKpguXsxc6wOd
+mx9B6Vfbh9UnNgtnxsQUu9dCO0Ukczfpq902xK0QiKjYslH5kiypBskuhWxcEY3y
++Z0K2OQmT3LfJ1s1GNj799EIlti4HX81GPMZsTi7sjHeff+lyOgj8ezAT+QtnxAP
+1MNRXg3aviuwZbDS2Juguf8=
+-----END CERTIFICATE-----"""
+
 
 
 class GuardPointAuthType(Enum):
@@ -19,7 +52,7 @@ log = logging.getLogger(__name__)
 class GuardPointConnection:
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
-                 cert_file=None, key_file=None, ca_file=None, timeout=5):
+                 cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
             raise ValueError("Parameter authType must be instance of GuardPointAuthType")
@@ -42,14 +75,37 @@ class GuardPointConnection:
             self.token = None
             self.token_issued = 0
             self.token_expiry = 0
+
+
         log.info(f"GP10 server connection: {self.baseurl}")
         if url_components['scheme'] == 'https':
             # Loading System Defaults for TLS Client
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
+            p12_key_file = None
+            p12_cert_file = None
+            p12_ca_file = None
+            if p12_file:
+                if os.path.isfile(p12_file):
+                    # temporary files
+                    p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
+                    if os.stat(p12_key_file.name).st_size > 0:
+                        key_file = p12_key_file.name
+                    if os.stat(p12_cert_file.name).st_size > 0:
+                        cert_file = p12_cert_file.name
+                    if os.stat(p12_ca_file.name).st_size > 0:
+                        ca_file = p12_ca_file.name
+                    else:
+                        #p12_ca_file.seek(0)
+                        p12_ca_file.write(default_ca.encode())
+                        p12_ca_file.flush()
+                        ca_file = p12_ca_file.name
+                else:
+                    raise ValueError(f"{p12_file} is not found.")
+
             if cert_file and key_file:
                 # Loading of client certificate
-                context.load_cert_chain(certfile=cert_file, keyfile=key_file)
+                context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
 
             if ca_file:
                 # Loading of CA certificate.
@@ -59,6 +115,19 @@ class GuardPointConnection:
                 host=url_components['host'],
                 port=url_components['port'],
                 context=context)
+
+            # Close temporary files
+            if p12_key_file:
+                p12_key_file.close()
+                os.unlink(p12_key_file.name)
+            if p12_cert_file:
+                p12_cert_file.close()
+                os.unlink(p12_cert_file.name)
+            if p12_ca_file:
+                p12_ca_file.close()
+                os.unlink(p12_ca_file.name)
+
+
         elif url_components['scheme'] == 'http':
             self.connection = http.client.HTTPConnection(
                 host=url_components['host'],
@@ -174,3 +243,27 @@ class GuardPointConnection:
                 json_body = None
 
         return code, json_body
+
+    @staticmethod
+    def pfx_to_pems(pfx_path, pfx_password):
+        ''' Decrypts the .pfx file to be used with requests. '''
+        pfx = Path(pfx_path).read_bytes()
+        private_key, main_cert, add_certs = load_key_and_certificates(pfx, pfx_password.encode('utf-8'), None)
+
+        key_file = NamedTemporaryFile(suffix='.pem', delete=False)
+        key_file.write(private_key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8,
+                                                 BestAvailableEncryption(pfx_password.encode('utf-8'))))
+        key_file.flush()
+
+        cert_file = NamedTemporaryFile(suffix='.pem', delete=False)
+        cert_file.write(main_cert.public_bytes(Encoding.PEM))
+        cert_file.flush()
+
+        ca_file = NamedTemporaryFile(suffix='.pem', delete=False)
+        for ca in add_certs:
+            ca_file.write(ca.public_bytes(Encoding.PEM))
+        ca_file.flush()
+
+        return key_file, cert_file, ca_file
+
+

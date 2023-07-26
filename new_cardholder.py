@@ -10,7 +10,10 @@ from pyGuardPoint_Build.pyGuardPoint.guardpoint_dataclasses import CardholderPer
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="admin")
+    #gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="admin")
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+                    p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobileGuardDefault.p12",
+                    p12_pwd="test")
 
     try:
         cardholders = gp.get_card_holders(search_terms="Owen456")
