@@ -11,13 +11,16 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="admin")
 
     try:
 
-        cardholders = gp.get_card_holders(cardholderTypeUID="22222222-2222-2222-2222-222222222222",
+        '''cardholders = gp.get_card_holders(cardholderTypeUID="22222222-2222-2222-2222-222222222222",
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
-                                          lastName="Owen", limit=20)
+                                          lastName="Owen", limit=20,
+                                          filter_expired=True)'''
+        cardholders = gp.get_card_holders(limit=20,
+                                          filter_expired=True)
         if len(cardholders) > 0:
             print("Cardholder:")
             # cardholders[0].pretty_print()

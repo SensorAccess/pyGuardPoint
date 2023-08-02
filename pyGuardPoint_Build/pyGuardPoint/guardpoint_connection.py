@@ -155,7 +155,7 @@ class GuardPointConnection:
                 code, auth_body = self._new_token()
                 if code != 200:
                     return code, auth_body
-            if self.token_expiry < (time.time() - (30 * 60)):  # If Token will expire within 30 minutes
+            if self.token_expiry < (time.time() - (20 * 60)):  # If Token will expire within 20 minutes
                 code, auth_body = self._renew_token()
                 if code != 200:
                     return code, auth_body

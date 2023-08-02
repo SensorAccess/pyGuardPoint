@@ -3,7 +3,7 @@ from setuptools import setup
 long_description = open('README.rst').read()
 
 setup(name="pyGuardPoint",
-      version="0.9.8",
+      version="0.9.9",
       author="John Owen",
       description="Python wrapper for GuardPoint 10 Access Control System",
       long_description_content_type='text/markdown',

@@ -104,7 +104,7 @@ def _compose_filter(search_words=None,
     if filter_expired:
         # end_of_day = datetime.utcnow().strftime('%Y-%m-%dT23:59:59Z')
         start_of_day = datetime.utcnow().strftime('%Y-%m-%dT00:00:00Z')
-        filter_phrases.append(f'(fromDateValid%20ge%20{start_of_day})')
+        filter_phrases.append(f'(toDateValid%20ge%20{start_of_day})')
 
     # Filter by Cardholder Type Name
     if cardholder_type_name:
