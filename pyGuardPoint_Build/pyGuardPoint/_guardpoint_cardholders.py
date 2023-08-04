@@ -4,7 +4,7 @@ import validators
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
 from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area
-from .guardpoint_error import GuardPointError
+from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from .guardpoint_utils import GuardPointResponse
 
 
@@ -88,12 +88,19 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
-            if 'error' in json_body:
-                raise GuardPointError(json_body['error'])
-            elif 'message' in json_body:
-                raise GuardPointError(json_body['message'])
+            error_msg = ""
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    error_msg = json_body['error']
+                elif 'message' in json_body:
+                    error_msg = json_body['message']
+                else:
+                    error_msg = str(code)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
 
         return True
 
@@ -142,12 +149,22 @@ class CardholdersAPI:
                 raise GuardPointError(
                     f'{json_body["errorMessages"][0]["message"]}-{json_body["errorMessages"][0]["other"]}')
         else:
-            if "errorMessages" in json_body:
-                raise GuardPointError(json_body["errorMessages"][0]["other"])
-            elif "error" in json_body:
-                raise GuardPointError(json_body["error"]['message'])
+            error_msg = ""
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    error_msg = json_body['error']
+                elif "errorMessages" in json_body:
+                    error_msg = json_body["errorMessages"][0]["other"]
+                elif "error" in json_body:
+                    error_msg = GuardPointError(json_body["error"]['message'])
+                else:
+                    error_msg = str(code)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
+
 
     def get_card_holder(self,
                         uid: str = None,
@@ -171,11 +188,15 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
+            error_msg = ""
             if isinstance(json_body, dict):
                 if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+                    error_msg = json_body['error']
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
 
         return json_body['value'][0]['photo']
 
@@ -202,11 +223,15 @@ class CardholdersAPI:
             return None
 
         if code != 200:
+            error_msg = ""
             if isinstance(json_body, dict):
                 if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+                    error_msg = json_body['error']
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
 
         return Cardholder(json_body['value'][0])
 
@@ -251,11 +276,13 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
-            if json_body:
+            error_msg = ""
+            if isinstance(json_body, dict):
                 if 'error' in json_body:
-                    raise GuardPointError(f"{json_body['error']} - ({code})")
-                else:
-                    raise GuardPointError(f"No error message - ({code})")
+                    error_msg = json_body['error']
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
                 raise GuardPointError(f"No body - ({code})")
 

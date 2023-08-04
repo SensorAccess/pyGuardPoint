@@ -20,7 +20,8 @@ if __name__ == "__main__":
                                           lastName="Owen", limit=20,
                                           filter_expired=True)'''
         cardholders = gp.get_card_holders(limit=20,
-                                          filter_expired=True)
+                                          filter_expired=True,
+                                          select_ignore_list=['photo'])
         if len(cardholders) > 0:
             print("Cardholder:")
             # cardholders[0].pretty_print()

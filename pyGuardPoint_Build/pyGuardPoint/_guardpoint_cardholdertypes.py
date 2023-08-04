@@ -1,5 +1,5 @@
 from .guardpoint_dataclasses import CardholderType
-from .guardpoint_error import GuardPointError
+from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class CardholderTypesAPI:
@@ -13,9 +13,17 @@ class CardholderTypesAPI:
         code, json_body = self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
+            error_msg = ""
             if isinstance(json_body, dict):
                 if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+                    error_msg = json_body['error']
+                elif 'message' in json_body:
+                    error_msg = json_body['message']
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            else:
+                raise GuardPointError(f"No body - ({code})")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")

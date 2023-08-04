@@ -8,7 +8,7 @@ from ._guardpoint_securitygroups import SecurityGroupsAPI
 from .guardpoint_connection import GuardPointConnection, GuardPointAuthType
 from ._guardpoint_cards import CardsAPI
 from ._guardpoint_cardholders import CardholdersAPI
-from .guardpoint_error import GuardPointError
+from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ._guardpoint_areas import AreasAPI
 from .guardpoint_utils import url_parser
 
@@ -43,19 +43,20 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
                          cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout,
                          p12_file=p12_file, p12_pwd=p12_pwd)
 
-
-
-    # TODO: is this needed since count can be achieved with "$count=true&$top=0"
     def get_cardholder_count(self):
         url = self.baseurl + "/odata/GetCardholdersCount"
         code, json_body = self.gp_json_query("GET", url=url)
 
         if code != 200:
+            error_msg = ""
             if isinstance(json_body, dict):
                 if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+                    error_msg = json_body['error']
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
 
         # Check response body is formatted as expected
         if not isinstance(json_body, dict):
@@ -64,5 +65,3 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             raise GuardPointError("Badly formatted response.")
 
         return int(json_body['totalItems'])
-
-
