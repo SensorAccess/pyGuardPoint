@@ -23,12 +23,19 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
-            if "errorMessages" in json_body:
-                raise GuardPointError(json_body["errorMessages"][0]["other"])
-            if 'error' in json_body:
-                raise GuardPointError(json_body['error'])
+            error_msg = ""
+            if isinstance(json_body, dict):
+                if 'error' in json_body:
+                    error_msg = json_body['error']
+                elif 'message' in json_body:
+                    error_msg = json_body['message']
+                else:
+                    error_msg = str(code)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"No body - ({code})")
 
 
         return True
@@ -83,9 +90,6 @@ class CardholdersAPI:
         }
 
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
-        # Check response body is formatted correctly
-        if json_body:
-            GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
             error_msg = ""
@@ -184,8 +188,8 @@ class CardholdersAPI:
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
         # Check response body is formatted correctly
-        if json_body:
-            GuardPointResponse.check_odata_body_structure(json_body)
+        #if json_body:
+        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             error_msg = ""
@@ -216,8 +220,8 @@ class CardholdersAPI:
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
         # Check response body is formatted correctly
-        if json_body:
-            GuardPointResponse.check_odata_body_structure(json_body)
+        #if json_body:
+        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code == 404: # Not Found
             return None
@@ -272,8 +276,8 @@ class CardholdersAPI:
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
         # Check response body is formatted correctly
-        if json_body:
-            GuardPointResponse.check_odata_body_structure(json_body)
+        #if json_body:
+        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             error_msg = ""
