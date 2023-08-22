@@ -50,6 +50,7 @@ log = logging.getLogger(__name__)
 
 
 class GuardPointConnection:
+    auto_renew = False;
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
                  cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
@@ -155,14 +156,15 @@ class GuardPointConnection:
                 code, auth_body = self._new_token()
                 if code != 200:
                     return code, auth_body
-            if self.token_expiry < (time.time() - (20 * 60)):  # If Token will expire within 20 minutes
-                code, auth_body = self._renew_token()
-                if code != 200:
-                    return code, auth_body
-            if self.token_expiry < time.time():
-                code, auth_body = self._new_token()
-                if code != 200:
-                    return code, auth_body
+            if self.auto_renew:
+                if self.token_expiry < (time.time() - (20 * 60)):  # If Token will expire within 20 minutes
+                    code, auth_body = self._renew_token()
+                    if code != 200:
+                        return code, auth_body
+                if self.token_expiry < time.time():
+                    code, auth_body = self._new_token()
+                    if code != 200:
+                        return code, auth_body
 
             auth_str = f"Bearer {self.token}"
         else:
@@ -187,11 +189,11 @@ class GuardPointConnection:
             headers['Authorization'] = auth_str
 
         log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
-        timer = Stopwatch().start()
+        #timer = Stopwatch().start()
 
         self.connection.request(method, url, raw_body, headers)
 
-        timer.stop()
+        #timer.stop()
 
         response = self.connection.getresponse()
         try:

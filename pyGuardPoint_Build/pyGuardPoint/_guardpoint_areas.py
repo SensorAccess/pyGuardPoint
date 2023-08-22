@@ -17,11 +17,17 @@ class AreasAPI:
             if isinstance(json_body, dict):
                 if 'error' in json_body:
                     error_msg = json_body['error']
-
+                if 'errors' in json_body:
+                    if isinstance(json_body['errors'], dict):
+                        for key in json_body['errors']:
+                            if isinstance(json_body['errors'][key], list):
+                                error_msg = error_msg + json_body['errors'][key][0] + '\n';
+                            elif isinstance(json_body['errors'][key], str):
+                                error_msg = error_msg + json_body['errors'][key][0] + '\n';
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:
-                raise GuardPointError(f"No body - ({code})")
+                raise GuardPointError(f"Msg({error_msg}) - Code({code})")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
