@@ -1,3 +1,4 @@
+from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import Area
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
@@ -13,17 +14,7 @@ class AreasAPI:
         code, json_body = self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
-                if 'errors' in json_body:
-                    if isinstance(json_body['errors'], dict):
-                        for key in json_body['errors']:
-                            if isinstance(json_body['errors'][key], list):
-                                error_msg = error_msg + json_body['errors'][key][0] + '\n';
-                            elif isinstance(json_body['errors'][key], str):
-                                error_msg = error_msg + json_body['errors'][key][0] + '\n';
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             else:

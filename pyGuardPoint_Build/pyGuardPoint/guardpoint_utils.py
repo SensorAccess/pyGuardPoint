@@ -43,6 +43,21 @@ class ConvertBase64:
 
 class GuardPointResponse:
     @staticmethod
+    def extract_error_msg(response_body):
+        error_msg = ""
+        if isinstance(response_body, dict):
+            if 'error' in response_body:
+                error_msg = response_body['error']
+            if 'errors' in response_body:
+                if isinstance(response_body['errors'], dict):
+                    for key in response_body['errors']:
+                        if isinstance(response_body['errors'][key], list):
+                            error_msg = error_msg + response_body['errors'][key][0] + '\n';
+                        elif isinstance(response_body['errors'][key], str):
+                            error_msg = error_msg + response_body['errors'][key][0] + '\n';
+        return error_msg
+
+    @staticmethod
     def check_odata_body_structure(response_body):
         if not isinstance(response_body, dict):
             raise GuardPointError("Non-JSON Response Body")

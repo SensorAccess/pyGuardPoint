@@ -1,7 +1,6 @@
-import json
 import validators
-
-from ._odata_filter import _compose_select, _compose_filter
+from .guardpoint_utils import GuardPointResponse
+from ._odata_filter import _compose_filter
 from .guardpoint_dataclasses import Card, Cardholder
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
@@ -90,12 +89,7 @@ class CardsAPI:
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
-                elif 'message' in json_body:
-                    error_msg = json_body['message']
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")

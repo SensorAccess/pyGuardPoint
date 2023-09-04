@@ -9,7 +9,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption
 from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
-
+from .guardpoint_error import GuardPointUnauthorized
 from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
 import time
 
@@ -147,6 +147,12 @@ class GuardPointConnection:
         token_dict = json.loads(ConvertBase64.decode(self.token.split(".")[1]))
         self.token_issued = token_dict['iat']
         self.token_expiry = token_dict['exp']
+
+    def renew_token(self):
+        code, body = self._renew_token()
+        if int(code) != 200:
+            msg = GuardPointResponse.extract_error_msg(body)
+            raise GuardPointUnauthorized(msg)
 
     def gp_json_query(self, method, url, json_body: dict = '', headers=None):
         if self.authType == GuardPointAuthType.BASIC:

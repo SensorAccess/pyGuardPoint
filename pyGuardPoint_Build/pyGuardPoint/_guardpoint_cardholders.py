@@ -192,10 +192,7 @@ class CardholdersAPI:
         #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
@@ -227,10 +224,7 @@ class CardholdersAPI:
             return None
 
         if code != 200:
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
@@ -280,10 +274,7 @@ class CardholdersAPI:
         #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
