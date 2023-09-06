@@ -139,7 +139,10 @@ class GuardPointConnection:
 
     def get_token(self):
         if not self.token:
-            self._new_token()
+            code, body = self._new_token()
+            if int(code) != 200:
+                msg = GuardPointResponse.extract_error_msg(body)
+                raise GuardPointUnauthorized(msg)
         return self.token
 
     def set_token(self, gp_token):
