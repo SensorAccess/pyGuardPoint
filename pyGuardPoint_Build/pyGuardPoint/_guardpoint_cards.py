@@ -28,9 +28,14 @@ class CardsAPI:
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
 
         if code != 200:
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Cardholder Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")

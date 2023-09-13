@@ -15,10 +15,13 @@ class AreasAPI:
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
+
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Cardholder Not Found")
             else:
-                raise GuardPointError(f"Msg({error_msg}) - Code({code})")
+                raise GuardPointError(f"{error_msg}")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")

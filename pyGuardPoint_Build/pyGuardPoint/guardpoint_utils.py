@@ -46,6 +46,8 @@ class GuardPointResponse:
     def extract_error_msg(response_body):
         error_msg = ""
         if isinstance(response_body, dict):
+            if 'message' in response_body:
+                error_msg = response_body['message']
             if 'error' in response_body:
                 error_msg = response_body['error']
             if 'errors' in response_body:

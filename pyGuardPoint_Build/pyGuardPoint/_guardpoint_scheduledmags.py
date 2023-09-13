@@ -1,5 +1,5 @@
 import validators
-
+from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import ScheduledMag, Cardholder
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
@@ -18,15 +18,14 @@ class ScheduledMagsAPI:
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
         if code != 200:
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"MAG Not Found")
             else:
-                raise GuardPointError(f"No body - ({code})")
+                raise GuardPointError(f"{error_msg}")
 
         # Check response body is formatted as expected
         if not isinstance(json_body, dict):
@@ -60,9 +59,12 @@ class ScheduledMagsAPI:
             if 'value' in json_body:
                 if isinstance(json_body['value'], list):
                     json_body = json_body['value'][0]
-            if "other" in json_body:
-                raise GuardPointError(json_body["other"])
-            elif "error" in json_body:
-                raise GuardPointError(json_body["error"]['message'])
             else:
-                raise GuardPointError(str(code))
+                error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+                if code == 401:
+                    raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+                elif code == 404:  # Not Found
+                    raise GuardPointError(f"Cardholder Not Found")
+                else:
+                    raise GuardPointError(f"{error_msg}")
