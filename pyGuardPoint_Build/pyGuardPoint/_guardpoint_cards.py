@@ -61,13 +61,14 @@ class CardsAPI:
         code, json_body = self.gp_json_query("DELETE", headers=headers, url=(url + url_query_params))
 
         if code != 204:  # HTTP NO_CONTENT
-            try:
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
-                else:
-                    raise GuardPointError(str(code))
-            except Exception:
-                raise GuardPointError(str(code))
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Card Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
 
         return True
 

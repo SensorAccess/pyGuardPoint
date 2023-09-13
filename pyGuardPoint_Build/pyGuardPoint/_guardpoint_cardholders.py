@@ -23,20 +23,14 @@ class CardholdersAPI:
             GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 204:  # HTTP NO_CONTENT
-            error_msg = ""
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    error_msg = json_body['error']
-                elif 'message' in json_body:
-                    error_msg = json_body['message']
-                else:
-                    error_msg = str(code)
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404: # Not Found
+                raise GuardPointError(f"Cardholder Not Found")
             else:
-                raise GuardPointError(f"No body - ({code})")
-
+                raise GuardPointError(f"{error_msg}")
 
         return True
 
