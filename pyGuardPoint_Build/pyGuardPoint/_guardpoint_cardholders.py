@@ -225,6 +225,9 @@ class CardholdersAPI:
                          select_ignore_list: list = None, select_include_list: list = None,
                          **cardholder_kwargs):
 
+        if offset is None:
+            offset = 0
+
         # Filter arguments which have to exact match
         match_args = dict()
         for k, v in cardholder_kwargs.items():
@@ -245,7 +248,6 @@ class CardholdersAPI:
         expand_str = _compose_expand(select_ignore_list, select_include_list)
 
         url_query_params = ("?" + select_str + expand_str + filter_str)
-        # url_query_params = ("?" + filter_str)
 
         if count:
             url_query_params += "$count=true&$top=0"
