@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption
 from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
 from .guardpoint_error import GuardPointUnauthorized
-from .guardpoint_utils import Stopwatch, ConvertBase64, GuardPointResponse
+from .guardpoint_utils import ConvertBase64, GuardPointResponse
 import time
 
 default_ca = """-----BEGIN CERTIFICATE-----
@@ -239,8 +239,11 @@ class GuardPointConnection:
         return self._query_token(url, payload)
 
     def _query_token(self, url, json_payload):
-        auth_str = f"Bearer {self.token}"
-        code, json_body = self._query("POST", url, json_payload, auth_str)
+        if self.token:
+            auth_str = f"Bearer {self.token}"
+        else:
+            auth_str = None
+        code, json_body = self._query("POST", url, json_payload, headers=None, auth_str=auth_str)
 
         if code == 200:
             try:
