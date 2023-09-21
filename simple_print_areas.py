@@ -29,7 +29,9 @@ def print_class_attributes(obj):
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+                    p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobileGuardDefault.p12",
+                    p12_pwd="test")
 
     #if last_pass_offset < 1 else (' and lastPassDate ge ' + date_filter(time_offset=last_pass_offset))} & "
 

@@ -239,7 +239,8 @@ class GuardPointConnection:
         return self._query_token(url, payload)
 
     def _query_token(self, url, json_payload):
-        code, json_body = self._query("POST", url, json_payload)
+        auth_str = f"Bearer {self.token}"
+        code, json_body = self._query("POST", url, json_payload, auth_str)
 
         if code == 200:
             try:
