@@ -30,14 +30,14 @@ if __name__ == "__main__":
                         p12_pwd=TLS_P12_PWD)
 
         # Delete All Cardholders
-        '''count = gp.get_cardholder_count()
+        count = gp.get_cardholder_count()
         print(f"Deleting All Cardholders: {str(count)}")
         for i in tqdm(range(0, count)):
             batch_of_cardholders = gp.get_card_holders(limit=1, offset=i)  # Get a batch of 1 cardholder!
             if len(batch_of_cardholders) < 1:
                 break;
             for cardholder in batch_of_cardholders:
-                gp.delete_card_holder(cardholder)'''
+                gp.delete_card_holder(cardholder)
 
 
         # Load the JSON file
