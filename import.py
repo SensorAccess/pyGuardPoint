@@ -50,7 +50,7 @@ if __name__ == "__main__":
             entries[i].pop('uid')
             cardholder = Cardholder(entries[i])
             #gp.delete_card_holder(cardholder)
-            gp.new_card_holder(cardholder, overwrite_cardholder=True)
+            gp.new_card_holder(cardholder)
 
 
     except GuardPointError as e:

@@ -97,7 +97,7 @@ class CardholdersAPI:
 
         return True
 
-    def new_card_holder(self, cardholder: Cardholder, overwrite_cardholder=False):
+    def new_card_holder(self, cardholder: Cardholder, changed_only=False):
 
         # url = "/odata/API_Cardholders/CreateFullCardholder"
         url = "/odata/API_Cardholders"
@@ -108,7 +108,11 @@ class CardholdersAPI:
             'IgnoreNonEditable': ''
         }
 
-        ch = cardholder.dict(editable_only=True, changed_only=True)
+        if changed_only:
+            ch = cardholder.dict(editable_only=True)
+        else:
+            ch = cardholder.dict(editable_only=True, changed_only=True)
+
 
         # When using CreateFullCardholder
         # body = {'cardholder': ch}
