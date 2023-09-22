@@ -47,9 +47,8 @@ if __name__ == "__main__":
         count = len(entries)
         print(f"Importing {str(count)} entries from {EXPORT_FILENAME}.")
         for i in tqdm(range(0, count)):
-            entries[i].pop('uid')
+            #entries[i].pop('uid')
             cardholder = Cardholder(entries[i])
-            #gp.delete_card_holder(cardholder)
             gp.new_card_holder(cardholder)
 
 
