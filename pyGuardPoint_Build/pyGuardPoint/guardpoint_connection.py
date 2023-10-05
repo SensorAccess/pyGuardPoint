@@ -40,7 +40,6 @@ mx9B6Vfbh9UnNgtnxsQUu9dCO0Ukczfpq902xK0QiKjYslH5kiypBskuhWxcEY3y
 -----END CERTIFICATE-----"""
 
 
-
 class GuardPointAuthType(Enum):
     BASIC = 1
     BEARER_TOKEN = 2
@@ -54,6 +53,7 @@ class GuardPointConnection:
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
                  cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
+        self.ssl_context = None
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
             raise ValueError("Parameter authType must be instance of GuardPointAuthType")
@@ -77,11 +77,10 @@ class GuardPointConnection:
             self.token_issued = 0
             self.token_expiry = 0
 
-
         log.info(f"GP10 server connection: {self.baseurl}")
         if url_components['scheme'] == 'https':
             # Loading System Defaults for TLS Client
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
             p12_key_file = None
             p12_cert_file = None
@@ -97,7 +96,7 @@ class GuardPointConnection:
                     if os.stat(p12_ca_file.name).st_size > 0:
                         ca_file = p12_ca_file.name
                     else:
-                        #p12_ca_file.seek(0)
+                        # p12_ca_file.seek(0)
                         p12_ca_file.write(default_ca.encode())
                         p12_ca_file.flush()
                         ca_file = p12_ca_file.name
@@ -106,16 +105,16 @@ class GuardPointConnection:
 
             if cert_file and key_file:
                 # Loading of client certificate
-                context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
+                self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
 
             if ca_file:
                 # Loading of CA certificate.
-                context.load_verify_locations(cafile=ca_file)
+                self.ssl_context.load_verify_locations(cafile=ca_file)
 
             self.connection = http.client.HTTPSConnection(
                 host=url_components['host'],
                 port=url_components['port'],
-                context=context)
+                context=self.ssl_context)
 
             # Close temporary files
             if p12_key_file:
@@ -128,7 +127,6 @@ class GuardPointConnection:
                 p12_ca_file.close()
                 os.unlink(p12_ca_file.name)
 
-
         elif url_components['scheme'] == 'http':
             self.connection = http.client.HTTPConnection(
                 host=url_components['host'],
@@ -136,6 +134,9 @@ class GuardPointConnection:
                 timeout=int(timeout))
         else:
             raise ValueError("Invalid Connection Scheme")
+
+    def get_ssl_context(self):
+        return self.ssl_context
 
     def get_token(self):
         if not self.token:
@@ -198,11 +199,11 @@ class GuardPointConnection:
             headers['Authorization'] = auth_str
 
         log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
-        #timer = Stopwatch().start()
+        # timer = Stopwatch().start()
 
         self.connection.request(method, url, raw_body, headers)
 
-        #timer.stop()
+        # timer.stop()
 
         response = self.connection.getresponse()
         try:
@@ -280,5 +281,3 @@ class GuardPointConnection:
         ca_file.flush()
 
         return key_file, cert_file, ca_file
-
-

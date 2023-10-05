@@ -1,5 +1,10 @@
+import asyncio
 import logging
 
+from pysignalr.client import SignalRClient
+
+from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
+    DEFAULT_MAX_SIZE
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
 from ._guardpoint_scheduledmags import ScheduledMagsAPI
 from ._guardpoint_customizedfields import CustomizedFieldsAPI
@@ -10,7 +15,7 @@ from ._guardpoint_cards import CardsAPI
 from ._guardpoint_cardholders import CardholdersAPI
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ._guardpoint_areas import AreasAPI
-from .guardpoint_utils import url_parser
+from .guardpoint_utils import url_parser, ConvertBase64
 
 log = logging.getLogger(__name__)
 
@@ -65,3 +70,33 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             raise GuardPointError("Badly formatted response.")
 
         return int(json_body['totalItems'])
+
+    def get_signal_client(self):
+        client = SignalRClient(self.baseurl + "/Hub/EventsHub")
+        headers = {}
+        if self.authType == GuardPointAuthType.BASIC:
+            auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
+        else:
+            token = self.get_token()
+            auth_str = f"Bearer {token}"
+        headers['Authorization'] = auth_str
+        client._transport = CustomWebsocketTransport(
+            url=client._url,
+            ssl_context=self.get_ssl_context(),
+            protocol=client._protocol,
+            callback=client._on_message,
+            headers=headers,
+            ping_interval=DEFAULT_PING_INTERVAL,
+            connection_timeout=DEFAULT_CONNECTION_TIMEOUT,
+            max_size=DEFAULT_MAX_SIZE,
+        )
+        return client
+
+    @staticmethod
+    def run_signal_client(client: SignalRClient):
+        async def run_signal_client() -> None:
+            await asyncio.gather(
+                client.run(),
+            )
+
+        asyncio.run(run_signal_client())

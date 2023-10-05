@@ -2,7 +2,6 @@ import logging, sys
 from datetime import datetime, timedelta
 
 import pkg_resources
-from strgen import StringGenerator # pip install StringGenerator
 
 from pyGuardPoint_Build.pyGuardPoint.guardpoint_dataclasses import ScheduledMag
 
