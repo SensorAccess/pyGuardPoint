@@ -38,17 +38,21 @@ class OutputsAPI:
         return relays
 
     def activate_relay(self, relay: Relay, period: int = 0):
+        return self.activate_relay_by_uid(relay.uid, period)
+
+    def activate_relay_by_uid(self, relay_uid: str, period: int = 0):
+
         url = self.baseurl + "/odata/API_Outputs/Activate"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
 
-        if not validators.uuid(relay.uid):
+        if not validators.uuid(relay_uid):
             raise ValueError("Malformed Relay UID")
 
         body = dict()
-        body["uids"] = [relay.uid]
+        body["uids"] = [relay_uid]
         body["period"] = period
 
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
