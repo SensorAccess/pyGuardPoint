@@ -6,6 +6,7 @@ from pysignalr.client import SignalRClient
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
+from ._guardpoint_ouputs import OutputsAPI
 from ._guardpoint_scheduledmags import ScheduledMagsAPI
 from ._guardpoint_customizedfields import CustomizedFieldsAPI
 from ._guardpoint_personaldetails import PersonalDetailsAPI
@@ -21,7 +22,8 @@ log = logging.getLogger(__name__)
 
 
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
-                 CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI):
+                 CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
+                 OutputsAPI):
 
     def __init__(self, **kwargs):
         # Set default values if not present

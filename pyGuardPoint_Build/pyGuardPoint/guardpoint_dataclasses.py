@@ -48,6 +48,58 @@ class SortAlgorithm(Enum):
 
 
 @dataclass
+class Relay(Observable):
+    digitalOutputStatus: str = ""
+    uid: str = ""
+    number: int = 0
+    name: str = ""
+    description: any = None
+    weeklyProgramUID: any = None
+    controllerUID: str = ""
+    liftReaderUID: any = None
+    constantState: str = ""
+    apiKey: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        relay_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in relay_dict:
+            if isinstance(relay_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, relay_dict[property_name])
+
+        # Monitor Changes
+        for k, v in asdict(self).items():
+            if isinstance(v, (str, type(None), bool, int)):
+                self.add_observer(k)
+
+    def _remove_non_changed(self, relay_dict: dict):
+        for key, value in list(relay_dict.items()):
+            if key not in self.changed_attributes:
+                relay_dict.pop(key)
+        return relay_dict
+
+    def dict(self, editable_only=False, changed_only=False):
+        relay_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                relay_dict[k] = v
+            elif isinstance(v, type(None)):
+                relay_dict[k] = None
+            else:
+                relay_dict[k] = str(v)
+
+        if editable_only:
+            if 'uid' in relay_dict:
+                relay_dict.pop('uid')
+
+        if changed_only:
+            relay_dict = self._remove_non_changed(relay_dict)
+
+        return relay_dict
+
+
+@dataclass
 class Card(Observable):
     technologyType: int = 0
     description: str = ""
