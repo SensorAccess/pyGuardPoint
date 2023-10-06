@@ -3,10 +3,12 @@ import sys
 from pprint import pprint
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
-sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+#sys.path.insert(1, 'pyGuardPoint_Build')
+#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
 
 import pkg_resources
+
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
