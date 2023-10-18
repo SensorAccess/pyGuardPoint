@@ -33,8 +33,6 @@ class DiagnosticAPI:
         body['controllersUIDs'] = controllers_uids
         body['command'] = "79{0:0>2X}{1:0>12s}".format(reader_num, card_code)
 
-        print(body)
-
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
         if code != 200:
