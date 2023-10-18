@@ -109,9 +109,9 @@ class CardholdersAPI:
         }
 
         if changed_only:
-            ch = cardholder.dict(editable_only=True, changed_only=True)
+            ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)
         else:
-            ch = cardholder.dict(editable_only=True)
+            ch = cardholder.dict(editable_only=True, non_empty_only=True)
 
 
         # When using CreateFullCardholder

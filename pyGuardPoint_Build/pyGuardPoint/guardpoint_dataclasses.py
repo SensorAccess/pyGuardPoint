@@ -46,6 +46,44 @@ class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0,
     FUZZY_MATCH = 1
 
+@dataclass
+class Reader:
+    uid: str = ""
+    name: str = ""
+    description: any = None
+    number: int = 0
+    controllerUID: str = ""
+    firstOutputUID: any = None
+    secondOutputUID: any = None
+    weeklyProgramUID: any = None
+    readerFunctionIDs: any = None
+    apiKey: any = None
+    doorAlarmInputUID: str = ""
+    doorControlInput1UID: any = None
+    doorControlInput2UID: any = None
+    doorRemoteInputUID: str = ""
+    motorizedReaderInputUID: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        reader_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in reader_dict:
+            if isinstance(reader_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, reader_dict[property_name])
+
+    def dict(self):
+        reader_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                reader_dict[k] = v
+            elif isinstance(v, type(None)):
+                reader_dict[k] = None
+            else:
+                reader_dict[k] = str(v)
+
+        return reader_dict
+
 
 @dataclass
 class Relay(Observable):
