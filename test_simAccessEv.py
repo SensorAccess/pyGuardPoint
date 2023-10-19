@@ -45,6 +45,9 @@ if __name__ == "__main__":
         # Cycle through all Readers + fire event
         readers = gp.get_readers()
         for reader in readers:
+            controller = gp.get_controller(reader.controllerUID)
+            print(controller.isActivated)
+            print(controller.isConnected)
             if gp.simulate_access_event(
                     controller_uid=reader.controllerUID,
                     reader_num=reader.number,

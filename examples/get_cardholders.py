@@ -5,7 +5,15 @@ import pkg_resources
 from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
     CardholderCustomizedField, SortAlgorithm
 
-from vms_ca import ca_file
+# GuardPoint
+GP_HOST = 'https://sensoraccess.duckdns.org'
+# GP_HOST = 'http://localhost/'
+GP_USER = 'admin'
+GP_PASS = 'admin'
+# TLS/SSL secure connection
+TLS_P12 = "C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
+#TLS_P12 = None
+TLS_P12_PWD = "test"
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 print("pyGuardPoint Version:" + py_gp_version)
@@ -17,25 +25,27 @@ if py_gp_version_int < 61:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", port=444, pwd="admin", ca_file=ca_file.name)
-    os.unlink(ca_file.name)
+    gp = GuardPoint(host=GP_HOST,
+                    username=GP_USER,
+                    pwd=GP_PASS,
+                    p12_file=TLS_P12,
+                    p12_pwd=TLS_P12_PWD)
     try:
-        gp.get_card_holder(uid='7922a114-2f56-472c-9aeb-53903dba69cb')
+        # gp.get_card_holder(uid='7922a114-2f56-472c-9aeb-53903dba69cb')
         # cardholder = gp.get_card_holder(card_code='1B1A1B1C')
         # print("Cardholder:")
         # cardholder.pretty_print()
-        cardholders = gp.get_card_holders(search_terms="test",
+        cardholders = gp.get_card_holders(search_terms="Phil Sensor",
                                           cardholder_type_name='Visitor',
                                           #filter_expired=True,
                                           select_ignore_list=['cardholderCustomizedField',
                                                               'cardholderPersonalDetail',
                                                               'securityGroup',
-                                                              'cards',
                                                               'photo'],
                                           select_include_list=['uid', 'lastName', 'firstName', 'lastPassDate',
-                                                               'insideArea', 'fromDateTime'],
+                                                               'insideArea', 'fromDateTime', 'cards'],
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
-                                          threshold=10
+                                          threshold=90
                                           )
         for cardholder in cardholders:
             print("Cardholder:")

@@ -47,6 +47,44 @@ class SortAlgorithm(Enum):
     FUZZY_MATCH = 1
 
 @dataclass
+class Controller:
+    isActivated: any = None
+    uid: str = ""
+    address: int = 0
+    networkUID: str = ""
+    name: str = ""
+    isPooling: any = None
+    status: str = ""
+    purpose: str = ""
+    isConnected: any = None
+    disconnectTime: str = ""
+    description: any = None
+    script: str = ""
+    firmwareVersion: str = ""
+    hardwareVersion: str = ""
+    apiKey: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        controller_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in controller_dict:
+            if isinstance(controller_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, controller_dict[property_name])
+
+    def dict(self):
+        controller_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                controller_dict[k] = v
+            elif isinstance(v, type(None)):
+                controller_dict[k] = None
+            else:
+                controller_dict[k] = str(v)
+
+        return controller_dict
+
+@dataclass
 class Reader:
     uid: str = ""
     name: str = ""
