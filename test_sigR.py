@@ -1,5 +1,7 @@
 import logging
 import sys
+import threading
+from time import sleep
 from typing import List, Dict, Any
 
 import pkg_resources
@@ -16,8 +18,8 @@ GP_PASS = 'admin'
 TLS_P12 = "C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
-#sys.path.insert(1, 'pyGuardPoint_Build')
-#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
+sys.path.insert(1, 'pyGuardPoint_Build')
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
 
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
@@ -63,7 +65,28 @@ if __name__ == "__main__":
         signal_client.on("StatusUpdate", on_message)
         signal_client.on("TechnicalEventArrived", on_message)
 
-        gp.run_signal_client(signal_client)
+        def start():
+            gp.start_listening(signal_client)
+
+        # Listen to signal R event for 15 secs
+        x = threading.Thread(target=start, daemon=True)
+        x.start()
+        sleep(15)
+        gp.stop_listening(signal_client)
+        x.join()
+        print(f"thread finished")
+
+        # Listen to signal R event for 15 secs
+        x = threading.Thread(target=start, daemon=True)
+        x.start()
+        sleep(15)
+        gp.stop_listening(signal_client)
+        x.join()
+        print(f"thread finished")
+
+
+
+
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

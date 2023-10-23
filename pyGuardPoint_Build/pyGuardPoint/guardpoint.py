@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from time import sleep
 
 from pysignalr.client import SignalRClient
 
@@ -27,6 +28,7 @@ log = logging.getLogger(__name__)
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                  CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
                  OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI):
+    task = None
 
     def __init__(self, **kwargs):
         # Set default values if not present
@@ -97,11 +99,29 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         )
         return client
 
-    @staticmethod
-    def run_signal_client(client: SignalRClient):
+    def start_listening(self, client: SignalRClient):
         async def run_signal_client() -> None:
-            await asyncio.gather(
+            '''group = asyncio.gather(
                 client.run(),
             )
+            await group'''
+            self.task = asyncio.create_task(client.run(), name = "sigR_task")
+            await self.task
 
-        asyncio.run(run_signal_client())
+        try:
+            asyncio.run(run_signal_client())
+        except asyncio.CancelledError:
+            print(f"{self.task.get_name()} cancelled")
+
+    def stop_listening(self, client: SignalRClient):
+        async def stop_signal_client() -> None:
+            await client._transport.close()
+
+        asyncio.run(stop_signal_client())
+        '''if not self.task:
+            return
+
+        self.task.cancel()
+        while not self.task.cancelled():
+            sleep(1)'''
+

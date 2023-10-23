@@ -41,7 +41,10 @@ DEFAULT_CONNECTION_TIMEOUT = 10
 _logger = logging.getLogger('pysignalr.transport')
 _logger.setLevel(logging.DEBUG)
 
+
 class CustomWebsocketTransport(Transport):
+    reconnect = True
+
     def __init__(
             self,
             url: str,
@@ -71,6 +74,14 @@ class CustomWebsocketTransport(Transport):
         self._open_callback: Optional[Callable[[], Awaitable[None]]] = None
         self._close_callback: Optional[Callable[[], Awaitable[None]]] = None
 
+    async def close(self) -> None:
+        self.reconnect = False
+        if self._ws:
+            try:
+                await self._ws.close()
+            except Exception:
+                pass
+
     def on_open(self, callback: Callable[[], Awaitable[None]]) -> None:
         self._open_callback = callback
 
@@ -81,10 +92,14 @@ class CustomWebsocketTransport(Transport):
         self._error_callback = callback
 
     async def run(self) -> None:
+        self.reconnect = True
         while True:
+            if not self.reconnect:
+                return
             with suppress(NegotiationTimeout):
                 await self._loop()
             await self._set_state(ConnectionState.disconnected)
+
 
     async def send(self, message: Message) -> None:
         conn = await self._get_connection()
@@ -99,7 +114,7 @@ class CustomWebsocketTransport(Transport):
             except ServerConnectionError as e:
                 raise NegotiationTimeout from e
 
-        connection_loop = connect(
+        self.connection_loop = connect(
             self._url,
             extra_headers=self._headers,
             ping_interval=self._ping_interval,
@@ -109,7 +124,7 @@ class CustomWebsocketTransport(Transport):
             ssl=self._ssl_context
         )
 
-        async for conn in connection_loop:
+        async for conn in self.connection_loop:
             try:
                 await self._handshake(conn)
                 self._ws = conn
@@ -122,7 +137,10 @@ class CustomWebsocketTransport(Transport):
             except ConnectionClosed as e:
                 _logger.warning('Connection closed: %s', e)
                 self._ws = None
-                await self._set_state(ConnectionState.reconnecting)
+                if self.reconnect:
+                    await self._set_state(ConnectionState.reconnecting)
+                else:
+                    await self._set_state(ConnectionState.disconnected)
 
     async def _set_state(self, state: ConnectionState) -> None:
         if state == self._state:
