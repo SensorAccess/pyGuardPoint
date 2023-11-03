@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import sys
 import threading
@@ -45,6 +46,10 @@ async def on_error(message: CompletionMessage) -> None:
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     try:
+        import tracemalloc
+
+        tracemalloc.start()
+
         gp = GuardPoint(host=GP_HOST,
                         username=GP_USER,
                         pwd=GP_PASS,
@@ -60,33 +65,46 @@ if __name__ == "__main__":
         signal_client.on("AlarmEventArrived", on_message)
         signal_client.on("AuditEventArrived", on_message)
         signal_client.on("CommEventArrived", on_message)
-        signal_client.on("GenaralEventArrived", on_message)
+        signal_client.on("GeneralEventArrived", on_message)
         signal_client.on("IOEventArrived", on_message)
         signal_client.on("StatusUpdate", on_message)
         signal_client.on("TechnicalEventArrived", on_message)
 
-        def start():
-            gp.start_listening(signal_client)
+        async def run_signal_client() -> None:
+            '''group = asyncio.gather(
+                client.run(),
+            )
+            await group'''
+            task = asyncio.create_task(signal_client.run(), name = "sigR_task")
+            await task
+
+
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(run_signal_client(), loop)
+        #gp.start_listening(signal_client)
+        print('something here')
+        gp.start_listening(signal_client)
 
         # Listen to signal R event for 15 secs
-        x = threading.Thread(target=start, daemon=True)
-        x.start()
-        sleep(15)
-        gp.stop_listening(signal_client)
-        x.join()
+        #x = threading.Thread(target=start, daemon=True)
+        #x.start()
+        #sleep(5000000)
+        #gp.stop_listening(signal_client)
+        '''x.join()
         print(f"thread finished")
 
         # Listen to signal R event for 15 secs
         x = threading.Thread(target=start, daemon=True)
         x.start()
-        sleep(15)
+        sleep(5)
         gp.stop_listening(signal_client)
         x.join()
         print(f"thread finished")
 
-
-
-
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        for stat in top_stats[:10]:
+            print(stat)'''
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
