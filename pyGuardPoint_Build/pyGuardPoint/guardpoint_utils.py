@@ -2,7 +2,6 @@ import binascii
 import time
 import base64
 from urllib.parse import urlparse
-
 from .guardpoint_error import GuardPointError
 
 

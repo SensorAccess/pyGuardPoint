@@ -1,9 +1,6 @@
 import json
-
 from fuzzywuzzy import process
 from fuzzywuzzy import fuzz
-import Levenshtein
-
 
 def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
     if not search_words:
