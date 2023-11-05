@@ -1,11 +1,8 @@
 import asyncio
 import logging
-import os
 import ssl
 from contextlib import suppress
 from http import HTTPStatus
-from pathlib import Path
-from tempfile import NamedTemporaryFile
 from typing import Awaitable
 from typing import Callable
 from typing import Dict
@@ -15,8 +12,6 @@ from typing import Union
 from aiohttp import ClientSession, TCPConnector
 from aiohttp import ClientTimeout
 from aiohttp import ServerConnectionError
-from cryptography.hazmat.primitives._serialization import Encoding, PrivateFormat, BestAvailableEncryption
-from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
 from websockets.client import WebSocketClientProtocol
 from websockets.client import connect
 from websockets.connection import State

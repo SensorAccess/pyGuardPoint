@@ -34,7 +34,7 @@ class OutputsAPI:
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
-        return Relay(json_body['value'])
+        return Relay(json_body['value'][0])
 
 
     def get_relays(self):
