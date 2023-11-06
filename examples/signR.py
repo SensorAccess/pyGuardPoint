@@ -76,8 +76,8 @@ def attach_signal_client(client:SignalRClient):
     asyncio.run(run_signal_client())
 
 
-# with suppress(KeyboardInterrupt, asyncio.CancelledError):
-#    asyncio.run(main())
+# with suppress(KeyboardInterrupt, gp_asyncio.CancelledError):
+#    gp_asyncio.run(main())
 client = get_client()
 client.on_open(on_open)
 client.on_close(on_close)

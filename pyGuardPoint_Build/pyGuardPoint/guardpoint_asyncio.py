@@ -8,7 +8,7 @@ from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INT
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
 from ._guardpoint_controllers import ControllersAPI
 from ._guardpoint_diagnostic import DiagnosticAPI
-from ._guardpoint_ouputs import OutputsAPI
+from .gp_asyncio import OutputsAPI
 from ._guardpoint_readers import ReadersAPI
 from ._guardpoint_scheduledmags import ScheduledMagsAPI
 from ._guardpoint_customizedfields import CustomizedFieldsAPI
@@ -37,7 +37,7 @@ def stop_listening(client: SignalRClient):
         sleep(1)'''
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
+class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                  CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
                  OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI):
     task = None

@@ -3,7 +3,7 @@ from .guardpoint import GuardPoint, GuardPointError
 from .guardpoint_dataclasses import SortAlgorithm, Cardholder
 
 
-class GuardPointAsync:
+class GuardPointThreaded:
 
     def __init__(self, **kwargs):
         self.gp = GuardPoint(**kwargs)
@@ -11,12 +11,12 @@ class GuardPointAsync:
 
     def new_card_holder(self, on_finished, cardholder: Cardholder):
         future = self.executor.submit(self.gp.new_card_holder(), cardholder=cardholder)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def get_card_holder(self, on_finished, uid=None, card_code=None):
         future = self.executor.submit(self.gp.get_card_holder, uid=uid, card_code=card_code)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def get_card_holders(self, on_finished, offset=0, limit=10, search_terms=None,
@@ -39,41 +39,41 @@ class GuardPointAsync:
                                       select_ignore_list=select_ignore_list,
                                       select_include_list=select_include_list,
                                       **cardholder_kwargs)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def update_cardholder(self, on_finished, cardholder: Cardholder):
         future = self.executor.submit(self.gp.update_card_holder, cardholder=cardholder)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def delete_cardholder(self, on_finished, cardholder: Cardholder):
         future = self.executor.submit(self.gp.delete_card_holder, cardholder=cardholder)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def get_cards(self, on_finished):
         future = self.executor.submit(self.gp.get_cards)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def delete_card(self, on_finished, card):
         future = self.executor.submit(self.gp.delete_card)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future, card)
 
     def get_areas(self, on_finished):
         future = self.executor.submit(self.gp.get_areas)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
     def get_security_groups(self, on_finished):
         future = self.executor.submit(self.gp.get_security_groups)
-        callback = GPAsyncCallBack(on_finished)
+        callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
 
-class GPAsyncCallBack:
+class GPThreadCallBack:
     on_finished = None
 
     def __init__(self, on_finished_func):

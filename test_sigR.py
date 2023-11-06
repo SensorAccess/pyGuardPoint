@@ -71,7 +71,7 @@ if __name__ == "__main__":
         signal_client.on("TechnicalEventArrived", on_message)
 
         async def run_signal_client() -> None:
-            '''group = asyncio.gather(
+            '''group = gp_asyncio.gather(
                 client.run(),
             )
             await group'''
