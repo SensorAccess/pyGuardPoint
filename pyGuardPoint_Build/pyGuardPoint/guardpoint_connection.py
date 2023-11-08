@@ -8,7 +8,8 @@ from json import JSONDecodeError
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption
-from cryptography.hazmat.primitives.serialization.pkcs12 import load_key_and_certificates
+from cryptography.hazmat.primitives.serialization import pkcs12
+from cryptography.hazmat.backends import default_backend
 from .guardpoint_error import GuardPointUnauthorized
 from .guardpoint_utils import ConvertBase64, GuardPointResponse
 import time
@@ -264,7 +265,8 @@ class GuardPointConnection:
     def pfx_to_pems(pfx_path, pfx_password):
         ''' Decrypts the .pfx file to be used with requests. '''
         pfx = Path(pfx_path).read_bytes()
-        private_key, main_cert, add_certs = load_key_and_certificates(pfx, pfx_password.encode('utf-8'), None)
+        private_key, main_cert, add_certs = pkcs12.load_key_and_certificates(pfx, pfx_password.encode('utf-8'),
+                                                                             default_backend())
 
         key_file = NamedTemporaryFile(suffix='.pem', delete=False)
         key_file.write(private_key.private_bytes(Encoding.PEM, PrivateFormat.PKCS8,
