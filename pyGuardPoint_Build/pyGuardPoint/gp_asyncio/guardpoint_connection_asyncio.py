@@ -156,8 +156,8 @@ class GuardPointConnection:
         self.token_issued = token_dict['iat']
         self.token_expiry = token_dict['exp']
 
-    def renew_token(self):
-        code, body = self._renew_token()
+    async def renew_token(self):
+        code, body = await self._renew_token()
         if int(code) != 200:
             msg = GuardPointResponse.extract_error_msg(body)
             raise GuardPointUnauthorized(msg)
