@@ -5,18 +5,18 @@ from pysignalr.client import SignalRClient
 
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
-from ._guardpoint_cardholdertypes import CardholderTypesAPI
-from ._guardpoint_controllers import ControllersAPI
-from ._guardpoint_diagnostic import DiagnosticAPI
-from .gp_asyncio import OutputsAPI
-from ._guardpoint_readers import ReadersAPI
-from ._guardpoint_scheduledmags import ScheduledMagsAPI
-from ._guardpoint_customizedfields import CustomizedFieldsAPI
-from ._guardpoint_personaldetails import PersonalDetailsAPI
-from ._guardpoint_securitygroups import SecurityGroupsAPI
-from pyGuardPoint_Build.pyGuardPoint.gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
-from ._guardpoint_cards import CardsAPI
-from ._guardpoint_cardholders import CardholdersAPI
+from .gp_asyncio._async_guardpoint_cardholdertypes import CardholderTypesAPI
+from .gp_asyncio._async_guardpoint_controllers import ControllersAPI
+from .gp_asyncio._async_guardpoint_diagnostic import DiagnosticAPI
+from .gp_asyncio._async_guardpoint_ouputs import OutputsAPI
+from .gp_asyncio._async_guardpoint_readers import ReadersAPI
+from .gp_asyncio._async_guardpoint_scheduledmags import ScheduledMagsAPI
+from .gp_asyncio._async_guardpoint_customizedfields import CustomizedFieldsAPI
+from .gp_asyncio._async_guardpoint_personaldetails import PersonalDetailsAPI
+from .gp_asyncio._async_guardpoint_securitygroups import SecurityGroupsAPI
+from .gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
+from .gp_asyncio._async_guardpoint_cards import CardsAPI
+from .gp_asyncio._async_guardpoint_cardholders import CardholdersAPI
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ._guardpoint_areas import AreasAPI
 from .guardpoint_utils import url_parser, ConvertBase64

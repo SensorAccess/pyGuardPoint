@@ -9,6 +9,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import aiohttp
+from aiohttp import InvalidURL
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption, \
     pkcs12
@@ -141,9 +142,9 @@ class GuardPointConnection:
     def get_ssl_context(self):
         return self.ssl_context
 
-    def get_token(self):
+    async def get_token(self):
         if not self.token:
-            code, body = self._new_token()
+            code, body = await self._new_token()
             if int(code) != 200:
                 msg = GuardPointResponse.extract_error_msg(body)
                 raise GuardPointUnauthorized(msg)
@@ -202,20 +203,27 @@ class GuardPointConnection:
             headers['Authorization'] = auth_str
 
         log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
-        # timer = Stopwatch().start()
+        url = self.baseurl + url
 
         conn = aiohttp.TCPConnector(ssl_context=self.get_ssl_context())
         session = aiohttp.ClientSession(connector=conn)
         if method.lower() == "get":
-            async with session.get(url, headers=headers) as response:
-                body = await response.text()
-                try:
-                    json_body = json.loads(body)
-                except JSONDecodeError:
-                    json_body = None
-                except Exception as e:
-                    log.error(e)
-                    json_body = None
+            try:
+                async with session.get(url, headers=headers) as response:
+                    body = await response.text()
+                    try:
+                        json_body = json.loads(body)
+                    except JSONDecodeError:
+                        json_body = None
+                    except Exception as e:
+                        log.error(e)
+                        json_body = None
+            except InvalidURL as e:
+                log.error(str(e))
+                return
+            except Exception as e:
+                log.error(str(e))
+                return
 
         elif method.lower() == "post":
             async with session.post(url, data=raw_body, headers=headers) as response:
@@ -232,17 +240,18 @@ class GuardPointConnection:
 
         await session.close()
         return response.status, json_body
+
     async def _new_token(self):
         log.info("Requesting new token")
         payload = {"username": self.user,
                    "password": self.pwd}
-        url = self.baseurl + "/api/Token/"
+        url = "/api/Token/"
         return await self._query_token(url, payload)
 
     async def _renew_token(self):
         log.info("Renewing token")
         payload = {"oldToken": self.token}
-        url = self.baseurl + "/api/Token/RenewToken"
+        url = "/api/Token/RenewToken"
         return await self._query_token(url, payload)
 
     async def _query_token(self, url, json_payload):

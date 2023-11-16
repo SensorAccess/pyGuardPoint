@@ -4,17 +4,16 @@ from ..guardpoint_dataclasses import Relay
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
-
 class OutputsAPI:
 
-    def get_relay(self, relay_uid):
-        url = self.baseurl + "/odata/API_Outputs"
+    async def get_relay(self, relay_uid):
+        url = "/odata/API_Outputs"
         url_query_params = f"({relay_uid})"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-        code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -38,7 +37,7 @@ class OutputsAPI:
 
 
     async def get_relays(self):
-        url = self.baseurl + "/odata/API_Outputs"
+        url = "/odata/API_Outputs"
 
         code, json_body = await self.gp_json_query("GET", url=url)
 
@@ -73,7 +72,7 @@ class OutputsAPI:
 
     async def activate_relay_by_uid(self, relay_uid: str, period: int = 0):
 
-        url = self.baseurl + "/odata/API_Outputs/Activate"
+        url = "/odata/API_Outputs/Activate"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

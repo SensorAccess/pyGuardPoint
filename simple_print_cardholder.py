@@ -47,7 +47,9 @@ if __name__ == "__main__":
     ca_file.write(ca_data.encode())
     ca_file.close()
     print(ca_file.name)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin", ca_file=ca_file.name)
+    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+                    p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12",
+                    p12_pwd="test")
 
     try:
         #cardholder = gp.get_card_holder(card_code='1B1A1B1C')
