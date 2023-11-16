@@ -14,7 +14,7 @@ class CardholdersAPI:
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
-        url = self.baseurl + "/odata/API_Cardholders"
+        url = "/odata/API_Cardholders"
         url_query_params = "(" + cardholder.uid + ")"
 
         code, json_body = await self.gp_json_query("DELETE", url=(url + url_query_params))
