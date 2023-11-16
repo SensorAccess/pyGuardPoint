@@ -82,13 +82,13 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
 
         return int(json_body['totalItems'])
 
-    def get_signal_client(self):
+    async def get_signal_client(self):
         client = SignalRClient(self.baseurl + "/Hub/EventsHub")
         headers = {}
         if self.authType == GuardPointAuthType.BASIC:
             auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
         else:
-            token = self.get_token()
+            token = await self.get_token()
             auth_str = f"Bearer {token}"
         headers['Authorization'] = auth_str
         client._transport = CustomWebsocketTransport(
