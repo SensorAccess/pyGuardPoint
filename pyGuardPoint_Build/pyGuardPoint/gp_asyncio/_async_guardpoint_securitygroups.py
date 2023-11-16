@@ -5,7 +5,7 @@ from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class SecurityGroupsAPI:
     async def get_security_groups(self):
-        url = self.baseurl + "/odata/api_SecurityGroups"
+        url = "/odata/api_SecurityGroups"
         # url_query_params = "?$select=uid,name&$filter=name%20ne%20'Anytime%20Anywhere'"
         url_query_params = ""
         code, json_body = await self.gp_json_query("GET", url=(url + url_query_params))

@@ -7,7 +7,7 @@ from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 class ScheduledMagsAPI:
 
     async def get_scheduled_mags(self, cardholder: Cardholder = None):
-        url = self.baseurl + "/odata/API_ScheduledMags"
+        url = "/odata/API_ScheduledMags"
         if cardholder:
             if not validators.uuid(cardholder.uid):
                 raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
