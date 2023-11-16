@@ -14,27 +14,19 @@ from .gp_asyncio._async_guardpoint_scheduledmags import ScheduledMagsAPI
 from .gp_asyncio._async_guardpoint_customizedfields import CustomizedFieldsAPI
 from .gp_asyncio._async_guardpoint_personaldetails import PersonalDetailsAPI
 from .gp_asyncio._async_guardpoint_securitygroups import SecurityGroupsAPI
-from .gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
 from .gp_asyncio._async_guardpoint_cards import CardsAPI
 from .gp_asyncio._async_guardpoint_cardholders import CardholdersAPI
+from .gp_asyncio._async_guardpoint_areas import AreasAPI
+from .gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
+
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
-from ._guardpoint_areas import AreasAPI
 from .guardpoint_utils import url_parser, ConvertBase64
 
 log = logging.getLogger(__name__)
 
 
-def stop_listening(client: SignalRClient):
-    async def stop_signal_client() -> None:
-        await client._transport.close()
 
-    asyncio.run(stop_signal_client())
-    '''if not self.task:
-        return
 
-    self.task.cancel()
-    while not self.task.cancelled():
-        sleep(1)'''
 
 
 class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
@@ -67,9 +59,9 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
                          cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout,
                          p12_file=p12_file, p12_pwd=p12_pwd)
 
-    def get_cardholder_count(self):
+    async def get_cardholder_count(self):
         url = self.baseurl + "/odata/GetCardholdersCount"
-        code, json_body = self.gp_json_query("GET", url=url)
+        code, json_body = await self.gp_json_query("GET", url=url)
 
         if code != 200:
             error_msg = ""
@@ -111,17 +103,8 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
         )
         return client
 
-    def start_listening(self, client: SignalRClient):
-        async def run_signal_client() -> None:
-            '''group = gp_asyncio.gather(
-                client.run(),
-            )
-            await group'''
-            self.task = asyncio.create_task(client.run(), name = "sigR_task")
-            await self.task
+    async def start_listening(self, client: SignalRClient):
+        return await client.run()
 
-        try:
-            asyncio.run(run_signal_client())
-        except asyncio.CancelledError:
-            print(f"{self.task.get_name()} cancelled")
-
+    async def stop_listening(self, client: SignalRClient):
+        return await client._transport.close()
