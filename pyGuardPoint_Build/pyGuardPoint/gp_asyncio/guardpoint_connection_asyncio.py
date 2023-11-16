@@ -235,6 +235,18 @@ class GuardPointConnection:
                 except Exception as e:
                     log.error(e)
                     json_body = None
+
+        elif method.lower() == "patch":
+            async with session.patch(url, data=raw_body, headers=headers) as response:
+                body = await response.text()
+                try:
+                    json_body = json.loads(body)
+                except JSONDecodeError:
+                    json_body = None
+                except Exception as e:
+                    log.error(e)
+                    json_body = None
+
         else:
             raise ValueError("Method Not Supported")
 
