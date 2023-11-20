@@ -53,11 +53,11 @@ class CardholdersAPI:
 
         if cardholder.cardholderCustomizedField:
             if len(cardholder.cardholderCustomizedField.changed_attributes) > 0:
-                self.update_custom_fields(cardholder.uid, cardholder.cardholderCustomizedField)
+                await self.update_custom_fields(cardholder.uid, cardholder.cardholderCustomizedField)
 
         if cardholder.cardholderPersonalDetail:
             if len(cardholder.cardholderPersonalDetail.changed_attributes) > 0:
-                self.update_personal_details(cardholder.uid, cardholder.cardholderPersonalDetail)
+                await self.update_personal_details(cardholder.uid, cardholder.cardholderPersonalDetail)
 
         if cardholder.cards:
             if isinstance(cardholder.cards, list):
