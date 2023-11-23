@@ -53,9 +53,14 @@ log = logging.getLogger(__name__)
 
 
 class GuardPointConnection:
-    auto_renew = False;
+    auto_renew = False
+    session = None
 
-    def __init__(self, url_components, auth, user, pwd, key, token=None,
+    async def close(self):
+        if self.session:
+            await self.session.close()
+
+    def open(self, url_components, auth, user, pwd, key, token=None,
                  cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
         self.ssl_context = None
         self.url_components = url_components
@@ -82,62 +87,55 @@ class GuardPointConnection:
             self.token_expiry = 0
 
         log.info(f"GP10 server connection: {self.baseurl}")
-        if url_components['scheme'] == 'https':
-            # Loading System Defaults for TLS Client
-            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        # Loading System Defaults for TLS Client
+        self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
-            p12_key_file = None
-            p12_cert_file = None
-            p12_ca_file = None
-            if p12_file:
-                if os.path.isfile(p12_file):
-                    # temporary files
-                    p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
-                    if os.stat(p12_key_file.name).st_size > 0:
-                        key_file = p12_key_file.name
-                    if os.stat(p12_cert_file.name).st_size > 0:
-                        cert_file = p12_cert_file.name
-                    if os.stat(p12_ca_file.name).st_size > 0:
-                        ca_file = p12_ca_file.name
-                    else:
-                        # p12_ca_file.seek(0)
-                        p12_ca_file.write(default_ca.encode())
-                        p12_ca_file.flush()
-                        ca_file = p12_ca_file.name
+        p12_key_file = None
+        p12_cert_file = None
+        p12_ca_file = None
+        if p12_file:
+            if os.path.isfile(p12_file):
+                # temporary files
+                p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
+                if os.stat(p12_key_file.name).st_size > 0:
+                    key_file = p12_key_file.name
+                if os.stat(p12_cert_file.name).st_size > 0:
+                    cert_file = p12_cert_file.name
+                if os.stat(p12_ca_file.name).st_size > 0:
+                    ca_file = p12_ca_file.name
                 else:
-                    raise ValueError(f"{p12_file} is not found.")
+                    # p12_ca_file.seek(0)
+                    p12_ca_file.write(default_ca.encode())
+                    p12_ca_file.flush()
+                    ca_file = p12_ca_file.name
+            else:
+                raise ValueError(f"{p12_file} is not found.")
 
-            if cert_file and key_file:
-                # Loading of client certificate
-                self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
+        if cert_file and key_file:
+            # Loading of client certificate
+            self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
 
-            if ca_file:
-                # Loading of CA certificate.
-                self.ssl_context.load_verify_locations(cafile=ca_file)
+        if ca_file:
+            # Loading of CA certificate.
+            self.ssl_context.load_verify_locations(cafile=ca_file)
 
-            self.connection = http.client.HTTPSConnection(
-                host=url_components['host'],
-                port=url_components['port'],
-                context=self.ssl_context)
+        conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
+        self.session = aiohttp.ClientSession(connector=conn)
+        '''self.connection = http.client.HTTPSConnection(
+            host=url_components['host'],
+            port=url_components['port'],
+            context=self.ssl_context)'''
 
-            # Close temporary files
-            if p12_key_file:
-                p12_key_file.close()
-                os.unlink(p12_key_file.name)
-            if p12_cert_file:
-                p12_cert_file.close()
-                os.unlink(p12_cert_file.name)
-            if p12_ca_file:
-                p12_ca_file.close()
-                os.unlink(p12_ca_file.name)
-
-        elif url_components['scheme'] == 'http':
-            self.connection = http.client.HTTPConnection(
-                host=url_components['host'],
-                port=url_components['port'],
-                timeout=int(timeout))
-        else:
-            raise ValueError("Invalid Connection Scheme")
+        # Close temporary files
+        if p12_key_file:
+            p12_key_file.close()
+            os.unlink(p12_key_file.name)
+        if p12_cert_file:
+            p12_cert_file.close()
+            os.unlink(p12_cert_file.name)
+        if p12_ca_file:
+            p12_ca_file.close()
+            os.unlink(p12_ca_file.name)
 
     def get_ssl_context(self):
         return self.ssl_context
@@ -205,11 +203,9 @@ class GuardPointConnection:
         log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
         url = self.baseurl + url
 
-        conn = aiohttp.TCPConnector(ssl_context=self.get_ssl_context())
-        session = aiohttp.ClientSession(connector=conn)
         if method.lower() == "get":
             try:
-                async with session.get(url, headers=headers) as response:
+                async with self.session.get(url, headers=headers) as response:
                     body = await response.text()
                     try:
                         json_body = json.loads(body)
@@ -226,7 +222,7 @@ class GuardPointConnection:
                 return
 
         elif method.lower() == "post":
-            async with session.post(url, data=raw_body, headers=headers) as response:
+            async with self.session.post(url, data=raw_body, headers=headers) as response:
                 body = await response.text()
                 try:
                     json_body = json.loads(body)
@@ -237,7 +233,7 @@ class GuardPointConnection:
                     json_body = None
 
         elif method.lower() == "patch":
-            async with session.patch(url, data=raw_body, headers=headers) as response:
+            async with self.session.patch(url, data=raw_body, headers=headers) as response:
                 body = await response.text()
                 try:
                     json_body = json.loads(body)
@@ -248,7 +244,7 @@ class GuardPointConnection:
                     json_body = None
 
         elif method.lower() == "delete":
-            async with session.delete(url, data=raw_body, headers=headers) as response:
+            async with self.session.delete(url, data=raw_body, headers=headers) as response:
                 body = await response.text()
                 try:
                     json_body = json.loads(body)
@@ -259,7 +255,7 @@ class GuardPointConnection:
                     json_body = None
 
         elif method.lower() == "put":
-            async with session.put(url, data=raw_body, headers=headers) as response:
+            async with self.session.put(url, data=raw_body, headers=headers) as response:
                 body = await response.text()
                 try:
                     json_body = json.loads(body)
@@ -272,7 +268,6 @@ class GuardPointConnection:
         else:
             raise ValueError("Method Not Supported")
 
-        await session.close()
         return response.status, json_body
 
     async def _new_token(self):

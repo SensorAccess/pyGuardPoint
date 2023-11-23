@@ -41,13 +41,13 @@ if __name__ == "__main__":
             for relay in relays:
                 pprint(relay.dict())
 
-                try:
+                '''try:
                     await gp.activate_relay(relay, period=1)
                 except GuardPointError as e:
                     print(f"\n\tRelay Failed to activate: {e}")
 
-                print(f"\n\n")
-
+                print(f"\n\n")'''
+            await gp.close()
         except GuardPointError as e:
             print(f"GuardPointError: {e}")
         except GuardPointUnauthorized as e:
