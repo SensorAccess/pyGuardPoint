@@ -61,7 +61,7 @@ class GuardPointConnection:
             await self.session.close()
 
     def open(self, url_components, auth, user, pwd, key, token=None,
-                 cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
+             cert_file=None, key_file=None, key_pwd="", ca_file=None, p12_file=None, p12_pwd="", timeout=5):
         self.ssl_context = None
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
@@ -96,6 +96,7 @@ class GuardPointConnection:
         if p12_file:
             if os.path.isfile(p12_file):
                 # temporary files
+                key_pwd = p12_pwd
                 p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
                 if os.stat(p12_key_file.name).st_size > 0:
                     key_file = p12_key_file.name
@@ -113,7 +114,7 @@ class GuardPointConnection:
 
         if cert_file and key_file:
             # Loading of client certificate
-            self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
+            self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=key_pwd)
 
         if ca_file:
             # Loading of CA certificate.

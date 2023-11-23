@@ -46,12 +46,13 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
         token = kwargs.get('token', None)
         certfile = kwargs.get('cert_file', None)
         keyfile = kwargs.get('key_file', None)
+        key_pwd = kwargs.get('key_pwd', "")
         cafile = kwargs.get('ca_file', None)
         timeout = kwargs.get('timeout', 5)
         p12_file = kwargs.get('p12_file', None)
         p12_pwd = kwargs.get('p12_pwd', "")
         super().open(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
-                         cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout,
+                         cert_file=certfile, key_file=keyfile, key_pwd=key_pwd, ca_file=cafile, timeout=timeout,
                          p12_file=p12_file, p12_pwd=p12_pwd)
 
     async def get_cardholder_count(self):
