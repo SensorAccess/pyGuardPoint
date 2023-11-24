@@ -5,7 +5,7 @@ from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class ControllersAPI:
-    async def get_controllers(self, ):
+    async def get_controllers(self):
         url = "/odata/API_Controllers"
         headers = {
             'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ class ControllersAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                return None
             else:
                 raise GuardPointError(f"{error_msg}")
 
@@ -51,11 +51,14 @@ class ControllersAPI:
         code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
         if code != 200:
-            if isinstance(json_body, dict):
-                if 'error' in json_body:
-                    raise GuardPointError(json_body['error'])
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                return None
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"{error_msg}")
 
         # Check response body is formatted as expected
         if not isinstance(json_body, dict):
