@@ -1,9 +1,9 @@
 import logging, sys
-import pkg_resources
+from importlib.metadata import version
 from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
     CardholderCustomizedField
 
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+py_gp_version = version("pyGuardPoint")
 print("pyGuardPoint Version:" + py_gp_version)
 py_gp_version_int = int(py_gp_version.replace('.', ''))
 if py_gp_version_int < 65:

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from importlib.metadata import version
 from pprint import pprint
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
@@ -8,10 +9,7 @@ sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPoint, GuardPointError, GuardPointUnauthorized
 #from pyGuardPoint import GuardPoint, GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized
 
-import pkg_resources
 
-
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 # GuardPoint
 GP_HOST = 'https://sensoraccess.duckdns.org'
@@ -24,30 +22,38 @@ TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
 if __name__ == "__main__":
+    py_gp_version = version("pyGuardPoint")
     print("pyGuardPoint Version:" + py_gp_version)
+    py_gp_version_int = int(py_gp_version.replace('.', ''))
+    if py_gp_version_int < 138:
+        print("Please Update pyGuardPoint")
+        print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+        exit()
+
     logging.basicConfig(level=logging.DEBUG)
 
-    async def test():
+    async def main():
         gp = GuardPointAsyncIO(host=GP_HOST,
                         username=GP_USER,
                         pwd=GP_PASS,
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
         try:
-            cardholders = await gp.get_card_holders(offset=0, limit=10)
+            cardholders = await gp.get_card_holders(search_terms="john owen", threshold=100, limit=1)
             for cardholder in cardholders:
-                print(f"Firstname: {cardholder.firstName}")
+                print(f"firstName: {cardholder.firstName}")
+                print(f"lastName: {cardholder.lastName}")
+                print(f"email: {cardholder.cardholderPersonalDetail.email}")
+                print(f"securityGroup: {cardholder.securityGroup.name}")
+                print(f"accessGroupUIDs: {cardholder.accessGroupUIDs}")
+                print(f"status: {cardholder.status}")
 
-            relays = await gp.get_relays()
-            for relay in relays:
-                pprint(relay.dict())
+                if cardholder.isFromDateActive:
+                    print(f"fromDateValid: {cardholder.fromDateValid}")
+                if cardholder.isToDateActive:
+                    print(f"toDateValid: {cardholder.toDateValid}")
 
-                '''try:
-                    await gp.activate_relay(relay, period=1)
-                except GuardPointError as e:
-                    print(f"\n\tRelay Failed to activate: {e}")
 
-                print(f"\n\n")'''
             await gp.close()
         except GuardPointError as e:
             print(f"GuardPointError: {e}")
@@ -56,4 +62,4 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"Exception: {e}")
 
-    asyncio.run(test())
+    asyncio.run(main())

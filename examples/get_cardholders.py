@@ -1,7 +1,6 @@
 import logging
-import os
 
-import pkg_resources
+from importlib.metadata import version
 from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
     CardholderCustomizedField, SortAlgorithm
 
@@ -11,14 +10,14 @@ GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection
-TLS_P12 = "C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
+TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 #TLS_P12 = None
 TLS_P12_PWD = "test"
 
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+py_gp_version = version("pyGuardPoint")
 print("pyGuardPoint Version:" + py_gp_version)
 py_gp_version_int = int(py_gp_version.replace('.', ''))
-if py_gp_version_int < 61:
+if py_gp_version_int < 138:
     print("Please Update pyGuardPoint")
     print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
     exit()

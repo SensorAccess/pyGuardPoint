@@ -1,14 +1,14 @@
 import logging, sys
 from pprint import pprint
-import pkg_resources
+#import pkg_resources
 
 sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
 
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+#py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 if __name__ == "__main__":
-    print("pyGuardPoint Version:" + py_gp_version)
+    #print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 

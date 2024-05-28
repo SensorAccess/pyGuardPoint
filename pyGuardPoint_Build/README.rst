@@ -32,6 +32,14 @@ To establish a secure connection with a PKCS#12(*.p12) credential file:
                         p12_file="MobileGuardDefault.p12",
                         p12_pwd="test")
 
+pyGuardPoint also has built-in support for asynchronous connections, under-the-hood it uses the Python module aiohttp.
+The example below demonstrates settings up a AsyncIO connection:
+
+    from pyGuardPoint import GuardPointAsyncIO
+    gp = GuardPointAsyncIO(host="https://sensoraccess.duckdns.org", pwd="admin",
+                        p12_file="MobileGuardDefault.p12",
+                        p12_pwd="test")
+
 To retrieve a list of cardholders:
 
     gp = GuardPoint(host="10.0.0.1", pwd="password")
@@ -119,6 +127,47 @@ Scheduling the membership of an Access Group to a Cardholder:
     scheduled_mags = gp.get_scheduled_mags()
     for scheduled_mag in scheduled_mags:
         print(scheduled_mag)
+
+GuardPoint servers can be setup with a Signal-R service enabled.
+Once enabled the server will broadcast events to clients listening to events.
+
+    try:
+        gp = GuardPoint(host=GP_HOST,
+                        username=GP_USER,
+                        pwd=GP_PASS,
+                        p12_file=TLS_P12,
+                        p12_pwd=TLS_P12_PWD)
+
+        signal_client = gp.get_signal_client()
+
+        signal_client.on_open(on_open)
+        signal_client.on_close(on_close)
+        signal_client.on_error(on_error)
+        signal_client.on('AccessEventArrived', on_message)
+        signal_client.on("AlarmEventArrived", on_message)
+        signal_client.on("AuditEventArrived", on_message)
+        signal_client.on("CommEventArrived", on_message)
+        signal_client.on("GeneralEventArrived", on_message)
+        signal_client.on("IOEventArrived", on_message)
+        signal_client.on("StatusUpdate", on_message)
+        signal_client.on("TechnicalEventArrived", on_message)
+
+        async def run_signal_client() -> None:
+            task = asyncio.create_task(signal_client.run(), name = "sigR_task")
+            await task
+
+
+        loop = asyncio.get_event_loop()
+        asyncio.run_coroutine_threadsafe(run_signal_client(), loop)
+
+        gp.start_listening(signal_client)
+
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
+    except AuthorizationError as e:
+        print(f"SignalR AuthorizationError")
+    except Exception as e:
+        print(f"Exception: {str(e)}")
 
 More
 ------------------
