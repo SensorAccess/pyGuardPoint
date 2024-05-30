@@ -16,6 +16,8 @@ from .gp_asyncio._async_guardpoint_securitygroups import SecurityGroupsAPI
 from .gp_asyncio._async_guardpoint_cards import CardsAPI
 from .gp_asyncio._async_guardpoint_cardholders import CardholdersAPI
 from .gp_asyncio._async_guardpoint_areas import AreasAPI
+from .gp_asyncio._async_guardpoint_alarms import AlarmsAPI
+from .gp_asyncio._async_guardpoint_events import EventsAPI
 from .gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
 
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -26,7 +28,7 @@ log = logging.getLogger(__name__)
 
 class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                         CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
-                        OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI):
+                        OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
     task = None
 
     def __init__(self, **kwargs):

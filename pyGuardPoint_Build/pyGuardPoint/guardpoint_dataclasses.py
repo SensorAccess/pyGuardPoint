@@ -46,6 +46,62 @@ class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0,
     FUZZY_MATCH = 1
 
+
+@dataclass
+class AccessEvent:
+    accessDeniedCode: str = ""
+    cardCode: str = ""
+    cardholderFirstName: any = None
+    cardholderIdNumber: any = None
+    cardholderLastName: any = None
+    cardholderTypeName: any = None
+    cardholderTypeUID: any = None
+    cardholderUID: str = ""
+    carRegistrationNum: any = None
+    dateTime: str = ""
+    escortCardCode: any = None
+    escortFirstName: any = None
+    escortLastName: any = None
+    escortUID: any = None
+    inOutType: any = None
+    isEscort: bool = False
+    isPastEvent: bool = False
+    isSlave: bool = False
+    journalUpdateDateTime: str = ""
+    logID: int = 0
+    readerFunctionCodes: list = None
+    readerName: str = ""
+    readerUID: str = ""
+    transactionCode: int = 0
+    type: str = ""
+    uid: str = ""
+    ownerSiteUID: str = ""
+    additionalSites: any = None
+    ownerSiteName: str = ""
+    additionalSitesNames: any = None
+    additionalInfo: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        access_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in access_event_dict:
+            if isinstance(access_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, access_event_dict[property_name])
+
+    def dict(self):
+        access_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                access_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                access_event_dict[k] = None
+            else:
+                access_event_dict[k] = str(v)
+
+        return access_event_dict
+
+
 @dataclass
 class Controller:
     isActivated: any = None
@@ -83,6 +139,7 @@ class Controller:
                 controller_dict[k] = str(v)
 
         return controller_dict
+
 
 @dataclass
 class Reader:

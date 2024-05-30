@@ -1,11 +1,11 @@
 # Build pyGuardPoint Module
-py -m build
+python -m build
 
 #Test
-py -m twine check dist/*
+python -m twine check dist/*
 
 # Upload to TestPyPi
-py -m twine upload --repository testpypi dist/*
+python -m twine upload --repository pypi dist/*
 
 # Install a particular version
 pip install -i https://test.pypi.org/simple/ pyGuardPoint==0.4.0
@@ -15,3 +15,4 @@ pip index versions pyGuardPoint --extra-index-url https://test.pypi.org/simple/
 
 # Upgrade
 pip install pyGuardPoint --upgrade
+

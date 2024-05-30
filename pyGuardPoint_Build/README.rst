@@ -98,8 +98,6 @@ To get a list of areas/zones, and count the number of cardholders in each:
     gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
 
     areas = gp.get_areas()
-
-    areas = gp.get_areas()
     for area in areas:
         cardholder_count = gp.get_card_holders(count=True, areas=area)
         print(f"Cardholders in {area.name} = {str(cardholder_count)}")
