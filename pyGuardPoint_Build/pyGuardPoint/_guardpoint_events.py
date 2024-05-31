@@ -1,12 +1,12 @@
 import validators
 
-from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import AccessEvent, AlarmEvent
-from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .guardpoint_utils import GuardPointResponse
+from .guardpoint_dataclasses import AlarmEvent, AccessEvent
+from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class EventsAPI:
-    async def get_access_events(self, limit=None, offset=None):
+    def get_access_events(self, limit=None, offset=None):
         url = f"/odata/API_AccessEventLogs"
         headers = {
             'Content-Type': 'application/json',
@@ -20,7 +20,7 @@ class EventsAPI:
         if offset:
             url_query_params += "&$skip=" + str(offset)
 
-        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -45,7 +45,7 @@ class EventsAPI:
             access_events.append(AccessEvent(x))
         return access_events
 
-    async def get_alarm_events(self, limit=None, offset=None):
+    def get_alarm_events(self, limit=None, offset=None):
         url = "/odata/API_AlarmEventLogs"
         headers = {
             'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ class EventsAPI:
         if offset:
             url_query_params += "&$skip=" + str(offset)
 
-        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)

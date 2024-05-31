@@ -5,9 +5,11 @@ from pysignalr.client import SignalRClient
 
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
+from ._guardpoint_alarms import AlarmsAPI
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
 from ._guardpoint_controllers import ControllersAPI
 from ._guardpoint_diagnostic import DiagnosticAPI
+from ._guardpoint_events import EventsAPI
 from ._guardpoint_ouputs import OutputsAPI
 from ._guardpoint_readers import ReadersAPI
 from ._guardpoint_scheduledmags import ScheduledMagsAPI
@@ -39,7 +41,7 @@ def stop_listening(client: SignalRClient):
 
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                  CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
-                 OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI):
+                 OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
     task = None
 
     def __init__(self, **kwargs):

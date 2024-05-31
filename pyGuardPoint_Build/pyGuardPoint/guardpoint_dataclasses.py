@@ -46,6 +46,47 @@ class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0,
     FUZZY_MATCH = 1
 
+@dataclass
+class AlarmEvent:
+    additionalSites: any = None
+    additionalSitesNames: any = None
+    alarmUID: str = ""
+    confirmationComments: any = None
+    dateTime: str = ""
+    inputName: str = ""
+    inputUID: str = ""
+    isAcknowledged: bool = False
+    isConfirmed: bool = False
+    isPastEvent: bool = False
+    journalUpdateDateTime: str = ""
+    ownerSiteName: str = ""
+    ownerSiteUID: str = ""
+    type: str = ""
+    uid: str = ""
+    userFirstName: any = None
+    userLastName: any = None
+    userName: any = None
+    userUID: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        alarm_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in alarm_event_dict:
+            if isinstance(alarm_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, alarm_event_dict[property_name])
+
+    def dict(self):
+        alarm_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                alarm_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                alarm_event_dict[k] = None
+            else:
+                alarm_event_dict[k] = str(v)
+
+        return alarm_event_dict
 
 @dataclass
 class AccessEvent:
