@@ -13,6 +13,19 @@ class AreasAPI:
         Fetches a list of areas from the API and returns them as a list of Area objects.
     """
     def get_areas(self):
+        """
+        Retrieve a list of areas from the GuardPoint API.
+
+        This method sends a GET request to the GuardPoint API to fetch a list of areas.
+        It processes the response and returns a list of `Area` objects.
+
+        :raises GuardPointUnauthorized: If the API response status code is 401 (Unauthorized).
+        :raises GuardPointError: If the API response status code is 404 (Not Found) or any other error occurs.
+        :raises GuardPointError: If the response is not properly formatted.
+
+        :return: A list of `Area` objects.
+        :rtype: list
+        """
         url = "/odata/API_Areas"
         headers = {
             'Content-Type': 'application/json',

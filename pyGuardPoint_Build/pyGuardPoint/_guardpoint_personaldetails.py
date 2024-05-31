@@ -5,8 +5,32 @@ from .guardpoint_dataclasses import CardholderPersonalDetail
 
 
 class PersonalDetailsAPI:
+    """
+    API class for updating personal details of a cardholder.
+
+    Methods
+    -------
+    update_personal_details(cardholder_uid: str, personal_details: CardholderPersonalDetail)
+        Updates the personal details of a cardholder identified by the given UID.
+    """
 
     def update_personal_details(self, cardholder_uid: str, personal_details: CardholderPersonalDetail):
+        """
+        Update the personal details of a cardholder.
+
+        This method updates the personal details of a cardholder identified by the given UID.
+        It sends a PATCH request to the GuardPoint API with the updated details.
+
+        :param cardholder_uid: The unique identifier of the cardholder.
+        :type cardholder_uid: str
+        :param personal_details: An instance of `CardholderPersonalDetail` containing the updated personal details.
+        :type personal_details: CardholderPersonalDetail
+        :raises ValueError: If the provided `cardholder_uid` is not a valid UUID.
+        :raises GuardPointUnauthorized: If the request is unauthorized (HTTP 401).
+        :raises GuardPointError: If the cardholder is not found (HTTP 404) or any other error occurs.
+        :return: True if the update is successful.
+        :rtype: bool
+        """
         if not validators.uuid(cardholder_uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
 

@@ -25,7 +25,7 @@ if __name__ == "__main__":
     py_gp_version = version("pyGuardPoint")
     print("pyGuardPoint Version:" + py_gp_version)
     py_gp_version_int = int(py_gp_version.replace('.', ''))
-    if py_gp_version_int < 138:
+    if py_gp_version_int < 140:
         print("Please Update pyGuardPoint")
         print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
         exit()

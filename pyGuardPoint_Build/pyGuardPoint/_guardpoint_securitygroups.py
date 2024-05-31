@@ -4,7 +4,30 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class SecurityGroupsAPI:
+    """
+    A class to interact with the Security Groups API.
+
+    Methods
+    -------
+    get_security_groups():
+        Retrieves a list of security groups from the API.
+    """
     def get_security_groups(self):
+        """
+        Retrieve a list of security groups from the GuardPoint API.
+
+        This method sends a GET request to the GuardPoint API to fetch security groups.
+        It handles various HTTP response codes and raises appropriate exceptions for
+        unauthorized access, not found errors, and other errors. The response is expected
+        to be a JSON object containing a list of security groups.
+
+        :raises GuardPointUnauthorized: If the API response code is 401 (Unauthorized).
+        :raises GuardPointError: If the API response code is 404 (Not Found) or any other error occurs.
+        :raises GuardPointError: If the response body is not formatted as expected.
+
+        :return: A list of SecurityGroup objects.
+        :rtype: list
+        """
         url = self.baseurl + "/odata/api_SecurityGroups"
         # url_query_params = "?$select=uid,name&$filter=name%20ne%20'Anytime%20Anywhere'"
         url_query_params = ""

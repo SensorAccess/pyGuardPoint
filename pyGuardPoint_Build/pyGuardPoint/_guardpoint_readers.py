@@ -5,7 +5,31 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class ReadersAPI:
+    """
+    A class to interact with the Readers API.
+
+    Methods
+    -------
+    get_readers():
+        Retrieves a list of all readers from the API.
+
+    get_reader(reader_uid: str):
+        Retrieves a specific reader by its unique identifier (UID).
+    """
     def get_readers(self, ):
+        """
+        Retrieve a list of readers from the GuardPoint API.
+
+        This method sends a GET request to the GuardPoint API to fetch a list of readers.
+        It processes the response and returns a list of `Reader` objects.
+
+        :raises GuardPointUnauthorized: If the API response status code is 401 (Unauthorized).
+        :raises GuardPointError: If the API response status code is 404 (Not Found) or any other error occurs.
+        :raises GuardPointError: If the response is not properly formatted.
+
+        :return: A list of `Reader` objects.
+        :rtype: list
+        """
         url = "/odata/API_Readers"
         headers = {
             'Content-Type': 'application/json',
@@ -37,6 +61,21 @@ class ReadersAPI:
         return readers
 
     def get_reader(self, reader_uid: str):
+        """
+        Retrieve a reader's information from the API using the provided reader UID.
+
+        This method sends a GET request to the `/odata/API_Readers` endpoint with the specified
+        `reader_uid` to fetch the reader's details. It validates the `reader_uid` to ensure it is
+        a properly formatted UUID and handles various error conditions that may arise during the
+        request.
+
+        :param reader_uid: The unique identifier of the reader to be retrieved.
+        :type reader_uid: str
+        :raises ValueError: If the `reader_uid` is not a valid UUID.
+        :raises GuardPointError: If the API response indicates an error or is improperly formatted.
+        :return: An instance of the `Reader` class containing the reader's details.
+        :rtype: Reader
+        """
         if not validators.uuid(reader_uid):
             raise ValueError(f"Malformed reader_uid: {reader_uid}")
 

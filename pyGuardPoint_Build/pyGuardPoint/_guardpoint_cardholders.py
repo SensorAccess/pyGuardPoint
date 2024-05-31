@@ -37,6 +37,25 @@ class CardholdersAPI:
     """
 
     def delete_card_holder(self, cardholder: Cardholder):
+        """
+        Delete a cardholder from the system.
+
+        This method deletes a cardholder identified by their UID from the system.
+        It performs a validation check on the UID to ensure it is a valid UUID.
+        If the UID is malformed, a `ValueError` is raised. The method then sends
+        a DELETE request to the API endpoint to remove the cardholder.
+
+        :param cardholder: The cardholder object to be deleted.
+        :type cardholder: Cardholder
+
+        :raises ValueError: If the cardholder UID is malformed.
+        :raises GuardPointUnauthorized: If the request is unauthorized (HTTP 401).
+        :raises GuardPointError: If the cardholder is not found (HTTP 404) or
+                                 if another error occurs.
+
+        :return: True if the cardholder was successfully deleted.
+        :rtype: bool
+        """
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -61,6 +80,20 @@ class CardholdersAPI:
         return True
 
     def update_card_holder_area(self, cardholder_uid: str, area: Area):
+        """
+        Update the area associated with a cardholder.
+
+        This method updates the area (location) information for a given cardholder by their unique identifier (UID).
+        It validates the provided UIDs for both the cardholder and the area before performing the update.
+
+        :param cardholder_uid: The unique identifier of the cardholder.
+        :type cardholder_uid: str
+        :param area: The area object containing the new area UID.
+        :type area: Area
+        :raises ValueError: If the cardholder UID or area UID is malformed (not a valid UUID).
+        :return: The result of the cardholder update operation.
+        :rtype: Any
+        """
         if not validators.uuid(cardholder_uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
 
@@ -74,6 +107,21 @@ class CardholdersAPI:
         return self.update_card_holder(cardholder)
 
     def update_card_holder(self, cardholder: Cardholder):
+        """
+        Update the details of a cardholder in the system.
+
+        This method updates various attributes of a cardholder, including custom fields, personal details, and associated cards.
+        It performs validation on the cardholder's UID and the UIDs of associated cards. If any attributes have changed, it sends
+        a PATCH request to update the cardholder's information in the system.
+
+        :param cardholder: The cardholder object containing updated information.
+        :type cardholder: Cardholder
+        :raises ValueError: If the cardholder UID is malformed.
+        :raises GuardPointUnauthorized: If the request is unauthorized.
+        :raises GuardPointError: If the cardholder is not found or another error occurs.
+        :return: True if the update is successful, otherwise raises an exception.
+        :rtype: bool
+        """
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -124,8 +172,25 @@ class CardholdersAPI:
         return True
 
     def new_card_holder(self, cardholder: Cardholder, changed_only=False):
+        """
+        Create a new cardholder in the system.
 
-        # url = "/odata/API_Cardholders/CreateFullCardholder"
+        This method sends a POST request to the GuardPoint API to create a new cardholder.
+        Depending on the `changed_only` flag, it can either send only the changed fields or
+        all editable and non-empty fields of the cardholder.
+
+        :param cardholder: The cardholder object to be created.
+        :type cardholder: Cardholder
+        :param changed_only: If True, only the changed fields of the cardholder will be sent.
+                             Otherwise, all editable and non-empty fields will be sent.
+        :type changed_only: bool, optional
+
+        :return: The newly created cardholder object.
+        :rtype: Cardholder
+
+        :raises GuardPointError: If there is an error in the request or response.
+        :raises GuardPointUnauthorized: If the request is unauthorized.
+        """
         url = "/odata/API_Cardholders"
 
         headers = {
@@ -139,11 +204,8 @@ class CardholdersAPI:
         else:
             ch = cardholder.dict(editable_only=True, non_empty_only=True)
 
-
-        # When using CreateFullCardholder
-        # body = {'cardholder': ch}
-        # print(json.dumps(body))
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
+
         # Check response body is formatted correctly
         if json_body:
             GuardPointResponse.check_odata_body_structure(json_body)
@@ -206,6 +268,22 @@ class CardholdersAPI:
             return self._get_card_holder(uid)
 
     def get_card_holder_photo(self, uid):
+        """
+        Retrieve the photo of a cardholder given their unique identifier (UID).
+
+        This method sends a GET request to the GuardPoint API to fetch the photo of a cardholder.
+        The UID must be a valid UUID. If the UID is malformed, a ValueError is raised. If the
+        request is unauthorized, a GuardPointUnauthorized exception is raised. If the cardholder
+        photo is not found, a GuardPointError is raised.
+
+        :param uid: The unique identifier of the cardholder.
+        :type uid: str
+        :raises ValueError: If the UID is not a valid UUID.
+        :raises GuardPointUnauthorized: If the request is unauthorized.
+        :raises GuardPointError: If the cardholder photo is not found or another error occurs.
+        :return: The photo of the cardholder.
+        :rtype: str
+        """
         if not validators.uuid(uid):
             raise ValueError(f'Malformed UID {uid}')
 
@@ -213,9 +291,6 @@ class CardholdersAPI:
         url_query_params = "(" + uid + ")?$select=photo"
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
-        # Check response body is formatted correctly
-        # if json_body:
-        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
