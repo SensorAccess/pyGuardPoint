@@ -42,6 +42,26 @@ def stop_listening(client: SignalRClient):
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                  CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
                  OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
+    """
+    A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
+    security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,
+    readers, controllers, alarms, and events.
+
+    This class inherits from multiple API classes to provide a comprehensive interface for interacting with the
+    GuardPoint system.
+
+    Methods
+    -------
+    __init__(**kwargs)
+        Initializes the GuardPoint instance with the provided configuration.
+    get_cardholder_count()
+        Retrieves the total number of cardholders.
+    get_signal_client()
+        Creates and returns a SignalR client for event listening.
+    start_listening(client: SignalRClient)
+        Starts the SignalR client for listening to events.
+    """
+
     task = None
 
     def __init__(self, **kwargs):

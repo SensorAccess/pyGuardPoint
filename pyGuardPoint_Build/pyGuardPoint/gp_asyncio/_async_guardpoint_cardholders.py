@@ -9,7 +9,32 @@ from ..guardpoint_utils import GuardPointResponse
 
 
 class CardholdersAPI:
+    """
+    A class to interact with the Cardholders API, providing methods to manage cardholders, including creating, updating, deleting, and retrieving cardholder information.
 
+    Methods
+    -------
+    delete_card_holder(cardholder: Cardholder)
+        Deletes a cardholder from the system.
+
+    update_card_holder_area(cardholder_uid: str, area: Area)
+        Updates the area associated with a cardholder.
+
+    update_card_holder(cardholder: Cardholder)
+        Updates the details of a cardholder.
+
+    new_card_holder(cardholder: Cardholder, changed_only=False)
+        Creates a new cardholder in the system.
+
+    get_card_holder(uid: str = None, card_code: str = None)
+        Retrieves a cardholder by UID or card code.
+
+    get_card_holder_photo(uid)
+        Retrieves the photo of a cardholder by UID.
+
+    get_card_holders(offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None, filter_expired: bool = False, cardholder_type_name: str = None, sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75, count: bool = False, earliest_last_pass: datetime = None, select_ignore_list: list = None, select_include_list: list = None, **cardholder_kwargs)
+        Retrieves a list of cardholders based on various filters and search criteria.
+    """
     async def delete_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')

@@ -90,6 +90,118 @@ class AlarmEvent:
 
 @dataclass
 class AccessEvent:
+    """
+    Represents an access event with various attributes related to cardholder and access details.
+
+    :param accessDeniedCode: Code indicating the reason for access denial.
+    :type accessDeniedCode: str
+    :param cardCode: Code of the card used for access.
+    :type cardCode: str
+    :param cardholderFirstName: First name of the cardholder.
+    :type cardholderFirstName: any
+    :param cardholderIdNumber: Identification number of the cardholder.
+    :type cardholderIdNumber: any
+    :param cardholderLastName: Last name of the cardholder.
+    :type cardholderLastName: any
+    :param cardholderTypeName: Type name of the cardholder.
+    :type cardholderTypeName: any
+    :param cardholderTypeUID: Unique identifier for the cardholder type.
+    :type cardholderTypeUID: any
+    :param cardholderUID: Unique identifier for the cardholder.
+    :type cardholderUID: str
+    :param carRegistrationNum: Car registration number associated with the cardholder.
+    :type carRegistrationNum: any
+    :param dateTime: Date and time of the access event.
+    :type dateTime: str
+    :param escortCardCode: Code of the escort's card.
+    :type escortCardCode: any
+    :param escortFirstName: First name of the escort.
+    :type escortFirstName: any
+    :param escortLastName: Last name of the escort.
+    :type escortLastName: any
+    :param escortUID: Unique identifier for the escort.
+    :type escortUID: any
+    :param inOutType: Type of access (in or out).
+    :type inOutType: any
+    :param isEscort: Indicates if the cardholder is an escort.
+    :type isEscort: bool
+    :param isPastEvent: Indicates if the event is a past event.
+    :type isPastEvent: bool
+    :param isSlave: Indicates if the event is a slave event.
+    :type isSlave: bool
+    :param journalUpdateDateTime: Date and time when the journal was last updated.
+    :type journalUpdateDateTime: str
+    :param logID: Log identifier for the access event.
+    :type logID: int
+    :param readerFunctionCodes: List of function codes for the reader.
+    :type readerFunctionCodes: list
+    :param readerName: Name of the reader.
+    :type readerName: str
+    :param readerUID: Unique identifier for the reader.
+    :type readerUID: str
+    :param transactionCode: Code representing the transaction type.
+    :type transactionCode: int
+    :param type: Type of the access event.
+    :type type: str
+    :param uid: Unique identifier for the access event.
+    :type uid: str
+    :param ownerSiteUID: Unique identifier for the owner site.
+    :type ownerSiteUID: str
+    :param additionalSites: Additional sites associated with the event.
+    :type additionalSites: any
+    :param ownerSiteName: Name of the owner site.
+    :type ownerSiteName: str
+    :param additionalSitesNames: Names of additional sites associated with the event.
+    :type additionalSitesNames: any
+    :param additionalInfo: Additional information related to the access event.
+    :type additionalInfo: any
+
+    :ivar accessDeniedCode: Code indicating the reason for access denial.
+    :ivar cardCode: Code of the card used for access.
+    :ivar cardholderFirstName: First name of the cardholder.
+    :ivar cardholderIdNumber: Identification number of the cardholder.
+    :ivar cardholderLastName: Last name of the cardholder.
+    :ivar cardholderTypeName: Type name of the cardholder.
+    :ivar cardholderTypeUID: Unique identifier for the cardholder type.
+    :ivar cardholderUID: Unique identifier for the cardholder.
+    :ivar carRegistrationNum: Car registration number associated with the cardholder.
+    :ivar dateTime: Date and time of the access event.
+    :ivar escortCardCode: Code of the escort's card.
+    :ivar escortFirstName: First name of the escort.
+    :ivar escortLastName: Last name of the escort.
+    :ivar escortUID: Unique identifier for the escort.
+    :ivar inOutType: Type of access (in or out).
+    :ivar isEscort: Indicates if the cardholder is an escort.
+    :ivar isPastEvent: Indicates if the event is a past event.
+    :ivar isSlave: Indicates if the event is a slave event.
+    :ivar journalUpdateDateTime: Date and time when the journal was last updated.
+    :ivar logID: Log identifier for the access event.
+    :ivar readerFunctionCodes: List of function codes for the reader.
+    :ivar readerName: Name of the reader.
+    :ivar readerUID: Unique identifier for the reader.
+    :ivar transactionCode: Code representing the transaction type.
+    :ivar type: Type of the access event.
+    :ivar uid: Unique identifier for the access event.
+    :ivar ownerSiteUID: Unique identifier for the owner site.
+    :ivar additionalSites: Additional sites associated with the event.
+    :ivar ownerSiteName: Name of the owner site.
+    :ivar additionalSitesNames: Names of additional sites associated with the event.
+    :ivar additionalInfo: Additional information related to the access event.
+
+    :raises ValueError: If any of the provided arguments are invalid.
+
+    :example:
+    >>> event = AccessEvent(cardCode="12345", dateTime="2023-10-01T12:00:00Z")
+    >>> event.dict()
+    {'accessDeniedCode': '', 'cardCode': '12345', 'cardholderFirstName': None, ...}
+
+    Methods
+    -------
+    __init__(*args, **kwargs)
+        Initializes an AccessEvent instance with the provided arguments.
+    dict()
+        Converts the AccessEvent instance to a dictionary representation.
+    """
     accessDeniedCode: str = ""
     cardCode: str = ""
     cardholderFirstName: any = None
@@ -556,6 +668,112 @@ class CardholderType:
 
 @dataclass
 class Cardholder(Observable):
+    """
+    Represents a cardholder with various attributes and methods to manage and
+    observe changes in the cardholder's data.
+
+    Attributes
+    ----------
+    uid : str
+        Unique identifier for the cardholder.
+    lastName : str
+        Last name of the cardholder.
+    firstName : str
+        First name of the cardholder.
+    cardholderIdNumber : any
+        Identification number of the cardholder.
+    status : any
+        Status of the cardholder.
+    fromDateValid : any
+        Start date of the cardholder's validity.
+    isFromDateActive : any
+        Indicates if the start date is active.
+    toDateValid : any
+        End date of the cardholder's validity.
+    isToDateActive : any
+        Indicates if the end date is active.
+    photo : any
+        Photo of the cardholder.
+    cardholderType : CardholderType
+        Type of the cardholder.
+    securityGroup : SecurityGroup
+        Security group associated with the cardholder.
+    cardholderPersonalDetail : CardholderPersonalDetail
+        Personal details of the cardholder.
+    cardholderCustomizedField : CardholderCustomizedField
+        Customized fields for the cardholder.
+    insideArea : Area
+        Area where the cardholder is currently located.
+    ownerSiteUID : str
+        Unique identifier for the owner site.
+    securityGroupApiKey : any
+        API key for the security group.
+    ownerSiteApiKey : any
+        API key for the owner site.
+    accessGroupApiKeys : any
+        API keys for access groups.
+    liftAccessGroupApiKeys : any
+        API keys for lift access groups.
+    cardholderTypeUID : str
+        Unique identifier for the cardholder type.
+    departmentUID : any
+        Unique identifier for the department.
+    description : str
+        Description of the cardholder.
+    grantAccessForSupervisor : any
+        Indicates if access is granted for the supervisor.
+    isSupervisor : any
+        Indicates if the cardholder is a supervisor.
+    needEscort : any
+        Indicates if the cardholder needs an escort.
+    personalWeeklyProgramUID : any
+        Unique identifier for the personal weekly program.
+    pinCode : str
+        PIN code of the cardholder.
+    sharedStatus : str
+        Shared status of the cardholder.
+    securityGroupUID : str
+        Unique identifier for the security group.
+    accessGroupUIDs : any
+        Unique identifiers for access groups.
+    liftAccessGroupUIDs : any
+        Unique identifiers for lift access groups.
+    lastDownloadTime : any
+        Last download time of the cardholder's data.
+    lastInOutArea : str
+        Last in/out area of the cardholder.
+    lastInOutReaderUID : any
+        Unique identifier for the last in/out reader.
+    lastInOutDate : any
+        Last in/out date of the cardholder.
+    lastAreaReaderDate : any
+        Last area reader date of the cardholder.
+    lastAreaReaderUID : any
+        Unique identifier for the last area reader.
+    lastPassDate : any
+        Last pass date of the cardholder.
+    lastReaderPassUID : any
+        Unique identifier for the last reader pass.
+    insideAreaUID : str
+        Unique identifier for the inside area.
+    cards : list
+        List of cards associated with the cardholder.
+
+    Methods
+    -------
+    __init__(*args, **kwargs)
+        Initializes a new instance of the Cardholder class.
+    to_search_pattern()
+        Generates a search pattern string based on the cardholder's details.
+    pretty_print(obj: object = None)
+        Prints the cardholder's attributes in a readable format.
+    dict(editable_only=False, changed_only=False, non_empty_only=False)
+        Returns a dictionary representation of the cardholder's attributes.
+    _remove_non_changed(ch: dict)
+        Removes attributes that have not changed from the dictionary.
+    _remove_non_editable(ch: dict)
+        Removes non-editable attributes from the dictionary.
+    """
     uid: str = ""
     lastName: str = ""
     firstName: str = ""

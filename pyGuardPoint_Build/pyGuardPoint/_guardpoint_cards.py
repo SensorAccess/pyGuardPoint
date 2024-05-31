@@ -6,6 +6,29 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class CardsAPI:
+    """
+    A class to interact with the Cards API, providing methods to manage card entities.
+
+    Methods
+    -------
+    get_cards(count=False, **card_kwargs)
+        Retrieve a list of cards or the count of cards based on the provided filters.
+
+    delete_card(card: Card)
+        Delete a card identified by its UID.
+
+    update_card(card: Card)
+        Update the details of an existing card.
+
+    new_card(card: Card)
+        Create a new card.
+
+    get_card(card_uid: str)
+        Retrieve a card by its UID.
+
+    get_cardholder_by_card_code(card_code)
+        Retrieve a cardholder by the card code.
+    """
     def get_cards(self, count=False, **card_kwargs):
         # Filter arguments which have to exact match
         match_args = dict()

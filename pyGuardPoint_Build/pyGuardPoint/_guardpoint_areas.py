@@ -4,6 +4,14 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class AreasAPI:
+    """
+    A class to interact with the Areas API.
+
+    Methods
+    -------
+    get_areas():
+        Fetches a list of areas from the API and returns them as a list of Area objects.
+    """
     def get_areas(self):
         url = "/odata/API_Areas"
         headers = {
