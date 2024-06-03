@@ -14,10 +14,11 @@ version = '1.4.4'
 # -- General configuration
 sys.path.insert(0, os.path.abspath('../../pyGuardPoint_Build/pyGuardPoint'))
 
+
 autodoc_default_options = {
     "members": True,
     "undoc-members": False,
-    "private-members": False
+    "private-members": False,
 }
 
 extensions = [
@@ -42,3 +43,6 @@ html_theme = 'sphinx_rtd_theme'
 
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
+
+autodoc_member_order = 'bysource'
+
