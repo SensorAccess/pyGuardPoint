@@ -4,7 +4,7 @@ long_description = open('README.rst').read()
 
 setup(name="pyGuardPoint",
       packages=find_packages(),
-      version="1.4.4",
+      version="1.4.5",
       author="John Owen",
       description="Python wrapper for GuardPoint 10 Access Control System",
       long_description_content_type='text/markdown',

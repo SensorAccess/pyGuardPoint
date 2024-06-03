@@ -197,7 +197,7 @@ class AccessEvent:
 
     Methods
     -------
-    __init__(*args, **kwargs)
+    __init__(*args, \**kwargs)
         Initializes an AccessEvent instance with the provided arguments.
     dict()
         Converts the AccessEvent instance to a dictionary representation.
@@ -761,7 +761,7 @@ class Cardholder(Observable):
 
     Methods
     -------
-    __init__(*args, **kwargs)
+    __init__(*args, \**kwargs)
         Initializes a new instance of the Cardholder class.
     to_search_pattern()
         Generates a search pattern string based on the cardholder's details.
