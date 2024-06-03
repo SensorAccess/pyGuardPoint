@@ -5,8 +5,34 @@ from .guardpoint_dataclasses import CardholderCustomizedField
 
 
 class CustomizedFieldsAPI:
+    """
+    API class for updating customized fields of a cardholder.
+
+    Methods
+    -------
+    update_custom_fields(cardholder_uid: str, customFields: CardholderCustomizedField)
+        Updates the custom fields for a specified cardholder.
+    """
 
     def update_custom_fields(self, cardholder_uid: str, customFields: CardholderCustomizedField):
+        """
+        Update custom fields for a specific cardholder.
+
+        This method updates the custom fields of a cardholder identified by the given UID.
+        It sends a PATCH request to the GuardPoint API with the updated custom fields.
+
+        :param cardholder_uid: The unique identifier of the cardholder.
+        :type cardholder_uid: str
+        :param customFields: An instance of `CardholderCustomizedField` containing the custom fields to be updated.
+        :type customFields: CardholderCustomizedField
+
+        :raises ValueError: If the provided `cardholder_uid` is not a valid UUID.
+        :raises GuardPointUnauthorized: If the request is unauthorized (HTTP 401).
+        :raises GuardPointError: If the cardholder is not found (HTTP 404) or any other error occurs.
+
+        :return: True if the update is successful.
+        :rtype: bool
+        """
         if not validators.uuid(cardholder_uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
 

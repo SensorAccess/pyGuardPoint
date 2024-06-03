@@ -31,17 +31,9 @@ def stop_listening(client: SignalRClient):
         await client._transport.close()
 
     asyncio.run(stop_signal_client())
-    '''if not self.task:
-        return
-
-    self.task.cancel()
-    while not self.task.cancelled():
-        sleep(1)'''
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
-                 CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
-                 OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
+class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,
@@ -52,7 +44,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
 
     Methods
     -------
-    __init__(**kwargs)
+    __init__(\**kwargs)
         Initializes the GuardPoint instance with the provided configuration.
     get_cardholder_count()
         Retrieves the total number of cardholders.
@@ -65,6 +57,26 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
     task = None
 
     def __init__(self, **kwargs):
+        """
+        Initialize the connection with the given parameters.
+
+        :param kwargs: Keyword arguments for configuration.
+            - host (str): The hostname or IP address of the server. Defaults to "localhost".
+            - port (int): The port number to connect to. Defaults to None.
+            - auth (GuardPointAuthType): The authentication type. Defaults to GuardPointAuthType.BEARER_TOKEN.
+            - username (str): The username for authentication. Defaults to "admin".
+            - pwd (str): The password for authentication. Defaults to "admin".
+            - key (str): The key for authentication. Defaults to "00000000-0000-0000-0000-000000000000".
+            - token (str): The token for authentication. Defaults to None.
+            - cert_file (str): Path to the certificate file. Defaults to None.
+            - key_file (str): Path to the key file. Defaults to None.
+            - ca_file (str): Path to the CA file. Defaults to None.
+            - timeout (int): The timeout duration in seconds. Defaults to 5.
+            - p12_file (str): Path to the PKCS#12 file. Defaults to None.
+            - p12_pwd (str): Password for the PKCS#12 file. Defaults to an empty string.
+
+        :raises ValueError: If the host is not provided or is invalid.
+        """
         # Set default values if not present
         host = kwargs.get('host', "localhost")
         port = kwargs.get('port', None)
@@ -90,6 +102,18 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
                          p12_file=p12_file, p12_pwd=p12_pwd)
 
     def get_cardholder_count(self):
+        """
+        Retrieve the total count of cardholders from the GuardPoint system.
+
+        This method sends a GET request to the GuardPoint API to fetch the total number of cardholders.
+        It handles various error scenarios, including unauthorized access and improperly formatted responses.
+
+        :raises GuardPointUnauthorized: If the API response indicates unauthorized access (HTTP 401).
+        :raises GuardPointError: If the API response is not properly formatted or if there is no response body.
+
+        :return: The total number of cardholders.
+        :rtype: int
+        """
         url = self.baseurl + "/odata/GetCardholdersCount"
         code, json_body = self.gp_json_query("GET", url=url)
 
@@ -113,6 +137,24 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         return int(json_body['totalItems'])
 
     def get_signal_client(self):
+        """
+        Creates and configures a SignalR client for connecting to the EventsHub.
+
+        This method initializes a `SignalRClient` instance with the appropriate URL and sets up
+        the necessary headers for authentication based on the specified authentication type.
+        It also configures a custom WebSocket transport for the client with various parameters.
+
+        :returns: Configured `SignalRClient` instance ready for use.
+        :rtype: SignalRClient
+
+        :raises ValueError: If the authentication type is not supported.
+
+        Example usage::
+
+            client = self.get_signal_client()
+            client.start()
+
+        """
         client = SignalRClient(self.baseurl + "/Hub/EventsHub")
         headers = {}
         if self.authType == GuardPointAuthType.BASIC:
@@ -134,11 +176,19 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         return client
 
     def start_listening(self, client: SignalRClient):
+        """
+        Start listening to the SignalR client by running it in an asynchronous task.
+
+        This method creates and runs an asynchronous task to execute the `run` method of the provided
+        `SignalRClient` instance. The task is named "sigR_task" for identification purposes. If the task
+        is cancelled, a message indicating the cancellation is printed.
+
+        :param client: An instance of `SignalRClient` that will be run in an asynchronous task.
+        :type client: SignalRClient
+
+        :raises asyncio.CancelledError: If the asynchronous task is cancelled.
+        """
         async def run_signal_client() -> None:
-            '''group = gp_asyncio.gather(
-                client.run(),
-            )
-            await group'''
             self.task = asyncio.create_task(client.run(), name = "sigR_task")
             await self.task
 

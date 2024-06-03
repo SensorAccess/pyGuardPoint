@@ -5,15 +5,34 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class DiagnosticAPI:
-    '''
-    {
-        "controllersUIDs" :[
-            "B3C0976A-3F8C-4B52-AE65-CB6F88FFD813"
-        ],
-        "command": "7901000000000A28"
-    }
-    '''
+    """
+    A class to interact with the diagnostic API for simulating access events.
+
+    Methods
+    -------
+    simulate_access_event(controller_uid: str, reader_num: int, card_code: str) -> bool
+        Simulates an access event for a given controller, reader, and card code.
+    """
     def simulate_access_event(self, controller_uid: str, reader_num: int, card_code: str):
+        """
+        Simulates an access event by sending a command to the specified controller.
+
+        This method sends a command to the controller identified by `controller_uid` to simulate an access event
+        using the specified `reader_num` and `card_code`. It performs validation on the inputs and handles
+        the response from the server.
+
+        :param controller_uid: The unique identifier of the controller.
+        :type controller_uid: str
+        :param reader_num: The reader number (must be between 0 and 255).
+        :type reader_num: int
+        :param card_code: The card code (must be at least 8 characters long).
+        :type card_code: str
+        :raises ValueError: If `controller_uid` is not a valid UUID, `card_code` is too short, or `reader_num` is greater than 255.
+        :raises GuardPointUnauthorized: If the server responds with a 401 Unauthorized status.
+        :raises GuardPointError: If the server responds with an error or the response is badly formatted.
+        :return: True if the access event simulation was successful, False otherwise.
+        :rtype: bool
+        """
         if not validators.uuid(controller_uid):
             raise ValueError(f"Malformed controller_uid: {controller_uid}")
         if len(card_code) < 8:

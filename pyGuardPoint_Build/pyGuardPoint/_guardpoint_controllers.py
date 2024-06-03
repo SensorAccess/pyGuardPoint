@@ -5,7 +5,42 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class ControllersAPI:
+    """
+    API for interacting with controller resources.
+
+    This class provides methods to retrieve information about controllers
+    from a remote API.
+
+    Methods
+    -------
+    get_controllers()
+        Retrieves a list of all controllers.
+
+    get_controller(controller_uid: str)
+        Retrieves a specific controller by its unique identifier.
+    """
     def get_controllers(self, ):
+        """
+        Retrieve a list of controllers from the GuardPoint API.
+
+        This method sends a GET request to the GuardPoint API to fetch a list of controllers.
+        It processes the response and returns a list of `Controller` objects.
+
+        :raises GuardPointUnauthorized: If the API response status code is 401 (Unauthorized).
+        :raises GuardPointError: If the API response status code is 404 (Not Found) or if the response is badly formatted.
+
+        :return: A list of `Controller` objects.
+        :rtype: list
+
+        Example usage:
+
+        .. code-block:: python
+
+            controllers = guardpoint_instance.get_controllers()
+            for controller in controllers:
+                print(controller)
+
+        """
         url = "/odata/API_Controllers"
         headers = {
             'Content-Type': 'application/json',
@@ -37,6 +72,21 @@ class ControllersAPI:
         return controllers
 
     def get_controller(self, controller_uid: str):
+        """
+        Retrieve a controller object by its unique identifier (UID).
+
+        This method sends a GET request to the GuardPoint API to fetch details
+        of a controller specified by the `controller_uid`. If the UID is not
+        a valid UUID, a `ValueError` is raised. If the API response indicates
+        an error or is not properly formatted, a `GuardPointError` is raised.
+
+        :param controller_uid: The unique identifier of the controller to retrieve.
+        :type controller_uid: str
+        :raises ValueError: If the `controller_uid` is not a valid UUID.
+        :raises GuardPointError: If the API response indicates an error or is not properly formatted.
+        :return: A `Controller` object if the controller is found, otherwise `None`.
+        :rtype: Controller or None
+        """
         if not validators.uuid(controller_uid):
             raise ValueError(f"Malformed controller_uid: {controller_uid}")
 
