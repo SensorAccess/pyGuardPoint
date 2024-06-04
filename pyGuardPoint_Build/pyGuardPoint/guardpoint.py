@@ -44,7 +44,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
 
     Methods
     -------
-    __init__(\**kwargs)
+    __init__(kwargs)
         Initializes the GuardPoint instance with the provided configuration.
     get_cardholder_count()
         Retrieves the total number of cardholders.
@@ -60,7 +60,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         """
         Initialize the connection with the given parameters.
 
-        :param \**kwargs:
+        :param kwargs:
         See below
 
         :Keyword Arguments:

@@ -19,3 +19,4 @@ Contents
     usage
     snippets
     API
+    signal-r

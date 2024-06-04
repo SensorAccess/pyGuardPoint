@@ -197,7 +197,7 @@ class AccessEvent:
 
     Methods
     -------
-    __init__(*args, \**kwargs)
+    __init__(*args, kwargs)
         Initializes an AccessEvent instance with the provided arguments.
     dict()
         Converts the AccessEvent instance to a dictionary representation.
