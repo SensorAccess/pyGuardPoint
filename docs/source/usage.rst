@@ -35,8 +35,6 @@ It is recommended to use a secure connection with client certificates:
 >>>                 p12_file=TLS_P12,
 >>>                 p12_pwd=TLS_P12_PWD)
 
-.. automethod:: pyGuardPoint.GuardPoint.__init__
-
 Creating Cardholders
 --------------------
 
