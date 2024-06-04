@@ -1,7 +1,7 @@
 API
 ===
 
-puGuard Point
+The object/class GuardPoint represents the GuardPoint Server.
 
 
 

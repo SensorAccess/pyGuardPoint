@@ -61,9 +61,9 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         Initialize the connection with the given parameters.
 
         :param kwargs: Keyword arguments for configuration.
-            - host (str): The hostname or IP address of the server. Defaults to "localhost".
-            - port (int): The port number to connect to. Defaults to None.
-            - auth (GuardPointAuthType): The authentication type. Defaults to GuardPointAuthType.BEARER_TOKEN.
+            | - host (str): The hostname or IP address of the server. Defaults to "localhost".\n
+            | - port (int): The port number to connect to. Defaults to None.
+            | - auth (GuardPointAuthType): The authentication type. Defaults to GuardPointAuthType.BEARER_TOKEN.
             - username (str): The username for authentication. Defaults to "admin".
             - pwd (str): The password for authentication. Defaults to "admin".
             - key (str): The key for authentication. Defaults to "00000000-0000-0000-0000-000000000000".
