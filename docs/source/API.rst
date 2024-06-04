@@ -12,23 +12,27 @@ The object/class GuardPoint represents the GuardPoint Server.
     :inherited-members:
 
 .. autoclass:: pyGuardPoint.Cardholder
-    :members:
 
 .. autoclass:: pyGuardPoint.Card
-    :members:
 
 .. autoclass:: pyGuardPoint.Area
-    :members:
 
 .. autoclass:: pyGuardPoint.SecurityGroup
-    :members:
 
 .. autoclass:: pyGuardPoint.CardholderPersonalDetail
-    :members:
 
 .. autoclass:: pyGuardPoint.CardholderCustomizedField
-    :members:
 
 .. autoclass:: pyGuardPoint.CardholderType
 
+.. autoclass:: pyGuardPoint.AccessEvent
 
+.. autoclass:: pyGuardPoint.AlarmEvent
+
+.. autoclass:: pyGuardPoint.Relay
+
+.. autoclass:: pyGuardPoint.Controller
+
+.. autoclass:: pyGuardPoint.Reader
+
+.. autoclass:: pyGuardPoint.ScheduledMag

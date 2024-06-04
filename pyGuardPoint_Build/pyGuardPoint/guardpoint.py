@@ -60,20 +60,23 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         """
         Initialize the connection with the given parameters.
 
-        :param kwargs: Keyword arguments for configuration.
-            | - host (str): The hostname or IP address of the server. Defaults to "localhost".
-            | - port (int): The port number to connect to. Defaults to None.
-            | - auth (GuardPointAuthType): The authentication type. Defaults to GuardPointAuthType.BEARER_TOKEN.
-            | - username (str): The username for authentication. Defaults to "admin".
-            | - pwd (str): The password for authentication. Defaults to "admin".
-            | - key (str): The key for authentication. Defaults to "00000000-0000-0000-0000-000000000000".
-            | - token (str): The token for authentication. Defaults to None.
-            | - cert_file (str): Path to the certificate file. Defaults to None.
-            | - key_file (str): Path to the key file. Defaults to None.
-            | - ca_file (str): Path to the CA file. Defaults to None.
-            | - timeout (int): The timeout duration in seconds. Defaults to 5.
-            | - p12_file (str): Path to the PKCS#12 file. Defaults to None.
-            | - p12_pwd (str): Password for the PKCS#12 file. Defaults to an empty string.
+        :param \**kwargs:
+        See below
+
+        :Keyword Arguments:
+            * host (str): The hostname or IP address of the server. Defaults to "localhost".
+            * port (int): The port number to connect to. Defaults to None.
+            * auth (GuardPointAuthType): The authentication type. Defaults to GuardPointAuthType.BEARER_TOKEN.
+            * username (str): The username for authentication. Defaults to "admin".
+            * pwd (str): The password for authentication. Defaults to "admin".
+            * key (str): The key for authentication. Defaults to "00000000-0000-0000-0000-000000000000".
+            * token (str): The token for authentication. Defaults to None.
+            * cert_file (str): Path to the certificate file. Defaults to None.
+            * key_file (str): Path to the key file. Defaults to None.
+            * ca_file (str): Path to the CA file. Defaults to None.
+            * timeout (int): The timeout duration in seconds. Defaults to 5.
+            * p12_file (str): Path to the PKCS#12 file. Defaults to None.
+            * p12_pwd (str): Password for the PKCS#12 file. Defaults to an empty string.
 
         :raises ValueError: If the host is not provided or is invalid.
         """

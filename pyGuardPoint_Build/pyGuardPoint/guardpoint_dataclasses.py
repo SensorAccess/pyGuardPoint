@@ -761,7 +761,7 @@ class Cardholder(Observable):
 
     Methods
     -------
-    __init__(*args, \**kwargs)
+    __init__(*args, kwargs)
         Initializes a new instance of the Cardholder class.
     to_search_pattern()
         Generates a search pattern string based on the cardholder's details.
@@ -964,12 +964,3 @@ class Cardholder(Observable):
 
         return ch
 
-
-if __name__ == "__main__":
-    cardholdertype = CardholderType(typeName="test")
-    print(cardholdertype.typeName)
-
-    '''securityGroup = SecurityGroup(ownerSiteUID="1234",
-                                  uid="sdfs", name="test", apiKey="None", description="test", isAppliedToVisitor=False)
-    print(securityGroup.name)
-    print(securityGroup.uid)'''

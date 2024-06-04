@@ -36,7 +36,7 @@ if __name__ == "__main__":
         # cardholder.pretty_print()
         cardholders = gp.get_card_holders(search_terms="Phil Sensor",
                                           cardholder_type_name='Visitor',
-                                          #filter_expired=True,
+                                          filter_expired=False,
                                           select_ignore_list=['cardholderCustomizedField',
                                                               'cardholderPersonalDetail',
                                                               'securityGroup',
@@ -49,7 +49,6 @@ if __name__ == "__main__":
         for cardholder in cardholders:
             print("Cardholder:")
             print(f"\t{cardholder.lastName}")
-            print(cardholder.dict(non_empty_only=True))
             cardholder.pretty_print()
 
         # Example Using Fuzzy Matching & select_lists

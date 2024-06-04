@@ -39,7 +39,7 @@ if __name__ == "__main__":
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
         try:
-
+            print(await gp.get_token())
             alarm_states = await gp.get_alarm_states()
 
             for alarm_state in alarm_states:
