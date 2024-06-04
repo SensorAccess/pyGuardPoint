@@ -40,7 +40,7 @@ Creating Cardholders
 The code below demonstrates how to create a Cardholder with a new Card and additional PersonalDetails and CustomFields:
 
 >>> card = Card(cardType="Magnetic", cardCode="1A1B1C8B")
->>> cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
+>>> cardholder_pd = CardholderPersonalDetail(email="john.owen@example.com")
 >>> cardholder_cf = CardholderCustomizedField(cF_StringField_20="hello")
 >>> cardholder = Cardholder(firstName="John", lastName="Owen9700",
 >>>                                 cardholderPersonalDetail=cardholder_pd,
