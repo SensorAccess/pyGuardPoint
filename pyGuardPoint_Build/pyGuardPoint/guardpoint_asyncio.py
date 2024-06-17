@@ -1,5 +1,6 @@
 import logging
 
+import validators
 from pysignalr.client import SignalRClient
 
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
@@ -97,6 +98,12 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
         timeout = kwargs.get('timeout', 5)
         p12_file = kwargs.get('p12_file', None)
         p12_pwd = kwargs.get('p12_pwd', "")
+
+        self.site_uid = kwargs.get('site_uid', None)
+        if self.site_uid is not None:
+            if not validators.uuid(self.site_uid):
+                raise ValueError(f'Malformed Site UID {self.site_uid}')
+
         super().open(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
                          cert_file=certfile, key_file=keyfile, key_pwd=key_pwd, ca_file=cafile, timeout=timeout,
                          p12_file=p12_file, p12_pwd=p12_pwd)

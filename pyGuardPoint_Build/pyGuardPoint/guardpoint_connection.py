@@ -53,7 +53,8 @@ class GuardPointConnection:
     auto_renew = False
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
-                 cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="", timeout=5):
+                 cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="",
+                 timeout=5):
         self.ssl_context = None
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):

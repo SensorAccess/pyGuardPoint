@@ -47,6 +47,69 @@ class SortAlgorithm(Enum):
     FUZZY_MATCH = 1
 
 @dataclass
+class Site:
+    apiKey: any = None
+    baudrate: int = 9600
+    defaultCardholderDagUIDs: str = ""
+    defaultCardholderLagUIDs: str = ""
+    defaultCardholderMagUID: str = ""
+    description: any = None
+    firstWorkDayInWeek: any = None
+    hasSpecialDays: bool = False
+    isPolling: bool = False
+    name: str = ""
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        site_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in site_dict:
+            if isinstance(site_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, site_dict[property_name])
+
+    def dict(self):
+        site_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                site_dict[k] = v
+            elif isinstance(v, type(None)):
+                site_dict[k] = None
+            else:
+                site_dict[k] = str(v)
+
+        return site_dict
+
+@dataclass
+class Department:
+    defaultMultipleAccessGroupUID: any = None
+    description: any = None
+    name: str = ""
+    parentUID: str = ""
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        department_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in department_dict:
+            if isinstance(department_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, department_dict[property_name])
+
+    def dict(self):
+        department_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                department_dict[k] = v
+            elif isinstance(v, type(None)):
+                department_dict[k] = None
+            else:
+                department_dict[k] = str(v)
+
+        return department_dict
+
+
+@dataclass
 class AlarmEvent:
     additionalSites: any = None
     additionalSitesNames: any = None
@@ -87,6 +150,7 @@ class AlarmEvent:
                 alarm_event_dict[k] = str(v)
 
         return alarm_event_dict
+
 
 @dataclass
 class AccessEvent:
@@ -963,4 +1027,3 @@ class Cardholder(Observable):
             ch.pop('liftAccessGroupUIDs')
 
         return ch
-

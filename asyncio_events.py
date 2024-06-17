@@ -2,9 +2,6 @@ import asyncio
 import logging
 import sys
 from importlib.metadata import version
-from pprint import pprint
-
-#from pyGuardPoint import GuardPoint, GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
 sys.path.insert(1, 'pyGuardPoint_Build')
@@ -18,51 +15,105 @@ GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
-#TLS_P12 = "C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
+#TLS_P12 = "C:\\Users\\User\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
+
+import threading
+from typing import Awaitable, TypeVar
+
+T = TypeVar("T")
+
+
+def _start_background_loop(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+
+_LOOP = asyncio.new_event_loop()
+_LOOP_THREAD = threading.Thread(
+    target=_start_background_loop, args=(_LOOP,), daemon=True
+)
+_LOOP_THREAD.start()
+
+
+def asyncio_run(coro: Awaitable[T], timeout=30) -> T:
+    """
+    Runs the coroutine in an event loop running on a background thread,
+    and blocks the current thread until it returns a result.
+    This plays well with gevent, since it can yield on the Future result call.
+
+    :param coro: A coroutine, typically an async method
+    :param timeout: How many seconds we should wait for a result before raising an error
+    """
+    return asyncio.run_coroutine_threadsafe(coro, _LOOP).result(timeout=timeout)
+
 
 if __name__ == "__main__":
     py_gp_version = version("pyGuardPoint")
     print("pyGuardPoint Version:" + py_gp_version)
     py_gp_version_int = int(py_gp_version.replace('.', ''))
-    if py_gp_version_int < 140:
+    if py_gp_version_int < 150:
         print("Please Update pyGuardPoint")
         print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
         exit()
 
     logging.basicConfig(level=logging.DEBUG)
 
-    async def main():
-        gp = GuardPointAsyncIO(host=GP_HOST,
-                               username=GP_USER,
-                               pwd=GP_PASS,
-                               p12_file=TLS_P12,
-                               p12_pwd=TLS_P12_PWD)
-
-        print(f"\n********* Get Access Events **********")
-        access_events = await gp.get_access_events(limit=3, offset=0)
-
-        for access_event in access_events:
-            print(f"\nAccessEvent:")
-            print(f"\tType: {access_event.type}")
-            print(f"\tjournalUpdateDateTime: {access_event.journalUpdateDateTime}")
-            print(f"\tdateTime: {access_event.dateTime}")
-            print(f"\taccessDeniedCode: {access_event.accessDeniedCode}")
-            print(f"\tisPastEvent: {access_event.isPastEvent}")
-
-        print(f"\n\n********* Get Alarm Events **********")
-        alarm_events = await gp.get_alarm_events(limit=3, offset=0)
-
-        for alarm_event in alarm_events:
-            print(f"\nAlarmEvent:")
-            print(f"\tType: {alarm_event.type}")
-            print(f"\tjournalUpdateDateTime: {alarm_event.journalUpdateDateTime}")
-            print(f"\tdateTime: {alarm_event.dateTime}")
-
-        await gp.close()
+    c = (
+        "\033[0m",  # End of color
+        "\033[36m",  # Cyan
+        "\033[91m",  # Red
+        "\033[35m",  # Magenta
+    )
 
     try:
-        asyncio.run(main())
+        async def get_token():
+            gp = GuardPointAsyncIO(host=GP_HOST,
+                                   username=GP_USER,
+                                   pwd=GP_PASS,
+                                   p12_file=TLS_P12,
+                                   p12_pwd=TLS_P12_PWD,
+                                   site_uid="11111111-1111-1111-1111-111111111111")
+            token = await gp.get_token()
+            await gp.close()
+            return token
+
+        async def get_access_events(gp_token, limit=3, offset=0):
+            gp = GuardPointAsyncIO(host=GP_HOST,
+                                   username=GP_USER,
+                                   pwd=GP_PASS,
+                                   p12_file=TLS_P12,
+                                   p12_pwd=TLS_P12_PWD,
+                                   site_uid="11111111-1111-1111-1111-111111111111")
+            gp.set_token(gp_token)
+            response = await gp.get_access_events(limit=limit, offset=offset)
+            await gp.close()
+            return response
+
+
+        async def main():
+            # Get the API Token first
+            print(f"\n{c[1]}********* Login and get token **********" + c[0])
+            gp_token = await get_token()
+            print(f"{c[3]}Token:{gp_token}" + c[0])
+            # Create a list of the requests to run asynchronously
+            tasks = []
+            tasks.append(get_access_events(gp_token,3, 0))
+            tasks.append(get_access_events(gp_token,3, 3))
+            tasks.append(get_access_events(gp_token,3, 6))
+            tasks.append(get_access_events(gp_token,3, 9))
+            # Run sasynchronous requests
+            print(f"\n{c[1]}********* Run asynchronous requests **********" + c[0])
+            results = await asyncio.gather(*tasks)
+            # Results is a list of lists, so we new pack into a single one
+            access_events = []
+            for result in results:
+                access_events += result
+            print("Got " + str(len(access_events)) + " access logs.")
+
+
+        asyncio_run(main())
+
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except GuardPointUnauthorized as e:

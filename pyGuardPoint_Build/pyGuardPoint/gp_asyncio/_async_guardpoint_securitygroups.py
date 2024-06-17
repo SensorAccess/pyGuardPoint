@@ -1,3 +1,4 @@
+from .._odata_filter import _compose_filter
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_dataclasses import SecurityGroup
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -5,9 +6,14 @@ from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class SecurityGroupsAPI:
     async def get_security_groups(self):
-        url = "/odata/api_SecurityGroups"
-        # url_query_params = "?$select=uid,name&$filter=name%20ne%20'Anytime%20Anywhere'"
+        url = self.baseurl + "/odata/api_SecurityGroups"
         url_query_params = ""
+
+        if self.site_uid is not None:
+            match_args = {'ownerSiteUID': self.site_uid}
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params += ("&" + filter_str)
+
         code, json_body = await self.gp_json_query("GET", url=(url + url_query_params))
 
         if code != 200:

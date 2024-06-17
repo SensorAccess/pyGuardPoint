@@ -1,11 +1,13 @@
+import logging
 from datetime import datetime
-
 import validators
 from .._odata_filter import _compose_filter, _compose_select, _compose_expand
 from .._str_match_algo import fuzzy_match
 from ..guardpoint_dataclasses import Cardholder, SortAlgorithm, Area
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ..guardpoint_utils import GuardPointResponse
+
+log = logging.getLogger(__name__)
 
 
 class CardholdersAPI:
@@ -35,6 +37,7 @@ class CardholdersAPI:
     get_card_holders(offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None, filter_expired: bool = False, cardholder_type_name: str = None, sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75, count: bool = False, earliest_last_pass: datetime = None, select_ignore_list: list = None, select_include_list: list = None, **cardholder_kwargs)
         Retrieves a list of cardholders based on various filters and search criteria.
     """
+
     async def delete_card_holder(self, cardholder: Cardholder):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
@@ -138,11 +141,12 @@ class CardholdersAPI:
         else:
             ch = cardholder.dict(editable_only=True, non_empty_only=True)
 
+        # Override Site UID
+        if self.site_uid is not None:
+            ch['ownerSiteUID'] = self.site_uid
 
-        # When using CreateFullCardholder
-        # body = {'cardholder': ch}
-        # print(json.dumps(body))
         code, json_body = await self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
+
         # Check response body is formatted correctly
         if json_body:
             GuardPointResponse.check_odata_body_structure(json_body)
@@ -151,10 +155,10 @@ class CardholdersAPI:
             new_cardholder = Cardholder(json_body)
             if cardholder.cardholderPersonalDetail:
                 await self.update_personal_details(cardholder_uid=new_cardholder.uid,
-                                             personal_details=cardholder.cardholderPersonalDetail)
+                                                   personal_details=cardholder.cardholderPersonalDetail)
             if cardholder.cardholderCustomizedField:
                 await self.update_custom_fields(cardholder_uid=new_cardholder.uid,
-                                          customFields=cardholder.cardholderCustomizedField)
+                                                customFields=cardholder.cardholderCustomizedField)
             if cardholder.cards:
                 if isinstance(cardholder.cards, list):
                     for card in cardholder.cards:
@@ -181,8 +185,8 @@ class CardholdersAPI:
                 raise GuardPointError(f"{error_msg}")
 
     async def get_card_holder(self,
-                        uid: str = None,
-                        card_code: str = None):
+                              uid: str = None,
+                              card_code: str = None):
         if card_code:
             # Part of the Cards_API
             return await self.get_cardholder_by_card_code(card_code)
@@ -227,10 +231,12 @@ class CardholdersAPI:
                                        "securityGroup," \
                                        "insideArea"
 
+        if self.site_uid is not None:
+            match_args = {'ownerSiteUID': self.site_uid}
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params += ("&" + filter_str)
+
         code, json_body = await self.gp_json_query("GET", url=(url + url_query_params))
-        # Check response body is formatted correctly
-        # if json_body:
-        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code == 404:  # Not Found
             return None
@@ -245,14 +251,17 @@ class CardholdersAPI:
             else:
                 raise GuardPointError(f"{error_msg}")
 
-        return Cardholder(json_body['value'][0])
+        if len(json_body['value']) > 0:
+            return Cardholder(json_body['value'][0])
+        else:
+            return None
 
     async def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
-                         filter_expired: bool = False, cardholder_type_name: str = None,
-                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
-                         count: bool = False, earliest_last_pass: datetime = None,
-                         select_ignore_list: list = None, select_include_list: list = None,
-                         **cardholder_kwargs):
+                               filter_expired: bool = False, cardholder_type_name: str = None,
+                               sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
+                               count: bool = False, earliest_last_pass: datetime = None,
+                               select_ignore_list: list = None, select_include_list: list = None,
+                               **cardholder_kwargs):
 
         if offset is None:
             offset = 0
@@ -262,6 +271,12 @@ class CardholdersAPI:
         for k, v in cardholder_kwargs.items():
             if hasattr(Cardholder, k):
                 match_args[k] = v
+
+        # Force site_uid filter if present
+        if self.site_uid is not None:
+            if 'ownerSiteUID' in match_args:
+                log.info(f"ownerSiteUID overridden")
+            match_args['ownerSiteUID'] = self.site_uid
 
         url = "/odata/API_Cardholders"
 

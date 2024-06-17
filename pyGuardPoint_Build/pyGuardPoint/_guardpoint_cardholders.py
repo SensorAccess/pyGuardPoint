@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 import validators
@@ -6,6 +7,8 @@ from ._str_match_algo import fuzzy_match
 from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from .guardpoint_utils import GuardPointResponse
+
+log = logging.getLogger(__name__)
 
 
 class CardholdersAPI:
@@ -204,6 +207,10 @@ class CardholdersAPI:
         else:
             ch = cardholder.dict(editable_only=True, non_empty_only=True)
 
+        # Override Site UID
+        if self.site_uid is not None:
+            ch['ownerSiteUID'] = self.site_uid
+
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=ch)
 
         # Check response body is formatted correctly
@@ -318,6 +325,11 @@ class CardholdersAPI:
                                        "securityGroup," \
                                        "insideArea"
 
+        if self.site_uid is not None:
+            match_args = {'ownerSiteUID': self.site_uid}
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params += ("&" + filter_str)
+
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
         if code == 404:  # Not Found
@@ -333,7 +345,10 @@ class CardholdersAPI:
             else:
                 raise GuardPointError(f"{error_msg}")
 
-        return Cardholder(json_body['value'][0])
+        if len(json_body['value']) > 0:
+            return Cardholder(json_body['value'][0])
+        else:
+            return None
 
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
@@ -386,6 +401,12 @@ class CardholdersAPI:
         for k, v in cardholder_kwargs.items():
             if hasattr(Cardholder, k):
                 match_args[k] = v
+
+        # Force site_uid filter if present
+        if self.site_uid is not None:
+            if 'ownerSiteUID' in match_args:
+                log.info(f"ownerSiteUID overridden")
+            match_args['ownerSiteUID'] = self.site_uid
 
         url = "/odata/API_Cardholders"
 

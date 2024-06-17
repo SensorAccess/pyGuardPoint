@@ -8,10 +8,6 @@ sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPoint, GuardPointError, GuardPointUnauthorized
 #from pyGuardPoint import GuardPoint, GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized
 
-import pkg_resources
-
-
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 # GuardPoint
 GP_HOST = 'https://sensoraccess.duckdns.org'
@@ -24,7 +20,6 @@ TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
 if __name__ == "__main__":
-    print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
 
     async def test():

@@ -1,5 +1,5 @@
-import validators
 
+from .._odata_filter import _compose_filter
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_dataclasses import AccessEvent, AlarmEvent
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -14,6 +14,10 @@ class EventsAPI:
         }
 
         url_query_params = "?$orderby=dateTime%20desc"
+        if self.site_uid is not None:
+            match_args = {'ownerSiteUID': self.site_uid}
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params += ("&" + filter_str)
 
         if limit:
             url_query_params += "&$top=" + str(limit)
@@ -53,6 +57,10 @@ class EventsAPI:
         }
 
         url_query_params = "?$orderby=dateTime%20asc"
+        if self.site_uid is not None:
+            match_args = {'ownerSiteUID': self.site_uid}
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params += ("&" + filter_str)
 
         if limit:
             url_query_params += "&$top=" + str(limit)

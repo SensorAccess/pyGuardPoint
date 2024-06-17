@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 import aiohttp
 from aiohttp import InvalidURL
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption, \
+from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, BestAvailableEncryption, \
     pkcs12
 from ..guardpoint_error import GuardPointUnauthorized
 from ..guardpoint_utils import ConvertBase64, GuardPointResponse

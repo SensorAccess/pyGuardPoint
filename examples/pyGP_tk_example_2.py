@@ -4,19 +4,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import RIGHT, Y, YES, END
 
-import pkg_resources
-from pyGuardPoint import GuardPointAsync, GuardPointError, SortAlgorithm
+from pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
 
 windll.shcore.SetProcessDpiAwareness(1)  # Fix Win10 DPI issue
-
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
-print("pyGuardPoint Version:" + py_gp_version)
-py_gp_version_int = int(py_gp_version.replace('.', ''))
-if py_gp_version_int < 45:
-    print("Please Update pyGuardPoint")
-    print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
-    exit()
-
 
 class App(tk.Tk):
     def __init__(self):
@@ -96,7 +86,7 @@ class App(tk.Tk):
 
         # -------------------- End GUI Build -------------------- #
 
-        self.gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
+        self.gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
         self.gp.get_areas(on_finished=self.got_areas)
 
     def _app_set_search(self, *_):

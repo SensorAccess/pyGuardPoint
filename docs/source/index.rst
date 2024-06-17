@@ -19,4 +19,5 @@ Contents
     usage
     snippets
     API
+    asyncio
     signal-r

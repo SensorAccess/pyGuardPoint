@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+import validators
 from pysignalr.client import SignalRClient
 
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
@@ -9,6 +10,8 @@ from ._guardpoint_alarms import AlarmsAPI
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
 from ._guardpoint_controllers import ControllersAPI
 from ._guardpoint_diagnostic import DiagnosticAPI
+from ._guardpoint_departments import DepartmentsAPI
+from ._guardpoint_sites import SitesAPI
 from ._guardpoint_events import EventsAPI
 from ._guardpoint_ouputs import OutputsAPI
 from ._guardpoint_readers import ReadersAPI
@@ -33,7 +36,7 @@ def stop_listening(client: SignalRClient):
     asyncio.run(stop_signal_client())
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
+class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI, DepartmentsAPI, SitesAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,
@@ -77,6 +80,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             * timeout (int): The timeout duration in seconds. Defaults to 5.
             * p12_file (str): Path to the PKCS#12 file. Defaults to None.
             * p12_pwd (str): Password for the PKCS#12 file. Defaults to an empty string.
+            * site_uid (str): The UID of the site. Defaults to None.
 
         :raises ValueError: If the host is not provided or is invalid.
         """
@@ -100,6 +104,12 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         timeout = kwargs.get('timeout', 5)
         p12_file = kwargs.get('p12_file', None)
         p12_pwd = kwargs.get('p12_pwd', "")
+
+        self.site_uid = kwargs.get('site_uid', None)
+        if self.site_uid is not None:
+            if not validators.uuid(self.site_uid):
+                raise ValueError(f'Malformed Site UID {self.site_uid}')
+
         super().__init__(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
                          cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout,
                          p12_file=p12_file, p12_pwd=p12_pwd)

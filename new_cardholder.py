@@ -1,22 +1,29 @@
 import logging, sys
 from _socket import gaierror
 
-import pkg_resources
-
 sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, Cardholder
-from pyGuardPoint_Build.pyGuardPoint.guardpoint_dataclasses import CardholderPersonalDetail, CardholderCustomizedField, \
-    Card
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, \
+    CardholderPersonalDetail, CardholderCustomizedField, Cardholder, Card
+
+GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_USER = 'admin'
+GP_PASS = 'admin'
+TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
+TLS_P12_PWD = "test"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    #gp = GuardPoint(host="sensoraccess.duckdns.org", port=10695, pwd="admin")
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
-                    p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobileGuardDefault.p12",
-                    p12_pwd="test")
+    gp = GuardPoint(host=GP_HOST,
+                    username=GP_USER,
+                    pwd=GP_PASS,
+                    p12_file=TLS_P12,
+                    p12_pwd=TLS_P12_PWD,
+                    site_uid="11111111-1111-1111-1111-111111111111")
 
     try:
         cardholders = gp.get_card_holders(search_terms="Owen456")
+        if len(cardholders) == 0:
+            print("No Cardholder Found")
         for cardholder in cardholders:
             # Delete all cardholders cards first
             #for card in cardholder.cards:
@@ -26,7 +33,7 @@ if __name__ == "__main__":
             # Delete the cardholder
             if gp.delete_card_holder(cardholder):
                 print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Deleted")
-        '''
+
         #card = Card(cardType="Magnetic", cardCode="3F1B1C8E")
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
         cardholder_cf = CardholderCustomizedField()
@@ -55,7 +62,7 @@ if __name__ == "__main__":
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
             print(f"\tCards: {cardholder.cards}")
             # cardholder.pretty_print()
-    '''
+
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
     except gaierror as e:
