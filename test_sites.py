@@ -31,6 +31,7 @@ if __name__ == "__main__":
     try:
         sites = gp.get_sites()
         for site in sites:
+            site = gp.get_site(site_uid=site.uid)
             pprint(site)
             print(f"\n\n")
 

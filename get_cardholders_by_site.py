@@ -23,9 +23,14 @@ if __name__ == "__main__":
         if cardholder is not None:
             print("Cardholder:")
             print(f"\t{cardholder.uid}")
+            print(f"\t{cardholder.firstName}")
             print(f"\t{cardholder.lastName}")
             print(f"\t{cardholder.cardholderPersonalDetail.email}")
 
+    except GuardPointError as e:
+        print(f"GuardPointError: {e}")
+    except Exception as e:
+        print(f"Exception: {e}")
 
         '''gp.get_sites()
         for site in gp.get_sites():
@@ -46,7 +51,4 @@ if __name__ == "__main__":
 
 
 
-    except GuardPointError as e:
-        print(f"GuardPointError: {e}")
-    except Exception as e:
-        print(f"Exception: {e}")
+

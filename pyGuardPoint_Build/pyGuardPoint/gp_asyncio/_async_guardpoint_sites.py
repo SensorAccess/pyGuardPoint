@@ -33,7 +33,10 @@ class SitesAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Site(json_body['value'])
+        if len(json_body['value']) > 0:
+            return Site(json_body['value'][0])
+        else:
+            return None
 
     async def get_sites(self):
         url = "/odata/API_Sites"

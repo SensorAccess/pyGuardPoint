@@ -1,8 +1,6 @@
 import logging
-
 import validators
 from pysignalr.client import SignalRClient
-
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
 from .gp_asyncio._async_guardpoint_cardholdertypes import CardholderTypesAPI
@@ -19,6 +17,8 @@ from .gp_asyncio._async_guardpoint_cardholders import CardholdersAPI
 from .gp_asyncio._async_guardpoint_areas import AreasAPI
 from .gp_asyncio._async_guardpoint_alarms import AlarmsAPI
 from .gp_asyncio._async_guardpoint_events import EventsAPI
+from .gp_asyncio._async_guardpoint_departments import DepartmentsAPI
+from .gp_asyncio._async_guardpoint_sites import SitesAPI
 from .gp_asyncio.guardpoint_connection_asyncio import GuardPointConnection, GuardPointAuthType
 
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -29,7 +29,8 @@ log = logging.getLogger(__name__)
 
 class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI,
                         CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
-                        OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI):
+                        OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI,
+                        DepartmentsAPI, SitesAPI):
     """
     Asynchronous interface for interacting with the GuardPoint system, providing various APIs for managing cards,
     cardholders, areas, security groups, customized fields, personal details, scheduled mags, cardholder types,
