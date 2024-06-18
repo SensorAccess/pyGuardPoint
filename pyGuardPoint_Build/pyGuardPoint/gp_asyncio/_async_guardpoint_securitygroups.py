@@ -6,8 +6,8 @@ from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class SecurityGroupsAPI:
     async def get_security_groups(self):
-        url = self.baseurl + "/odata/api_SecurityGroups"
-        url_query_params = ""
+        url = "/odata/api_SecurityGroups"
+        url_query_params = "?"
 
         if self.site_uid is not None:
             match_args = {'ownerSiteUID': self.site_uid}

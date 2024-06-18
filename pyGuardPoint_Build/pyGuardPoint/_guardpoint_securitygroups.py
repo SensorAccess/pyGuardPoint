@@ -30,7 +30,7 @@ class SecurityGroupsAPI:
         :rtype: list
         """
         url = self.baseurl + "/odata/api_SecurityGroups"
-        url_query_params = ""
+        url_query_params = "?"
 
         if self.site_uid is not None:
             match_args = {'ownerSiteUID': self.site_uid}
