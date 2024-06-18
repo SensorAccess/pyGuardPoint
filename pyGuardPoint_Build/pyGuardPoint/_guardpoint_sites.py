@@ -7,6 +7,20 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class SitesAPI:
     def get_site(self, site_uid):
+        """
+        Retrieve a site by its unique identifier (UID).
+
+        This method fetches the details of a site from the GuardPoint API using the provided site UID.
+        It validates the UID, constructs the appropriate API request, and handles the response.
+
+        :param site_uid: The unique identifier of the site to retrieve.
+        :type site_uid: str
+        :raises ValueError: If the provided site_uid is not a valid UUID.
+        :raises GuardPointUnauthorized: If the API response indicates an unauthorized request (HTTP 401).
+        :raises GuardPointError: If the site is not found (HTTP 404) or if there is any other error in the response.
+        :return: An instance of the Site class if the site is found, otherwise None.
+        :rtype: Site or None
+        """
         if not validators.uuid(site_uid):
             raise ValueError(f"Malformed site_uid: {site_uid}")
 
@@ -39,6 +53,20 @@ class SitesAPI:
             return None
 
     def get_sites(self):
+        """
+        Retrieve a list of sites from the GuardPoint API.
+
+        This method sends a GET request to the GuardPoint API to fetch a list of sites.
+        It handles various HTTP response codes and raises appropriate exceptions for
+        error conditions.
+
+        :raises GuardPointUnauthorized: If the API response code is 401 (Unauthorized).
+        :raises GuardPointError: If the API response code is 404 (Not Found) or any other error occurs.
+        :raises GuardPointError: If the response is not properly formatted.
+
+        :return: A list of Site objects representing the sites retrieved from the API.
+        :rtype: list
+        """
         url = "/odata/API_Sites"
         headers = {
             'Content-Type': 'application/json',
