@@ -514,7 +514,22 @@ class Area:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+@dataclass
+class AccessGroup:
+    accessGroupType: str = ""
+    uid: str = ""
+    name: str = ""
+    apiKey: any = ""
+    description: str = ""
+    ownerSiteUID: str = ""
 
+    def __init__(self, access_group_dict: dict):
+        for property_name in access_group_dict:
+            if isinstance(access_group_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, access_group_dict[property_name])
+
+    def dict(self):
+        return {k: str(v) for k, v in asdict(self).items()}
 @dataclass
 class SecurityGroup:
     ownerSiteUID: str = ""
