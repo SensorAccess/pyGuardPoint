@@ -8,8 +8,8 @@ project = 'pyGuardPoint'
 copyright = '2024, SensorAccess'
 author = 'John Owen'
 
-release = '1.5.4'
-version = '1.5.4'
+release = '1.6.0'
+version = '1.6.0'
 
 # -- General configuration
 sys.path.insert(0, os.path.abspath('../../pyGuardPoint_Build/pyGuardPoint'))

@@ -234,5 +234,5 @@ Once enabled the server will broadcast events to clients listening to events.
 
 More
 ------------------
-
+Complete API documentation can be found at ReadTheDocs here https://pyguardpoint.readthedocs.io/en/latest/
 The code and further examples can be found at https://github.com/SensorAccess/pyGuardPoint

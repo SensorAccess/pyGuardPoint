@@ -109,7 +109,7 @@ class CardholdersAPI:
 
         return self.update_card_holder(cardholder)
 
-    def update_card_holder(self, cardholder: Cardholder):
+    def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False):
         """
         Update the details of a cardholder in the system.
 
@@ -119,12 +119,15 @@ class CardholdersAPI:
 
         :param cardholder: The cardholder object containing updated information.
         :type cardholder: Cardholder
+        :param enroll_face_from_photo: Flag indicating whether to enroll the cardholder's face from a photo, defaults to False.
+        :type enroll_face_from_photo: bool, optional
         :raises ValueError: If the cardholder UID is malformed.
         :raises GuardPointUnauthorized: If the request is unauthorized.
         :raises GuardPointError: If the cardholder is not found or another error occurs.
         :return: True if the update is successful, otherwise raises an exception.
         :rtype: bool
         """
+
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -160,6 +163,9 @@ class CardholdersAPI:
             # 'IgnoreNonEditable': ''
         }
 
+        if enroll_face_from_photo:
+            headers['EnrollFaceFromPhoto'] = ""
+
         code, json_body = self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
@@ -174,7 +180,7 @@ class CardholdersAPI:
 
         return True
 
-    def new_card_holder(self, cardholder: Cardholder, changed_only=False):
+    def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False):
         """
         Create a new cardholder in the system.
 
@@ -187,6 +193,8 @@ class CardholdersAPI:
         :param changed_only: If True, only the changed fields of the cardholder will be sent.
                              Otherwise, all editable and non-empty fields will be sent.
         :type changed_only: bool, optional
+        :param enroll_face_from_photo: If True, enroll the cardholder's face from a photo.
+        :type enroll_face_from_photo: bool, optional
 
         :return: The newly created cardholder object.
         :rtype: Cardholder
@@ -201,6 +209,9 @@ class CardholdersAPI:
             'Accept': 'application/json',
             'IgnoreNonEditable': ''
         }
+
+        if enroll_face_from_photo:
+            headers['EnrollFaceFromPhoto'] = ""
 
         if changed_only:
             ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)

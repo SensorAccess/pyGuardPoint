@@ -75,7 +75,7 @@ class CardholdersAPI:
 
         return await self.update_card_holder(cardholder)
 
-    async def update_card_holder(self, cardholder: Cardholder):
+    async def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -111,6 +111,9 @@ class CardholdersAPI:
             # 'IgnoreNonEditable': ''
         }
 
+        if enroll_face_from_photo:
+            headers['EnrollFaceFromPhoto'] = ""
+
         code, json_body = await self.gp_json_query("PATCH", headers=headers, url=(url + url_query_params), json_body=ch)
 
         if code != 204:  # HTTP NO_CONTENT
@@ -125,7 +128,7 @@ class CardholdersAPI:
 
         return True
 
-    async def new_card_holder(self, cardholder: Cardholder, changed_only=False):
+    async def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False):
 
         # url = "/odata/API_Cardholders/CreateFullCardholder"
         url = "/odata/API_Cardholders"
@@ -135,6 +138,9 @@ class CardholdersAPI:
             'Accept': 'application/json',
             'IgnoreNonEditable': ''
         }
+
+        if enroll_face_from_photo:
+            headers['EnrollFaceFromPhoto'] = ""
 
         if changed_only:
             ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)
