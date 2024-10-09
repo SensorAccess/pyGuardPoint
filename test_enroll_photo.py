@@ -33,6 +33,19 @@ if __name__ == "__main__":
                     site_uid='f342eade-eb43-4359-918d-d067d609fc38')
 
     try:
+        '''cardholders = gp.get_card_holders(firstName="Robert", lastName="Owen")
+
+        print(cardholders[0].cards)'''
+
+        '''cardholders = gp.get_card_holders(firstName="John", lastName="Owen87")
+
+        print(cardholders[0].cards)'''
+        '''gp.delete_card_holder(cardholders[0])'''
+
+        '''card = gp.get_card(card_uid='791b4f59-f2bd-4c6a-98b5-6377dccff91a')'''
+        '''print(card)'''
+
+
         cardholder_pd = CardholderPersonalDetail(email="john.owen@eml.cc")
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")

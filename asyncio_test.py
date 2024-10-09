@@ -29,15 +29,16 @@ if __name__ == "__main__":
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
         try:
-            cardholders = await gp.get_card_holders(offset=0, limit=10)
-            for cardholder in cardholders:
-                print(f"Firstname: {cardholder.firstName}")
+            cardholders = await gp.get_card_holders(offset=50, limit=100)
+            print(len(cardholders))
+            '''for cardholder in cardholders:
+                print(f"Firstname: {cardholder.firstName}")'''
 
-            relays = await gp.get_relays()
+            '''relays = await gp.get_relays()
             for relay in relays:
                 pprint(relay.dict())
 
-                '''try:
+                try:
                     await gp.activate_relay(relay, period=1)
                 except GuardPointError as e:
                     print(f"\n\tRelay Failed to activate: {e}")

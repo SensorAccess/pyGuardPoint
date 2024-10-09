@@ -367,6 +367,52 @@ class CardholdersAPI:
                          count: bool = False, earliest_last_pass: datetime = None,
                          select_ignore_list: list = None, select_include_list: list = None,
                          **cardholder_kwargs):
+        if limit <= 0:
+            return []
+        if limit > 50:
+            i_offset = offset
+            offset = 0
+            batch_limit = 50
+            card_holders = []
+            while len(card_holders) == offset:
+                if offset + batch_limit > limit:
+                    batch_limit = limit - offset
+                if batch_limit > 0:
+                    card_holders.extend(
+                        self._get_card_holders(offset=offset+i_offset, limit=batch_limit, search_terms=search_terms,
+                                               areas=areas,
+                                               filter_expired=filter_expired,
+                                               cardholder_type_name=cardholder_type_name,
+                                               sort_algorithm=sort_algorithm, threshold=threshold,
+                                               count=count, earliest_last_pass=earliest_last_pass,
+                                               select_ignore_list=select_ignore_list,
+                                               select_include_list=select_include_list,
+                                               **cardholder_kwargs))
+                if (offset + batch_limit) >= limit:
+                    break
+                elif len(card_holders) > offset:
+                    offset = len(card_holders)
+                else:
+                    break
+
+            return card_holders
+        else:
+            return self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
+                                          areas=areas,
+                                          filter_expired=filter_expired,
+                                          cardholder_type_name=cardholder_type_name,
+                                          sort_algorithm=sort_algorithm, threshold=threshold,
+                                          count=count, earliest_last_pass=earliest_last_pass,
+                                          select_ignore_list=select_ignore_list,
+                                          select_include_list=select_include_list,
+                                          **cardholder_kwargs)
+
+    def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
+                          filter_expired: bool = False, cardholder_type_name: str = None,
+                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
+                          count: bool = False, earliest_last_pass: datetime = None,
+                          select_ignore_list: list = None, select_include_list: list = None,
+                          **cardholder_kwargs):
         """
         Retrieve a list of cardholders from the system with various filtering and sorting options.
 
@@ -458,7 +504,7 @@ class CardholdersAPI:
         if count:
             return json_body['@odata.count']
 
-        cardholders = []
+        cardholders: list = []
         for x in json_body['value']:
             cardholders.append(Cardholder(x))
 

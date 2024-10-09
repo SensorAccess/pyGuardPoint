@@ -94,6 +94,15 @@ def _compose_filter(search_words=None,
                     details = v.dict(changed_only=True)
                     for dk, dv in details.items():
                         filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
+                if k == "cardholderCustomizedField" and v.__class__.__name__ == "CardholderCustomizedField":
+                    details = v.dict(changed_only=True)
+                    for dk, dv in details.items():
+                        if isinstance(dv, type(None)):
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{quote('null')})")
+                        elif isinstance(dv, (bool, int)):
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{str(dv).lower()})")
+                        else:
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{quote(dv)}')")
 
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):
