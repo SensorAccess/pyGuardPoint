@@ -367,6 +367,42 @@ class CardholdersAPI:
                          count: bool = False, earliest_last_pass: datetime = None,
                          select_ignore_list: list = None, select_include_list: list = None,
                          **cardholder_kwargs):
+        """
+        Retrieve a list of cardholders from the system with various filtering and sorting options.
+
+        :param offset: The starting point within the collection of cardholders. Default is 0.
+        :type offset: int
+        :param limit: The maximum number of cardholders to return. Default is 10.
+        :type limit: int
+        :param search_terms: Search terms to filter cardholders by name or other attributes. Default is None.
+        :type search_terms: str, optional
+        :param areas: List of areas to filter cardholders by. Default is None.
+        :type areas: list, optional
+        :param filter_expired: Whether to filter out expired cardholders. Default is False.
+        :type filter_expired: bool
+        :param cardholder_type_name: Filter cardholders by type name. Default is None.
+        :type cardholder_type_name: str, optional
+        :param sort_algorithm: Algorithm to sort the cardholders. Default is SortAlgorithm.SERVER_DEFAULT.
+        :type sort_algorithm: SortAlgorithm
+        :param threshold: Threshold for fuzzy matching. Default is 75.
+        :type threshold: int
+        :param count: Whether to return the count of cardholders instead of the list. Default is False.
+        :type count: bool
+        :param earliest_last_pass: Filter cardholders by the earliest last pass date. Default is None.
+        :type earliest_last_pass: datetime, optional
+        :param select_ignore_list: List of fields to ignore in the select query. Default is None.
+        :type select_ignore_list: list, optional
+        :param select_include_list: List of fields to include in the select query. Default is None.
+        :type select_include_list: list, optional
+        :param cardholder_kwargs: Additional keyword arguments for exact match filtering.
+        :type cardholder_kwargs: dict
+
+        :return: A list of cardholders or the count of cardholders based on the `count` parameter.
+        :rtype: list[Cardholder] or int
+
+        :raises GuardPointUnauthorized: If the request is unauthorized.
+        :raises GuardPointError: If there is an error in retrieving cardholders or if cardholders are not found.
+        """
         if limit <= 0:
             return []
         if limit > 50:
@@ -413,43 +449,6 @@ class CardholdersAPI:
                           count: bool = False, earliest_last_pass: datetime = None,
                           select_ignore_list: list = None, select_include_list: list = None,
                           **cardholder_kwargs):
-        """
-        Retrieve a list of cardholders from the system with various filtering and sorting options.
-
-        :param offset: The starting point within the collection of cardholders. Default is 0.
-        :type offset: int
-        :param limit: The maximum number of cardholders to return. Default is 10.
-        :type limit: int
-        :param search_terms: Search terms to filter cardholders by name or other attributes. Default is None.
-        :type search_terms: str, optional
-        :param areas: List of areas to filter cardholders by. Default is None.
-        :type areas: list, optional
-        :param filter_expired: Whether to filter out expired cardholders. Default is False.
-        :type filter_expired: bool
-        :param cardholder_type_name: Filter cardholders by type name. Default is None.
-        :type cardholder_type_name: str, optional
-        :param sort_algorithm: Algorithm to sort the cardholders. Default is SortAlgorithm.SERVER_DEFAULT.
-        :type sort_algorithm: SortAlgorithm
-        :param threshold: Threshold for fuzzy matching. Default is 75.
-        :type threshold: int
-        :param count: Whether to return the count of cardholders instead of the list. Default is False.
-        :type count: bool
-        :param earliest_last_pass: Filter cardholders by the earliest last pass date. Default is None.
-        :type earliest_last_pass: datetime, optional
-        :param select_ignore_list: List of fields to ignore in the select query. Default is None.
-        :type select_ignore_list: list, optional
-        :param select_include_list: List of fields to include in the select query. Default is None.
-        :type select_include_list: list, optional
-        :param cardholder_kwargs: Additional keyword arguments for exact match filtering.
-        :type cardholder_kwargs: dict
-
-        :return: A list of cardholders or the count of cardholders based on the `count` parameter.
-        :rtype: list[Cardholder] or int
-
-        :raises GuardPointUnauthorized: If the request is unauthorized.
-        :raises GuardPointError: If there is an error in retrieving cardholders or if cardholders are not found.
-        """
-
         if offset is None:
             offset = 0
 
