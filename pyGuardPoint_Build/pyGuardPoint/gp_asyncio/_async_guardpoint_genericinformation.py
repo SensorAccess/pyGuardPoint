@@ -1,11 +1,13 @@
 import json
+
 import validators
-from .guardpoint_utils import GuardPointResponse
-from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+
+from ..guardpoint_utils import GuardPointResponse
+from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
 class GenericInfoAPI:
-    def get_info(self, info_uid):
+    async def get_info(self, info_uid):
 
         if not validators.uuid(info_uid):
             raise ValueError(f"Malformed site_uid: {info_uid}")
@@ -16,7 +18,7 @@ class GenericInfoAPI:
             'Accept': 'application/json'
         }
 
-        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -38,7 +40,7 @@ class GenericInfoAPI:
         else:
             return None
 
-    def get_infos(self):
+    async def get_infos(self):
 
         url = "/odata/API_GenericInformations"
         headers = {
@@ -46,7 +48,7 @@ class GenericInfoAPI:
             'Accept': 'application/json'
         }
 
-        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -63,7 +65,7 @@ class GenericInfoAPI:
 
         return json_body
 
-    def is_api_enabled(self):
-        info = self.get_info('00000000-0000-0000-0000-000000000003')
+    async def is_api_enabled(self):
+        info = await self.get_info('00000000-0000-0000-0000-000000000003')
         return info['CommunicationSettings']['PassEventsToApi']['Value']
 
