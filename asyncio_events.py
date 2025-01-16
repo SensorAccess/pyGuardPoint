@@ -89,7 +89,7 @@ if __name__ == "__main__":
                                    p12_pwd=TLS_P12_PWD,
                                    site_uid="11111111-1111-1111-1111-111111111111")
             gp.set_token(gp_token)
-            response = await gp.get_access_events(limit=limit, offset=offset, orderby=EventOrder.LOG_ID_ASC, min_logID=991)
+            response = await gp.get_access_events(limit=limit, offset=offset, orderby=EventOrder.LOG_ID_ASC, min_log_id=991)
             await gp.close()
             return response
 
