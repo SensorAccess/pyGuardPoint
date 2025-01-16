@@ -6,7 +6,7 @@ from importlib.metadata import version
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
 sys.path.insert(1, 'pyGuardPoint_Build')
 
-from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized
+from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized, EventOrder
 
 # GuardPoint
 GP_HOST = 'https://sensoraccess.duckdns.org'
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     py_gp_version = version("pyGuardPoint")
     print("pyGuardPoint Version:" + py_gp_version)
     py_gp_version_int = int(py_gp_version.replace('.', ''))
-    if py_gp_version_int < 150:
+    if py_gp_version_int < 170:
         print("Please Update pyGuardPoint")
         print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
         exit()
@@ -74,6 +74,9 @@ if __name__ == "__main__":
                                    p12_file=TLS_P12,
                                    p12_pwd=TLS_P12_PWD,
                                    site_uid="11111111-1111-1111-1111-111111111111")
+            api = await gp.is_api_enabled()
+            if not api:
+                print("Warning API appears to be not enabled")
             token = await gp.get_token()
             await gp.close()
             return token
@@ -86,7 +89,19 @@ if __name__ == "__main__":
                                    p12_pwd=TLS_P12_PWD,
                                    site_uid="11111111-1111-1111-1111-111111111111")
             gp.set_token(gp_token)
-            response = await gp.get_access_events(limit=limit, offset=offset)
+            response = await gp.get_access_events(limit=limit, offset=offset, orderby=EventOrder.LOG_ID_ASC)
+            await gp.close()
+            return response
+
+        async def get_access_events_count(gp_token):
+            gp = GuardPointAsyncIO(host=GP_HOST,
+                                   username=GP_USER,
+                                   pwd=GP_PASS,
+                                   p12_file=TLS_P12,
+                                   p12_pwd=TLS_P12_PWD,
+                                   site_uid="11111111-1111-1111-1111-111111111111")
+            gp.set_token(gp_token)
+            response = await gp.get_access_events_count()
             await gp.close()
             return response
 
@@ -96,6 +111,8 @@ if __name__ == "__main__":
             print(f"\n{c[1]}********* Login and get token **********" + c[0])
             gp_token = await get_token()
             print(f"{c[3]}Token:{gp_token}" + c[0])
+            access_event_count = await get_access_events_count(gp_token)
+            print(f"Access Event Count:{access_event_count}")
             # Create a list of the requests to run asynchronously
             tasks = []
             tasks.append(get_access_events(gp_token,3, 0))
@@ -110,6 +127,8 @@ if __name__ == "__main__":
             for result in results:
                 access_events += result
             print("Got " + str(len(access_events)) + " access logs.")
+            for event in access_events:
+                print(event)
 
 
         asyncio_run(main())

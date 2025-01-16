@@ -6,6 +6,13 @@ from enum import Enum
 log = logging.getLogger(__name__)
 
 
+class EventOrder(Enum):
+    DATETIME_ASC = 1
+    DATETIME_DESC = 2
+    LOG_ID_ASC = 3
+    LOG_ID_DESC = 4
+
+
 class Observable:
     # A set of all attributes which get changed
     changed_attributes = set()
@@ -46,6 +53,7 @@ class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0,
     FUZZY_MATCH = 1
 
+
 @dataclass
 class Site:
     apiKey: any = None
@@ -79,6 +87,7 @@ class Site:
                 site_dict[k] = str(v)
 
         return site_dict
+
 
 @dataclass
 class Department:
@@ -514,6 +523,7 @@ class Area:
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
 
+
 @dataclass
 class AccessGroup:
     accessGroupType: str = ""
@@ -530,6 +540,8 @@ class AccessGroup:
 
     def dict(self):
         return {k: str(v) for k, v in asdict(self).items()}
+
+
 @dataclass
 class SecurityGroup:
     ownerSiteUID: str = ""

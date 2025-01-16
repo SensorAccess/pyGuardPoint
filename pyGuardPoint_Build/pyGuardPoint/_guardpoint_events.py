@@ -1,7 +1,6 @@
-
 from ._odata_filter import _compose_filter
 from .guardpoint_utils import GuardPointResponse
-from .guardpoint_dataclasses import AlarmEvent, AccessEvent
+from .guardpoint_dataclasses import AlarmEvent, AccessEvent, EventOrder
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
@@ -17,7 +16,11 @@ class EventsAPI:
     get_alarm_events(limit=None, offset=None)
         Retrieves alarm events from the API with optional pagination.
     """
-    def get_access_events(self, limit=None, offset=None):
+
+    def get_access_events_count(self):
+        return self.get_access_events(self, count=True)
+
+    def get_access_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC):
         """
         Retrieve access event logs from the GuardPoint API.
 
@@ -34,13 +37,24 @@ class EventsAPI:
         :raises GuardPointError: If the API returns a 404 Not Found status code or any other error occurs.
         :raises GuardPointError: If the response body is not formatted as expected.
         """
+
         url = f"/odata/API_AccessEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = "?$orderby=dateTime%20desc"
+        if count:
+            url_query_params = "?$count=true&$top=0"
+        else:
+            if orderby == EventOrder.DATETIME_ASC:
+                url_query_params = "?$orderby=dateTime%20asc"
+            elif orderby == EventOrder.DATETIME_DESC:
+                url_query_params = "?$orderby=dateTime%20desc"
+            elif orderby == EventOrder.LOG_ID_ASC:
+                url_query_params = "?$orderby=logID%20asc"
+            else:
+                url_query_params = "?$orderby=logID%20desc"
 
         if limit:
             url_query_params += "&$top=" + str(limit)
@@ -111,7 +125,7 @@ class EventsAPI:
         if offset:
             url_query_params += "&$skip=" + str(offset)
 
-        code, json_body = self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
+        code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
