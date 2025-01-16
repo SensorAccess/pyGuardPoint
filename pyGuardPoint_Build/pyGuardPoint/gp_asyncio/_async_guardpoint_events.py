@@ -11,7 +11,8 @@ class EventsAPI:
     async def get_access_events_count(self):
         return await self.get_access_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
 
-    async def get_access_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC):
+    async def get_access_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                                min_log_id=None):
         url = f"/odata/API_AccessEventLogs"
         headers = {
             'Content-Type': 'application/json',
@@ -30,9 +31,16 @@ class EventsAPI:
             else:
                 url_query_params = "?$orderby=logID%20desc"
 
+        greater_than_args = None
+        if min_log_id is not None and min_log_id > 0:
+            greater_than_args = {'logID': min_log_id}
+
+        match_args = None
         if self.site_uid is not None:
             match_args = {'ownerSiteUID': self.site_uid}
-            filter_str = _compose_filter(exact_match=match_args)
+
+        if match_args is not None or greater_than_args is not None:
+            filter_str = _compose_filter(exact_match=match_args, greater_than=greater_than_args)
             url_query_params += ("&" + filter_str)
 
         if limit:

@@ -77,8 +77,15 @@ def _compose_filter(search_words=None,
                     cardholder_type_name=None,
                     filter_expired=False,
                     earliest_last_pass=None,
-                    exact_match=None):
+                    exact_match=None,
+                    greater_than=None):
     filter_phrases = []
+
+    if greater_than:
+        if isinstance(greater_than, dict):
+            for k, v in greater_than.items():
+                if isinstance(v, int):
+                    filter_phrases.append(f"({k}%20gt%20{v})")
 
     if exact_match:
         if isinstance(exact_match, dict):
