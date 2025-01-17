@@ -3,13 +3,14 @@ from typing import List, Dict, Any
 from pyGuardPoint import GuardPoint, GuardPointError
 from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
+from importlib.metadata import version
 
 # GuardPoint Connection Parameters
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
-TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
+TLS_P12 = "MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -33,6 +34,14 @@ async def on_error(message: CompletionMessage) -> None:
 
 if __name__ == "__main__":
     try:
+        py_gp_version = version("pyGuardPoint")
+        print("pyGuardPoint Version:" + py_gp_version)
+        py_gp_version_int = int(py_gp_version.replace('.', ''))
+        if py_gp_version_int < 176:
+            print("Please Update pyGuardPoint")
+            print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+            exit()
+
         gp = GuardPoint(host=GP_HOST,
                         username=GP_USER,
                         pwd=GP_PASS,

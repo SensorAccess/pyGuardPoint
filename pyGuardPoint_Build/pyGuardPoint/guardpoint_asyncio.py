@@ -168,7 +168,7 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
         headers['Authorization'] = auth_str
         client._transport = CustomWebsocketTransport(
             url=client._url,
-            ssl_context=self.get_ssl_context(),
+            ssl=self.get_ssl_context(),
             protocol=client._protocol,
             callback=client._on_message,
             headers=headers,
