@@ -76,17 +76,39 @@ class EventsAPI:
                 access_events.append(AccessEvent(x))
             return access_events
 
-    async def get_alarm_events(self, limit=None, offset=None):
+    async def get_alarm_events_count(self):
+        return await self.get_access_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+
+    async def get_alarm_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                               min_log_id=None):
         url = "/odata/API_AlarmEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = "?$orderby=dateTime%20asc"
+        if count:
+            url_query_params = "?$count=true&$top=0"
+        else:
+            if orderby == EventOrder.DATETIME_ASC:
+                url_query_params = "?$orderby=dateTime%20asc"
+            elif orderby == EventOrder.DATETIME_DESC:
+                url_query_params = "?$orderby=dateTime%20desc"
+            elif orderby == EventOrder.LOG_ID_ASC:
+                url_query_params = "?$orderby=logID%20asc"
+            else:
+                url_query_params = "?$orderby=logID%20desc"
+
+        greater_than_args = None
+        if min_log_id is not None and min_log_id > 0:
+            greater_than_args = {'logID': min_log_id}
+
+        match_args = None
         if self.site_uid is not None:
             match_args = {'ownerSiteUID': self.site_uid}
-            filter_str = _compose_filter(exact_match=match_args)
+
+        if match_args is not None or greater_than_args is not None:
+            filter_str = _compose_filter(exact_match=match_args, greater_than=greater_than_args)
             url_query_params += ("&" + filter_str)
 
         if limit:
