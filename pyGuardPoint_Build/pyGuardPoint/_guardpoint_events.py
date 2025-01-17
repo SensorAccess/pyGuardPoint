@@ -95,10 +95,14 @@ class EventsAPI:
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
-        access_events = []
-        for x in json_body['value']:
-            access_events.append(AccessEvent(x))
-        return access_events
+        if count:
+            return json_body['@odata.count']
+        else:
+            access_events = []
+            for x in json_body['value']:
+                access_events.append(AccessEvent(x))
+            return access_events
+
 
     def get_alarm_events_count(self):
         """
@@ -193,7 +197,10 @@ class EventsAPI:
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
-        alarm_events = []
-        for x in json_body['value']:
-            alarm_events.append(AlarmEvent(x))
-        return alarm_events
+        if count:
+            return json_body['@odata.count']
+        else:
+            alarm_events = []
+            for x in json_body['value']:
+                alarm_events.append(AlarmEvent(x))
+            return alarm_events
