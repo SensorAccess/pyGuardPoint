@@ -319,7 +319,7 @@ class CustomWebsocketTransport(Transport):
         negotiate_url = get_negotiate_url(self._url)
         _logger.info('Performing negotiation, URL: `%s`', negotiate_url)
 
-        conn = TCPConnector(ssl_context=self._ssl_context)
+        conn = TCPConnector(ssl_context=self._ssl)
         session = ClientSession(
             timeout=ClientTimeout(connect=self._connection_timeout),
             connector=conn)
