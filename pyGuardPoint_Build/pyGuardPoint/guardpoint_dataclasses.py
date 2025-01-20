@@ -117,6 +117,43 @@ class Department:
 
         return department_dict
 
+@dataclass
+class AuditEvent:
+    uid: str = ""
+    dateTime: str = ""
+    userUID: str = ""
+    objectName: any = None
+    type: any = None
+    userFirstName: any = None
+    operationName: any = None
+    userLastName: any = None
+    journalUpdateDateTime: str = ""
+    data: str = ""
+    userName: any = None
+    ownerSiteUID:  str = ""
+    additionalSites: any = None
+    ownerSiteName: str = ""
+    additionalSitesNames: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        audit_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in audit_event_dict:
+            if isinstance(audit_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, audit_event_dict[property_name])
+
+    def dict(self):
+        audit_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                audit_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                audit_event_dict[k] = None
+            else:
+                audit_event_dict[k] = str(v)
+
+        return audit_event_dict
 
 @dataclass
 class AlarmEvent:

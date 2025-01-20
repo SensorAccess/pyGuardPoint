@@ -10,7 +10,7 @@ from importlib.metadata import version
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
-TLS_P12 = "MobileGuardDefault.p12"
+TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
 logging.basicConfig(level=logging.DEBUG)
@@ -26,6 +26,9 @@ async def on_close() -> None:
 
 async def on_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received message: {message}')
+
+async def on_ac_message(message: List[Dict[str, Any]]) -> None:
+    print(f'Received AC message: {message}')
 
 
 async def on_error(message: CompletionMessage) -> None:
