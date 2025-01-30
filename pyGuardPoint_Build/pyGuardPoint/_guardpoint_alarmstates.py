@@ -1,12 +1,12 @@
 import validators
 
-from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import Area
-from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .guardpoint_utils import GuardPointResponse
+from .guardpoint_dataclasses import AlarmState
+from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
-class AlarmsAPI:
-    async def get_alarm_state(self, alarm_uid):
+class AlarmStatesAPI:
+    def get_alarm_state(self, alarm_uid):
         if not validators.uuid(alarm_uid):
             raise ValueError(f"Malformed alarm_uid: {alarm_uid}")
 
@@ -16,7 +16,7 @@ class AlarmsAPI:
             'Accept': 'application/json'
         }
 
-        code, json_body = await self.gp_json_query("GET", headers=headers, url=url)
+        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -33,16 +33,16 @@ class AlarmsAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return json_body['value']
+        return AlarmState(json_body['value'])
 
-    async def get_alarm_states(self):
+    def get_alarm_states(self):
         url = "/odata/API_AlarmStates?=&$expand=Input"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        code, json_body = await self.gp_json_query("GET", headers=headers, url=url)
+        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)
@@ -63,5 +63,5 @@ class AlarmsAPI:
 
         alarm_states = []
         for x in json_body['value']:
-            alarm_states.append(x)
+            alarm_states.append(AlarmState(x))
         return alarm_states

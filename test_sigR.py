@@ -27,6 +27,7 @@ async def on_close() -> None:
 async def on_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received message: {message}')
 
+
 async def on_ac_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received AC message: {message}')
 
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         signal_client.on_open(on_open)
         signal_client.on_close(on_close)
         signal_client.on_error(on_error)
-        signal_client.on('AccessEventArrived', on_message)
+        signal_client.on('AccessEventArrived', on_ac_message)
         signal_client.on("AlarmEventArrived", on_message)
         signal_client.on("AuditEventArrived", on_message)
         signal_client.on("CommEventArrived", on_message)

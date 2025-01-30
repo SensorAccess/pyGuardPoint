@@ -6,7 +6,8 @@ from pysignalr.client import SignalRClient
 
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
-from ._guardpoint_alarms import AlarmsAPI
+from ._guardpoint_alarmstates import AlarmStatesAPI
+from ._guardpoint_alarmzones import AlarmZonesAPI
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
 from ._guardpoint_controllers import ControllersAPI
 from ._guardpoint_diagnostic import DiagnosticAPI
@@ -38,7 +39,7 @@ def stop_listening(client: SignalRClient):
     asyncio.run(stop_signal_client())
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmsAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI):
+class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmStatesAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI, AlarmZonesAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,

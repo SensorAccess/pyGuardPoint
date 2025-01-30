@@ -55,6 +55,88 @@ class SortAlgorithm(Enum):
 
 
 @dataclass
+class AlarmState:
+    acknowledgedDate: any = None
+    acknowledgedUserUID: any = None
+    alarmType: str = ""
+    controllerUID: str = ""
+    endAlarmDate: str = ""
+    input: any = None
+    inputUID: str = ""
+    isAcknowledged: bool = False
+    isDelayed: bool = False
+    isInputAlarm: bool = False
+    isPastEvent: bool = False
+    startAlarmDate: str = ""
+    technicalAlarmType: any = None
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        alarm_state_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in alarm_state_dict:
+            if isinstance(alarm_state_dict[property_name], (str, type(None), bool, int, dict)):
+                setattr(self, property_name, alarm_state_dict[property_name])
+
+    def dict(self):
+        alarm_state_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                alarm_state_dict[k] = v
+            elif isinstance(v, type(None)):
+                alarm_state_dict[k] = None
+            else:
+                alarm_state_dict[k] = str(v)
+
+
+@dataclass
+class AlarmZone:
+    alarmStatus: str = ""
+    description: any = None
+    galaxyAlarmState: int = 0
+    galaxyControllerUID: any = None
+    galaxyGroupNum: any = None
+    galaxyState: int = 0
+    isGalaxy: bool = False
+    isRealTimeStatusArm: bool = False
+    iswpStatusArm: bool = False
+    lastAlarmActionDate: str = ""
+    lastOperationDateTime: str = ""
+    manualActionDurationMinutes: any = None
+    manualActionDurationSeconds: any = None
+    manualActionType: int = 0
+    manualActionUserUID: any = None
+    name: str = ""
+    preAlarmDelay: int = 0
+    preAlarmProcessUID: any = None
+    uid: str = ""
+    wasPastConstantArm: any = None
+    wasWPArmWhenManualDefined: bool = False
+    weeklyProgramUID: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        alarm_zone_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in alarm_zone_dict:
+            if isinstance(alarm_zone_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, alarm_zone_dict[property_name])
+
+    def dict(self):
+        alarm_zone_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                alarm_zone_dict[k] = v
+            elif isinstance(v, type(None)):
+                alarm_zone_dict[k] = None
+            else:
+                alarm_zone_dict[k] = str(v)
+
+        return alarm_zone_dict
+
+
+@dataclass
 class Site:
     apiKey: any = None
     baudrate: int = 9600
@@ -117,6 +199,7 @@ class Department:
 
         return department_dict
 
+
 @dataclass
 class AuditEvent:
     uid: str = ""
@@ -130,7 +213,7 @@ class AuditEvent:
     journalUpdateDateTime: str = ""
     data: str = ""
     userName: any = None
-    ownerSiteUID:  str = ""
+    ownerSiteUID: str = ""
     additionalSites: any = None
     ownerSiteName: str = ""
     additionalSitesNames: any = None
@@ -154,6 +237,7 @@ class AuditEvent:
                 audit_event_dict[k] = str(v)
 
         return audit_event_dict
+
 
 @dataclass
 class AlarmEvent:

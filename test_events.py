@@ -4,10 +4,10 @@ from pprint import pprint
 from importlib.metadata import version
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
-sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, EventOrder
+#sys.path.insert(1, 'pyGuardPoint_Build')
+#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, EventOrder
 
-#from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, EventOrder
 
 
 # GuardPoint
@@ -35,6 +35,10 @@ if __name__ == "__main__":
                     p12_file=TLS_P12,
                     p12_pwd=TLS_P12_PWD,
                     site_uid='11111111-1111-1111-1111-111111111111')
+
+    if not gp.is_api_enabled():
+        print("Please check is API is enabled")
+
     try:
         print("Num Access Events: " + str(gp.get_access_events_count()))
         access_events = gp.get_access_events(limit=1, orderby=EventOrder.LOG_ID_ASC)
