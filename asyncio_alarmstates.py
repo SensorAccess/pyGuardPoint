@@ -43,7 +43,7 @@ if __name__ == "__main__":
             alarm_states = await gp.get_alarm_states()
 
             for alarm_state in alarm_states:
-                print(f"fAlarmState: {alarm_state}\n")
+                pprint(f"AlarmState: {alarm_state}\n")
 
 
 

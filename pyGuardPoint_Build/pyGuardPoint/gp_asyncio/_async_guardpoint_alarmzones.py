@@ -1,10 +1,42 @@
 import validators
 
 from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import AlarmZone
+from ..guardpoint_dataclasses import AlarmZone, AlarmZoneOption
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class AlarmZonesAPI:
+
+    async def arm_alarm_zone(self, alarm_zone: AlarmZone, option=AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram):
+        if option == AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram:
+            url = self.baseurl + "/odata/API_AlarmZones/ReturnAlarmZoneToWeeklyProgram"
+        else:
+            raise GuardPointError(f"Unsupported Arming Option")
+
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        body = dict()
+        body['uid'] = alarm_zone.uid
+
+        code, json_body = await self.gp_json_query("POST", headers=headers, url=url, json_body=body)
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Cardholder Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'success' in json_body:
+            if json_body['success']:
+                return True
 
     async def get_alarm_zone(self, zone_uid):
         url = self.baseurl + "/odata/API_AlarmZones"

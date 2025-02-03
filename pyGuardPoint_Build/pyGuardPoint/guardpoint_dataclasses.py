@@ -6,6 +6,10 @@ from enum import Enum
 log = logging.getLogger(__name__)
 
 
+class AlarmZoneOption(Enum):
+    ReturnAlarmZoneToWeeklyProgram = 1
+
+
 class EventOrder(Enum):
     DATETIME_ASC = 1
     DATETIME_DESC = 2
