@@ -3,8 +3,9 @@ from setuptools import setup, find_packages
 long_description = open('README.rst').read()
 
 setup(name="pyGuardPoint",
+      python_requires='>3.9.0',
       packages=find_packages(),
-      version="1.7.9",
+      version="1.8.0",
       author="John Owen",
       description="Python wrapper for GuardPoint 10 Access Control System",
       long_description_content_type='text/markdown',

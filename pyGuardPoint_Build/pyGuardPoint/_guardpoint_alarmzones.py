@@ -49,8 +49,8 @@ class AlarmZonesAPI:
         }
 
         body = dict()
-        body['uid'] = alarm_zone.uid
-        body['disarmType'] = "DisarmUntilNextIntervalInWP"
+        body["uid"] = alarm_zone.uid
+        body["disarmType"] = "DisarmUntilNextIntervalInWP"
         body["period"] = "1"
         body["isMinute"] = "true"
 
