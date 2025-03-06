@@ -3,7 +3,7 @@ import os
 import tempfile
 from pprint import pprint
 
-import pkg_resources
+from importlib.metadata import version
 # Use PyPi Module
 #from pyGuardPoint import GuardPoint, GuardPointError
 
@@ -11,7 +11,7 @@ import pkg_resources
 sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
 
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+
 
 ca_data = '''
 -----BEGIN CERTIFICATE-----
@@ -41,14 +41,20 @@ mx9B6Vfbh9UnNgtnxsQUu9dCO0Ukczfpq902xK0QiKjYslH5kiypBskuhWxcEY3y
 -----END CERTIFICATE-----'''
 
 if __name__ == "__main__":
+    py_gp_version = version("pyGuardPoint")
     print("pyGuardPoint Version:" + py_gp_version)
+    py_gp_version_int = int(py_gp_version.replace('.', ''))
+    if py_gp_version_int < 181:
+        print("Please Update pyGuardPoint")
+        print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+        exit()
     logging.basicConfig(level=logging.DEBUG)
     ca_file = tempfile.NamedTemporaryFile(delete=False)
     ca_file.write(ca_data.encode())
     ca_file.close()
     print(ca_file.name)
     gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
-                    p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12",
+                    p12_file="/Users/johnowen/Downloads/MobileGuardDefault.p12",
                     p12_pwd="test")
 
     try:

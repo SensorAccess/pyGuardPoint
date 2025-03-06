@@ -1039,7 +1039,9 @@ class Cardholder(Observable):
 
         for property_name in cardholder_dict:
             if isinstance(cardholder_dict[property_name], list):
-                if property_name == "cards":
+                if property_name == "accessGroupUIDs":
+                    setattr(self, property_name, ";".join(cardholder_dict[property_name]))
+                elif property_name == "cards":
                     setattr(self, property_name, [])
                     for card_entry in cardholder_dict[property_name]:
                         if isinstance(card_entry, Card):
@@ -1110,6 +1112,7 @@ class Cardholder(Observable):
 
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
+
                 ch[k] = v
             elif isinstance(v, type(None)):
                 if not non_empty_only:
@@ -1173,8 +1176,8 @@ class Cardholder(Observable):
             ch.pop('securityGroup')
         if 'cards' in ch:
             ch.pop('cards')
-        if 'accessGroupUIDs' in ch:
-            ch.pop('accessGroupUIDs')
+        #if 'accessGroupUIDs' in ch:
+            #ch.pop('accessGroupUIDs')
         if 'liftAccessGroupUIDs' in ch:
             ch.pop('liftAccessGroupUIDs')
 

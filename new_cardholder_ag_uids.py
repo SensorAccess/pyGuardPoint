@@ -1,9 +1,8 @@
 import logging, sys
 from _socket import gaierror
+from importlib.metadata import version
 
-sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, \
-    CardholderPersonalDetail, CardholderCustomizedField, Cardholder, Card
+from pyGuardPoint import GuardPoint, GuardPointError, CardholderPersonalDetail, CardholderCustomizedField, Cardholder
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
@@ -13,12 +12,19 @@ TLS_P12_PWD = "test"
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
+    py_gp_version = version("pyGuardPoint")
+    print("pyGuardPoint Version:" + py_gp_version)
+    py_gp_version_int = int(py_gp_version.replace('.', ''))
+    if py_gp_version_int < 181:
+        print("Please Update pyGuardPoint")
+        print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+        exit()
+
     gp = GuardPoint(host=GP_HOST,
                     username=GP_USER,
                     pwd=GP_PASS,
                     p12_file=TLS_P12,
-                    p12_pwd=TLS_P12_PWD,
-                    site_uid="11111111-1111-1111-1111-111111111111")
+                    p12_pwd=TLS_P12_PWD)
 
     try:
         # Delete any previously made Test Users + cards
@@ -37,13 +43,11 @@ if __name__ == "__main__":
 
         # Get list of access Groups
         access_groups = gp.get_access_groups()
-        print(access_groups)
         access_groups_uid_list = []
         for access_group in access_groups:
-            if access_group.uid != "22222222-2222-2222-2222-222222222222":
+            if access_group.uid != "22222222-2222-2222-2222-222222222222": # Ignore No Access Group
                 access_groups_uid_list.append(access_group.uid)
             #print(access_group.name)
-
 
         # Create a New Cardholder
         cardholder_pd = CardholderPersonalDetail(email="john.owen@countermac.com")
@@ -53,29 +57,22 @@ if __name__ == "__main__":
                                 insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf,
-                                accessGroupUIDs=access_groups_uid_list)
+                                accessGroupUIDs=";".join(access_groups_uid_list))
         cardholder = gp.new_card_holder(cardholder)
-        print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
-        print("New Cardholder AccessGroups:" + cardholder.accessGroupUIDs)
-        # Append Cardholder
-        # New Card
-        card = Card(cardType="Magnetic", cardCode="1A1B1C9D")
-        # If we make a new card independently - we must set cardholderUID and status
-        # card = gp.new_card(card=card)
-        # card.cardholderUID = cardholder.uid
-        # card.status = "Used"
+        print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created\n")
+        print("GP Multi Access Group: " + cardholder.securityGroup.name + "(" + cardholder.securityGroup.uid+ ")\n")
+        print("GP Personal Door Access Groups:")
+        for pag in cardholder.accessGroupUIDs.split(";"):
+            print("\t" + pag)
 
-        cardholder.cards.append(card)
-        cardholder.firstName = "Frank100"
+        access_groups_uid_list = ["11111111-1111-1111-1111-111111111111"]
+        cardholder.accessGroupUIDs = ";".join(access_groups_uid_list)
+        if(gp.update_card_holder(cardholder)):
+            print(f"Updated Cardholder:")
+            updated_cardholder = gp.get_card_holder(cardholder.uid)
+            print("First Name: " + updated_cardholder.firstName)
+            print("AccessGroupUIDs:" + updated_cardholder.accessGroupUIDs)
 
-        #print(cardholder.changed_attributes)
-
-        if gp.update_card_holder(cardholder):
-            cardholder = gp.get_card_holder(uid=cardholder.uid)
-            print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Updated")
-            print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
-            print(f"\tCards: {cardholder.cards}")
-            # cardholder.pretty_print()
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

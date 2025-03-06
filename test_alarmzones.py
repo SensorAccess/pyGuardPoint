@@ -34,17 +34,24 @@ if __name__ == "__main__":
                     p12_pwd=TLS_P12_PWD)
     try:
         # Get all alarm zones
-        '''alarm_zones = gp.get_alarm_zones()
+        alarm_zones = gp.get_alarm_zones()
         for zone in alarm_zones:
             #pprint(zone) #Print all fields within Zone
-            print("Zone Name: " + zone.name)
+            '''print("Zone Name: " + zone.name)
+            print("Zone uid: " + zone.uid)
             print("Zone RealTimeStatus: " + str(zone.isRealTimeStatusArm))
             print("Zone WP-Status: " + str(zone.iswpStatusArm))
+            print("Zone Description: " + str(zone.description))
             print(f"\n\n")'''
+            #pprint(zone)
+
 
         # Get a single alarm zone by UID
-        zone = gp.get_alarm_zone('210841de-e0da-4ccc-a2e6-f2519738249c')
+        zone = gp.get_alarm_zone('8888cd6b-9342-4955-a6f8-070b793614d1')
         pprint(zone)
+        zone = gp.get_alarm_zone('7ae0f4ed-f913-4e5d-8bf3-6dc117aafc72')
+        pprint(zone)
+
 
         # Disarm Alarm Zone
         if zone.isRealTimeStatusArm:
