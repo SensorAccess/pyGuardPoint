@@ -318,7 +318,6 @@ class CustomWebsocketTransport(Transport):
         """
         negotiate_url = get_negotiate_url(self._url)
         _logger.info('Performing negotiation, URL: `%s`', negotiate_url)
-        _logger.info('Performing negotiation, URL: `%s`', negotiate_url)
 
         # To use with STunnel
         conn = TCPConnector(ssl=self._ssl)

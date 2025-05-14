@@ -64,6 +64,9 @@ if __name__ == "__main__":
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
 
+        print(f"GuardPoint Server Version(A Guess!! - please confirm this works): {gp.gp_version()}")
+        print(f"Signal-R enabled: {gp.is_sigr_enabled()}")
+
         signal_client = gp.get_signal_client()
 
         # Set up your signal_client callbacks

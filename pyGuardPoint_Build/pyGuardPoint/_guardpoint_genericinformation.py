@@ -34,7 +34,10 @@ class GenericInfoAPI:
             raise GuardPointError("Badly formatted response.")
 
         if len(json_body['serializedData']) > 0:
-            return json.loads(json_body['serializedData'])
+            try:
+                return json.loads(json_body['serializedData'])
+            except Exception as e:
+                return json_body['serializedData']
         else:
             return None
 
@@ -63,7 +66,9 @@ class GenericInfoAPI:
 
         return json_body
 
-    def is_api_enabled(self):
+    def is_sigr_enabled(self):
         info = self.get_info('00000000-0000-0000-0000-000000000003')
         return info['CommunicationSettings']['PassEventsToApi']['Value']
 
+    def gp_version(self):
+        return self.get_info('00000000-0000-0000-0000-000000000011')

@@ -29,8 +29,12 @@ if __name__ == "__main__":
                     site_uid='11111111-1111-1111-1111-111111111111')
     try:
         info = gp.get_info('00000000-0000-0000-0000-000000000003')
-        pprint("API Enabled = " + str(gp.is_api_enabled()))
+        info = gp.get_info('00000000-0000-0000-0000-000000000011')
+        pprint("SIG-R Enabled = " + str(gp.is_sigr_enabled()))
         print(f"\n\n")
+
+        infos = gp.get_infos()
+        pprint(infos)
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
