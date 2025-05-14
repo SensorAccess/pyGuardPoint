@@ -1,6 +1,8 @@
 import logging, csv
 import os
+import random
 from importlib.metadata import version
+
 from pyGuardPoint import GuardPoint, GuardPointError, EventOrder
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
@@ -14,8 +16,7 @@ CSV_FILENAME = "access_events.csv"
 
 
 # A function to trigger extra access events
-def simulate_access_events():
-    card_code = "00001234"
+def simulate_access_events(cardCodes):
     online_readers = []
     # Cycle through all Readers + fire event
     readers = gp.get_readers()
@@ -28,7 +29,7 @@ def simulate_access_events():
             if gp.simulate_access_event(
                     controller_uid=online_reader[0],
                     reader_num=online_reader[1],
-                    card_code=card_code):
+                    card_code=random.choice(cardCodes)):
                 print(f"Access Event Fired on reader:{online_reader[1]}, controller:{online_reader[0]}")
     else:
         print("No online readers found")
@@ -62,7 +63,8 @@ if __name__ == "__main__":
 
     try:
         # Comment out/in to add extra events
-        simulate_access_events()
+        cardCodes = ["00001235","12345678"]
+        simulate_access_events(cardCodes)
 
         # Create the CSV_FILE if it does not exist
         if not os.path.isfile(CSV_FILENAME):
@@ -92,7 +94,7 @@ if __name__ == "__main__":
         with open(CSV_FILENAME, 'a+') as csvfile:
             writer = csv.writer(csvfile)
             for access_event in access_events:
-                writer.writerow([access_event.logID, access_event.dateTime, access_event.cardCode])
+                writer.writerow([access_event.logID, access_event.dateTime, access_event.accessDeniedCode, access_event.cardCode])
                 '''print("Access Event:")
                 print(f"\tlogID: {access_event.logID}")
                 print(f"\tdateTime: {access_event.dateTime}")

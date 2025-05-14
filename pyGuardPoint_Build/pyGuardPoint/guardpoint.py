@@ -39,7 +39,10 @@ def stop_listening(client: SignalRClient):
     asyncio.run(stop_signal_client())
 
 
-class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmStatesAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI, AlarmZonesAPI):
+class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI,
+                 PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI,
+                 ControllersAPI, AlarmStatesAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI,
+                 AlarmZonesAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,
@@ -171,24 +174,19 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             client.start()
 
         """
-        client = SignalRClient(self.baseurl + "/Hub/EventsHub")
-        headers = {}
-        if self.authType == GuardPointAuthType.BASIC:
-            auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
-        else:
-            token = self.get_token()
-            auth_str = f"Bearer {token}"
-        headers['Authorization'] = auth_str
+        client = SignalRClient(url=self.baseurl + "/Hub/EventsHub",
+                               access_token_factory=self.get_token,
+                               ssl=self.get_ssl_context())
+
         client._transport = CustomWebsocketTransport(
             url=client._url,
-            ssl=self.get_ssl_context(),
             protocol=client._protocol,
             callback=client._on_message,
-            headers=headers,
-            ping_interval=DEFAULT_PING_INTERVAL,
-            connection_timeout=DEFAULT_CONNECTION_TIMEOUT,
-            max_size=DEFAULT_MAX_SIZE,
+            headers=client._headers,
+            access_token_factory=client._access_token_factory,
+            ssl=client._ssl,
         )
+
         return client
 
     def start_listening(self, client: SignalRClient):
@@ -204,12 +202,12 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
 
         :raises asyncio.CancelledError: If the asynchronous task is cancelled.
         """
+
         async def run_signal_client() -> None:
-            self.task = asyncio.create_task(client.run(), name = "sigR_task")
+            self.task = asyncio.create_task(client.run(), name="sigR_task")
             await self.task
 
         try:
             asyncio.run(run_signal_client())
         except asyncio.CancelledError:
             print(f"{self.task.get_name()} cancelled")
-

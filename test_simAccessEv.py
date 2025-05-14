@@ -2,7 +2,6 @@ import logging
 import sys
 from typing import List, Dict, Any
 
-import pkg_resources
 from pyGuardPoint import GuardPoint, GuardPointError
 from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
@@ -13,20 +12,19 @@ GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection
-TLS_P12 = "C:\\Users\\john_\\OneDrive\\Desktop\\MobGuardDefault\\MobileGuardDefault.p12"
+TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
 sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
 
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 # _logger = logging.getLogger('pysignalr.transport')
 # _logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
 
 if __name__ == "__main__":
-    print("pyGuardPoint Version:" + py_gp_version)
+
     try:
         gp = GuardPoint(host=GP_HOST,
                         username=GP_USER,
@@ -46,13 +44,12 @@ if __name__ == "__main__":
         readers = gp.get_readers()
         for reader in readers:
             controller = gp.get_controller(reader.controllerUID)
-            print(controller.isActivated)
-            print(controller.isConnected)
-            if gp.simulate_access_event(
-                    controller_uid=reader.controllerUID,
-                    reader_num=reader.number,
-                    card_code=card_code):
-                print("Event Fired Successfully")
+            if controller.isActivated and controller.isConnected:
+                if gp.simulate_access_event(
+                        controller_uid=reader.controllerUID,
+                        reader_num=reader.number,
+                        card_code=card_code):
+                    print(f"Event Fired Successfully {reader.name}")
 
 
     except GuardPointError as e:

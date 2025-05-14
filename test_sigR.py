@@ -1,10 +1,13 @@
 import logging
+import sys
 from typing import List, Dict, Any
-from pyGuardPoint import GuardPoint, GuardPointError
+#from pyGuardPoint import GuardPoint, GuardPointError
 from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
 from importlib.metadata import version
 
+sys.path.insert(1, 'pyGuardPoint_Build')
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
 # GuardPoint Connection Parameters
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
@@ -27,7 +30,8 @@ async def on_close() -> None:
 async def on_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received message: {message}')
 
-
+async def on_su_message(message: List[Dict[str, Any]]) -> None:
+    print(f'Received SU message: {message}')
 async def on_ac_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received AC message: {message}')
 
@@ -41,9 +45,17 @@ if __name__ == "__main__":
         py_gp_version = version("pyGuardPoint")
         print("pyGuardPoint Version:" + py_gp_version)
         py_gp_version_int = int(py_gp_version.replace('.', ''))
-        if py_gp_version_int < 176:
+        if py_gp_version_int < 182:
             print("Please Update pyGuardPoint")
             print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
+            exit()
+
+        py_sigR_version = version("pysignalr")
+        print("pysignalr Version:" + py_sigR_version)
+        py_sigR_version_int = int(py_sigR_version.replace('.', ''))
+        if py_sigR_version_int < 130:
+            print("Please Update pysignalr")
+            print("\t (Within a Terminal Window) Run > 'pip install pysignalr --upgrade'")
             exit()
 
         gp = GuardPoint(host=GP_HOST,
@@ -64,7 +76,7 @@ if __name__ == "__main__":
         signal_client.on("CommEventArrived", on_message)
         signal_client.on("GeneralEventArrived", on_message)
         signal_client.on("IOEventArrived", on_message)
-        signal_client.on("StatusUpdate", on_message)
+        signal_client.on("StatusUpdate", on_su_message)
         signal_client.on("TechnicalEventArrived", on_message)
 
         gp.start_listening(signal_client)
