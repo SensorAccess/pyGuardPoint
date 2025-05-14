@@ -1,8 +1,9 @@
+import asyncio
 import logging
 import validators
+from .guardpoint import GuardPoint
 from pysignalr.client import SignalRClient
-from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
-    DEFAULT_MAX_SIZE
+from .CustomWebsocketTransport import CustomWebsocketTransport
 from .gp_asyncio._async_guardpoint_alarmzones import AlarmZonesAPI
 from .gp_asyncio._async_guardpoint_cardholdertypes import CardholderTypesAPI
 from .gp_asyncio._async_guardpoint_controllers import ControllersAPI
@@ -146,56 +147,66 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
 
         return int(json_body['totalItems'])
 
-    async def get_signal_client(self):
+
+    '''
+    def get_signal_client(self):
         """
-        Asynchronously creates and configures a SignalR client for communication with the EventsHub.
+        Creates and configures a SignalR client for connecting to the EventsHub.
 
         This method initializes a `SignalRClient` instance with the appropriate URL and sets up
         the necessary headers for authentication based on the specified authentication type.
-        It also configures a custom WebSocket transport for the client.
+        It also configures a custom WebSocket transport for the client with various parameters.
 
-        :return: An instance of `SignalRClient` configured with the appropriate headers and transport.
+        :returns: Configured `SignalRClient` instance ready for use.
         :rtype: SignalRClient
 
-        :raises Exception: If there is an error in obtaining the authentication token.
+        :raises ValueError: If the authentication type is not supported.
+
+        Example usage::
+
+            client = self.get_signal_client()
+            client.start()
+
         """
-        client = SignalRClient(self.baseurl + "/Hub/EventsHub")
-        headers = {}
-        if self.authType == GuardPointAuthType.BASIC:
-            auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
-        else:
-            token = await self.get_token()
-            auth_str = f"Bearer {token}"
-        headers['Authorization'] = auth_str
+        gp = GuardPoint()
+        client = SignalRClient(url=self.baseurl + "/Hub/EventsHub",
+                               access_token_factory=self.get_token,
+                               ssl=self.get_ssl_context())
+
         client._transport = CustomWebsocketTransport(
             url=client._url,
-            ssl=self.get_ssl_context(),
             protocol=client._protocol,
             callback=client._on_message,
-            headers=headers,
-            ping_interval=DEFAULT_PING_INTERVAL,
-            connection_timeout=DEFAULT_CONNECTION_TIMEOUT,
-            max_size=DEFAULT_MAX_SIZE,
+            headers=client._headers,
+            access_token_factory=client._access_token_factory,
+            ssl=client._ssl,
         )
+
         return client
 
-    async def start_listening(self, client: SignalRClient):
+    def start_listening(self, client: SignalRClient):
         """
-        Start listening for messages from the SignalR client.
+        Start listening to the SignalR client by running it in an asynchronous task.
 
-        This asynchronous method initiates the listening process by calling the
-        `run` method on the provided `SignalRClient` instance. It will await the
-        completion of the `run` method, which is expected to handle the
-        communication with the SignalR server.
+        This method creates and runs an asynchronous task to execute the `run` method of the provided
+        `SignalRClient` instance. The task is named "sigR_task" for identification purposes. If the task
+        is cancelled, a message indicating the cancellation is printed.
 
-        :param client: An instance of `SignalRClient` that will be used to
-                       start the listening process.
+        :param client: An instance of `SignalRClient` that will be run in an asynchronous task.
         :type client: SignalRClient
-        :return: The result of the `client.run()` method.
-        :rtype: Any
-        """
-        return await client.run()
 
+        :raises asyncio.CancelledError: If the asynchronous task is cancelled.
+        """
+
+        async def run_signal_client() -> None:
+            self.task = asyncio.create_task(client.run(), name="sigR_task")
+            await self.task
+
+        try:
+            asyncio.run(run_signal_client())
+        except asyncio.CancelledError:
+            print(f"{self.task.get_name()} cancelled")
+            
     async def stop_listening(self, client: SignalRClient):
         """
         Asynchronously stops the listening process for the given SignalR client.
@@ -209,3 +220,4 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
         :rtype: Awaitable
         """
         return await client._transport.close()
+    '''

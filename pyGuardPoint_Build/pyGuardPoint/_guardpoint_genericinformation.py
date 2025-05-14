@@ -1,4 +1,6 @@
 import json
+from json import JSONDecodeError
+
 import validators
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -36,7 +38,7 @@ class GenericInfoAPI:
         if len(json_body['serializedData']) > 0:
             try:
                 return json.loads(json_body['serializedData'])
-            except Exception as e:
+            except JSONDecodeError as e:
                 return json_body['serializedData']
         else:
             return None

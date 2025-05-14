@@ -30,7 +30,7 @@ if __name__ == "__main__":
                                p12_pwd=TLS_P12_PWD,
                                site_uid='11111111-1111-1111-1111-111111111111')
         try:
-            pprint("API Enabled = " + str(await gp.is_api_enabled()))
+            pprint("SIG-R Enabled = " + str(await gp.is_sigr_enabled()))
             print(f"\n\n")
             await gp.close()
 
