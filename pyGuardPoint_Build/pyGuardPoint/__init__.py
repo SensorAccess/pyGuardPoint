@@ -4,3 +4,4 @@ from .guardpoint_dataclasses import (SortAlgorithm, Cardholder, Card, Area, Secu
                                      AlarmEvent, Relay, Controller, Reader, ScheduledMag, Department)
 from .guardpoint_threaded import GuardPointThreaded
 from .guardpoint_asyncio import GuardPointAsyncIO
+from .guardpoint_connection import GuardPointAuthType
