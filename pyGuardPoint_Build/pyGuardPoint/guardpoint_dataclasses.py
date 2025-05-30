@@ -58,6 +58,11 @@ class SortAlgorithm(Enum):
     FUZZY_MATCH = 1
 
 
+class CardholderOrderBy(Enum):
+    fromDateValid_DESC = 0,
+    lastPassDate_DESC = 1
+
+
 @dataclass
 class AlarmState:
     acknowledgedDate: any = None
@@ -1177,7 +1182,7 @@ class Cardholder(Observable):
         if 'cards' in ch:
             ch.pop('cards')
         #if 'accessGroupUIDs' in ch:
-            #ch.pop('accessGroupUIDs')
+        #ch.pop('accessGroupUIDs')
         if 'liftAccessGroupUIDs' in ch:
             ch.pop('liftAccessGroupUIDs')
 

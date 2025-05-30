@@ -4,7 +4,7 @@ from datetime import datetime
 import validators
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
-from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area
+from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area, CardholderOrderBy
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from .guardpoint_utils import GuardPointResponse
 
@@ -366,6 +366,7 @@ class CardholdersAPI:
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
                          count: bool = False, earliest_last_pass: datetime = None,
                          select_ignore_list: list = None, select_include_list: list = None,
+                         cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                          **cardholder_kwargs):
         """
         Retrieve a list of cardholders from the system with various filtering and sorting options.
@@ -423,6 +424,7 @@ class CardholdersAPI:
                                                count=count, earliest_last_pass=earliest_last_pass,
                                                select_ignore_list=select_ignore_list,
                                                select_include_list=select_include_list,
+                                               cardholder_orderby=cardholder_orderby,
                                                **cardholder_kwargs))
                 if (offset + batch_limit) >= limit:
                     break
@@ -441,6 +443,7 @@ class CardholdersAPI:
                                           count=count, earliest_last_pass=earliest_last_pass,
                                           select_ignore_list=select_ignore_list,
                                           select_include_list=select_include_list,
+                                          cardholder_orderby=cardholder_orderby,
                                           **cardholder_kwargs)
 
     def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
@@ -448,6 +451,7 @@ class CardholdersAPI:
                           sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
                           count: bool = False, earliest_last_pass: datetime = None,
                           select_ignore_list: list = None, select_include_list: list = None,
+                          cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                           **cardholder_kwargs):
         if offset is None:
             offset = 0
@@ -482,7 +486,11 @@ class CardholdersAPI:
         if count:
             url_query_params += "$count=true&$top=0"
         else:
-            url_query_params += "$orderby=fromDateValid%20desc&"
+            if cardholder_orderby == CardholderOrderBy.lastPassDate_DESC:
+                url_query_params += "$orderby=lastPassDate%20desc&"
+            else:
+                url_query_params += "$orderby=fromDateValid%20desc&"
+
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))

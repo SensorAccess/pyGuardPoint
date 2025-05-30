@@ -3,6 +3,7 @@ import http.client
 import json
 import os
 import ssl
+from datetime import datetime, timedelta
 from enum import Enum
 from json import JSONDecodeError
 from pathlib import Path
@@ -10,7 +11,7 @@ from tempfile import NamedTemporaryFile
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption, BestAvailableEncryption
 from cryptography.hazmat.primitives.serialization import pkcs12
 from cryptography.hazmat.backends import default_backend
-from .guardpoint_error import GuardPointUnauthorized
+from .guardpoint_error import GuardPointUnauthorized, GuardPointError
 from .guardpoint_utils import ConvertBase64, GuardPointResponse
 import time
 
@@ -140,12 +141,27 @@ class GuardPointConnection:
     def get_ssl_context(self):
         return self.ssl_context
 
-    def get_token(self):
+    def get_token(self, renewal_minutes=30):
         if not self.token:
             code, body = self._new_token()
             if int(code) != 200:
                 msg = GuardPointResponse.extract_error_msg(body)
                 raise GuardPointUnauthorized(msg)
+
+        '''print("TOKEN EXPIRY: \t" + str(datetime.fromtimestamp(self.token_expiry)))
+        print("RENEWAL COUNT: \t" + str(datetime.fromtimestamp(time.time() + (60 * renewal_minutes))))
+        print("TIME NOW: \t\t" + str(datetime.fromtimestamp(time.time())))'''
+        if (self.token_expiry < (time.time() + (60 * renewal_minutes))) and (
+                self.token_expiry > time.time()):  # If token renewal after every 'renewal_minutes' minutes
+            code, auth_body = self._renew_token()
+            if code != 200:
+                raise GuardPointError(code)
+
+        if self.token_expiry < time.time():
+            code, auth_body = self._new_token()
+            if code != 200:
+                raise GuardPointError(code)
+
         return self.token
 
     def set_token(self, gp_token):

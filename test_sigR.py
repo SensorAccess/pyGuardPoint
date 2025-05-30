@@ -1,18 +1,21 @@
+import datetime
 import logging
 import sys
 from typing import List, Dict, Any
-from pyGuardPoint import GuardPoint, GuardPointError
+from pyGuardPoint import GuardPoint, GuardPointError, GuardPointAuthType, GuardPointUnauthorized
 from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
 from importlib.metadata import version
 
 sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointAuthType, GuardPointUnauthorized
+
 # GuardPoint Connection Parameters
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
+GP_API_KEY = '2b2967b0-33b5-47d8-b24c-3239b325f812'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
 
@@ -41,11 +44,12 @@ async def on_error(message: CompletionMessage) -> None:
 
 
 if __name__ == "__main__":
+    start_time = datetime.datetime.now()
     try:
         py_gp_version = version("pyGuardPoint")
         print("pyGuardPoint Version:" + py_gp_version)
         py_gp_version_int = int(py_gp_version.replace('.', ''))
-        if py_gp_version_int < 183:
+        if py_gp_version_int < 185:
             print("Please Update pyGuardPoint")
             print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
             exit()
@@ -58,13 +62,18 @@ if __name__ == "__main__":
             print("\t (Within a Terminal Window) Run > 'pip install pysignalr --upgrade'")
             exit()
 
-        gp = GuardPoint(host=GP_HOST,
-                        username=GP_USER,
-                        pwd=GP_PASS,
-                        p12_file=TLS_P12,
-                        p12_pwd=TLS_P12_PWD)
+        gp = GuardPoint(
+            host=GP_HOST,
+            username=GP_USER,
+            pwd=GP_PASS,
+            key=GP_API_KEY,
+            p12_file=TLS_P12,
+            p12_pwd=TLS_P12_PWD,
+            auth=GuardPointAuthType.BEARER_TOKEN,
+            #auth=GuardPointAuthType.BASIC
+        )
 
-        print(f"GuardPoint Server Version(A Guess!! - please confirm this works): {gp.gp_version()}")
+        print(f"GuardPoint Server Version: {gp.gp_version()}")
         print(f"Signal-R enabled: {gp.is_sigr_enabled()}")
 
         signal_client = gp.get_signal_client()
@@ -83,12 +92,21 @@ if __name__ == "__main__":
         signal_client.on("TechnicalEventArrived", on_message)
 
         gp.start_listening(signal_client)
+        start_time = datetime.datetime.now()
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
+
+    except GuardPointUnauthorized as e:
+        print(f"GP AuthorizationError")
 
     except AuthorizationError as e:
         print(f"SignalR AuthorizationError")
 
     except Exception as e:
         print(f"Exception: {str(e)}")
+
+    finally:
+        end_time = datetime.datetime.now()
+        print(start_time.strftime("%m/%d/%Y %H:%M:%S"))
+        print(end_time.strftime("%m/%d/%Y %H:%M:%S"))

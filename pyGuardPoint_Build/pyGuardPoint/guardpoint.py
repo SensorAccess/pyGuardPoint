@@ -174,8 +174,18 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             client.start()
 
         """
+        token_factory = None
+        if self.authType == GuardPointAuthType.BEARER_TOKEN:
+            def get_bearer():
+                return "Bearer " + self.get_token()
+            token_factory = get_bearer
+        else:
+            def get_basic():
+                return "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
+            token_factory = get_basic
+
         client = SignalRClient(url=self.baseurl + "/Hub/EventsHub",
-                               access_token_factory=self.get_token,
+                               access_token_factory=token_factory,
                                ssl=self.get_ssl_context())
 
         client._transport = CustomWebsocketTransport(

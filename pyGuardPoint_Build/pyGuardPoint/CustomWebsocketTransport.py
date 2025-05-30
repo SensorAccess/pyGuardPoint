@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 
     from pysignalr.protocol.abstract import Protocol
 
-DEFAULT_MAX_SIZE = 2**20  # 1 MB
+DEFAULT_MAX_SIZE = 2 ** 20  # 1 MB
 DEFAULT_PING_INTERVAL = 10
 DEFAULT_CONNECTION_TIMEOUT = 10
 
@@ -59,20 +59,20 @@ class CustomWebsocketTransport(Transport):
     """
 
     def __init__(
-        self,
-        url: str,
-        protocol: Protocol,
-        callback: Callable[[Message], Awaitable[None]],
-        headers: dict[str, str] | None = None,
-        skip_negotiation: bool = False,
-        ping_interval: int = DEFAULT_PING_INTERVAL,
-        connection_timeout: int = DEFAULT_CONNECTION_TIMEOUT,
-        retry_sleep: float = DEFAULT_RETRY_SLEEP,
-        retry_multiplier: float = DEFAULT_RETRY_MULTIPLIER,
-        retry_count: int = DEFAULT_RETRY_COUNT,
-        max_size: int | None = DEFAULT_MAX_SIZE,
-        access_token_factory: Callable[[], str] | None = None,
-        ssl: ssl.SSLContext | None = None,
+            self,
+            url: str,
+            protocol: Protocol,
+            callback: Callable[[Message], Awaitable[None]],
+            headers: dict[str, str] | None = None,
+            skip_negotiation: bool = False,
+            ping_interval: int = DEFAULT_PING_INTERVAL,
+            connection_timeout: int = DEFAULT_CONNECTION_TIMEOUT,
+            retry_sleep: float = DEFAULT_RETRY_SLEEP,
+            retry_multiplier: float = DEFAULT_RETRY_MULTIPLIER,
+            retry_count: int = DEFAULT_RETRY_COUNT,
+            max_size: int | None = DEFAULT_MAX_SIZE,
+            access_token_factory: Callable[[], str] | None = None,
+            ssl: ssl.SSLContext | None = None,
     ):
         """
         Initializes the WebSocket transport with the provided parameters.
@@ -212,6 +212,12 @@ class CustomWebsocketTransport(Transport):
                 self._ws = None
                 await self._set_state(ConnectionState.reconnecting)
 
+    async def _check_token(self) -> None:
+        if self._access_token_factory:
+            while True:
+                await asyncio.sleep(60)
+                self._access_token_factory()
+
     async def _set_state(self, state: ConnectionState) -> None:
         """
         Sets the connection state and triggers appropriate callbacks.
@@ -300,7 +306,9 @@ class CustomWebsocketTransport(Transport):
         _logger.info('Sending handshake to server')
         token = self._access_token_factory() if self._access_token_factory else None
         if token:
-            self._headers['Authorization'] = f'Bearer {token}'
+            self._headers['Authorization'] = token
+
+
         our_handshake = self._protocol.handshake_message()
         await conn.send(self._protocol.encode(our_handshake))
 
@@ -325,10 +333,9 @@ class CustomWebsocketTransport(Transport):
             timeout=ClientTimeout(connect=self._connection_timeout),
             connector=conn)
 
-        access_token = self._access_token_factory() if self._access_token_factory else None
-        if access_token:
-            self._headers['Authorization'] = f'Bearer {access_token}'
-        # End
+        token = self._access_token_factory() if self._access_token_factory else None
+        if token:
+            self._headers['Authorization'] = token
 
         async with session:
             async with session.post(negotiate_url, headers=self._headers) as response:
