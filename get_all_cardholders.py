@@ -47,6 +47,7 @@ if __name__ == "__main__":
         for cardholder in cardholders:
             print("Cardholder:")
             print(f"\tLastPassDate: {cardholder.lastPassDate}")
+            print(f"\tLastSigninDate: {cardholder.cardholderCustomizedField.cF_DateTimeField_5}")
 
         # Further functionality and documentation can be found at:
         # https://pyguardpoint.readthedocs.io/en/latest/
