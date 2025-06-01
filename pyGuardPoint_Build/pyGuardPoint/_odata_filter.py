@@ -114,7 +114,7 @@ def _compose_filter(search_words=None,
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):
             last_pass_date = earliest_last_pass.strftime('%Y-%m-%dT%H:%M:%SZ')
-            filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date})')
+            filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date}%20or%20lastPassDate%20eq%20null)')
 
     # Filter out expired cardholders
     if filter_expired:
