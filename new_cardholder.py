@@ -18,11 +18,12 @@ if __name__ == "__main__":
                     pwd=GP_PASS,
                     p12_file=TLS_P12,
                     p12_pwd=TLS_P12_PWD,
-                    site_uid="11111111-1111-1111-1111-111111111111")
+                    #site_uid="11111111-1111-1111-1111-111111111111"
+    )
 
     try:
         # Delete any previously made Test Users + cards
-        cardholders = gp.get_card_holders(search_terms="Test-User", threshold=80)
+        cardholders = gp.get_card_holders(search_terms="O'Neil", lastName="O'Neil", threshold=50)
         if len(cardholders) == 0:
             print("No Cardholder Found")
         for cardholder in cardholders:
@@ -49,7 +50,7 @@ if __name__ == "__main__":
         cardholder_pd = CardholderPersonalDetail(email="john.owen@countermac.com")
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")
-        cardholder = Cardholder(firstName="John", lastName="Test-User",
+        cardholder = Cardholder(firstName="John", lastName="O'Neil",
                                 insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf,

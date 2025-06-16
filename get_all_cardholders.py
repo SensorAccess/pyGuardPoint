@@ -3,7 +3,7 @@ import logging
 from pyGuardPoint import GuardPoint, CardholderPersonalDetail, GuardPointError
 
 sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm, GuardPointAuthType
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm, GuardPointAuthType, Area
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
@@ -18,7 +18,8 @@ if __name__ == "__main__":
                     username=GP_USER,
                     pwd=GP_PASS,
                     p12_file=TLS_P12,
-                    p12_pwd=TLS_P12_PWD)
+                    p12_pwd=TLS_P12_PWD,
+                    site_uid="11111111-1111-1111-1111-111111111111")
 
     try:
         personalDetails = CardholderPersonalDetail(email="john.owen@countermac.com")
@@ -39,15 +40,26 @@ if __name__ == "__main__":
         print(f"Search found {len(cardholders)} cardholders")
 
 
-
-        cardholders = gp.get_card_holders(limit=100,
+        areas = gp.get_areas()
+        for area in areas:
+            if area.name == "Offsite":
+                cardholders = gp.get_card_holders(search_terms="piotr",
+                                          limit=100,
+                                          areas=area,
                                           earliest_last_pass=datetime.datetime.now()
-                                                             - datetime.timedelta(days=365))
+                                                             - datetime.timedelta(days=365),
+                                          select_include_list=['uid', 'lastName', 'firstName',
+                                                               'lastPassDate',
+                                                               'insideArea'],
+                                          )
         print(f"Last Pass search found {len(cardholders)} cardholders")
         for cardholder in cardholders:
             print("Cardholder:")
+            print(f"\tFirstName: {cardholder.firstName}")
+            print(f"\tLastName: {cardholder.lastName}")
+            print(f"\tArea: {cardholder.insideArea.name}")
             print(f"\tLastPassDate: {cardholder.lastPassDate}")
-            print(f"\tLastSigninDate: {cardholder.cardholderCustomizedField.cF_DateTimeField_5}")
+            #print(f"\tLastSigninDate: {cardholder.cardholderCustomizedField.cF_DateTimeField_5}")
 
         # Further functionality and documentation can be found at:
         # https://pyguardpoint.readthedocs.io/en/latest/

@@ -91,6 +91,7 @@ def _compose_filter(search_words=None,
         if isinstance(exact_match, dict):
             for k, v in exact_match.items():
                 if isinstance(v, str):
+                    v = v.replace("'", "''")
                     if validators.uuid(v):
                         filter_phrases.append(f"({k}%20eq%20{quote(v)})")
                     else:
@@ -100,6 +101,8 @@ def _compose_filter(search_words=None,
                 if k == "cardholderPersonalDetail" and v.__class__.__name__ == "CardholderPersonalDetail":
                     details = v.dict(changed_only=True)
                     for dk, dv in details.items():
+                        if isinstance(dv, str):
+                            dv = dv.replace("'", "''")
                         filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
                 if k == "cardholderCustomizedField" and v.__class__.__name__ == "CardholderCustomizedField":
                     details = v.dict(changed_only=True)
@@ -108,6 +111,9 @@ def _compose_filter(search_words=None,
                             filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{quote('null')})")
                         elif isinstance(dv, (bool, int)):
                             filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{str(dv).lower()})")
+                        elif isinstance(dv, str):
+                            dv = dv.replace("'", "''")
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{quote(dv)}')")
                         else:
                             filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{quote(dv)}')")
 
@@ -147,6 +153,8 @@ def _compose_filter(search_words=None,
             search_phrases = []
             for f in fields:
                 for v in words:
+                    if "'" in v:
+                        v = v.replace("'", "''")
                     search_phrases.append(f"contains({f},'{v}')")
             filter_phrases.append(f"({'%20or%20'.join(search_phrases)})")
 

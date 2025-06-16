@@ -7,8 +7,8 @@ from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
 from importlib.metadata import version
 
-sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointAuthType, GuardPointUnauthorized
+#sys.path.insert(1, 'pyGuardPoint_Build')
+#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointAuthType, GuardPointUnauthorized
 
 # GuardPoint Connection Parameters
 
@@ -49,7 +49,7 @@ if __name__ == "__main__":
         py_gp_version = version("pyGuardPoint")
         print("pyGuardPoint Version:" + py_gp_version)
         py_gp_version_int = int(py_gp_version.replace('.', ''))
-        if py_gp_version_int < 185:
+        if py_gp_version_int < 188:
             print("Please Update pyGuardPoint")
             print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
             exit()
@@ -69,8 +69,8 @@ if __name__ == "__main__":
             key=GP_API_KEY,
             p12_file=TLS_P12,
             p12_pwd=TLS_P12_PWD,
-            auth=GuardPointAuthType.BEARER_TOKEN,
-            #auth=GuardPointAuthType.BASIC
+            #auth=GuardPointAuthType.BEARER_TOKEN,
+            auth=GuardPointAuthType.BASIC
         )
 
         print(f"GuardPoint Server Version: {gp.gp_version()}")
