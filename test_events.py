@@ -36,17 +36,14 @@ if __name__ == "__main__":
                     p12_pwd=TLS_P12_PWD,
                     site_uid='11111111-1111-1111-1111-111111111111')
 
-    if not gp.is_api_enabled():
-        print("Please check is API is enabled")
-
     try:
         print("Num Access Events: " + str(gp.get_access_events_count()))
-        access_events = gp.get_access_events(limit=1, orderby=EventOrder.LOG_ID_ASC)
+        access_events = gp.get_access_events(limit=2, orderby=EventOrder.DATETIME_DESC)
         for access_event in access_events:
             pprint(access_event)
             print(f"\n\n")
 
-        print("Num Alarm Events: " + str(gp.get_alarm_events_count()))
+        '''print("Num Alarm Events: " + str(gp.get_alarm_events_count()))
         alarm_events = gp.get_alarm_events(limit=1)
         for alarm_event in alarm_events:
             pprint(alarm_event)
@@ -56,7 +53,7 @@ if __name__ == "__main__":
         audit_events = gp.get_audit_events(limit=1)
         for audit_event in audit_events:
             pprint(audit_event)
-            print(f"\n\n")
+            print(f"\n\n")'''
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

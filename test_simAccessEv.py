@@ -49,7 +49,7 @@ if __name__ == "__main__":
                         controller_uid=reader.controllerUID,
                         reader_num=reader.number,
                         card_code=card_code):
-                    print(f"Event Fired Successfully {reader.name}")
+                    print(f"Event Fired Successfully Reader: {reader.name} Controller: {controller.name} Card Code: {card_code}")
 
 
     except GuardPointError as e:
