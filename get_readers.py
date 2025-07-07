@@ -1,16 +1,18 @@
 import logging, sys
 from pprint import pprint
 
+from pyGuardPoint import GuardPointAuthType, GuardPoint, GuardPointError
+
 #import pkg_resources
 
-sys.path.insert(1, 'pyGuardPoint_Build')
+#sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm, GuardPointAuthType
 
 #py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
-GP_HOST = 'https://sensoraccess.duckdns.org:82'
+GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
-GP_PASS = 'TempisPro12'
+GP_PASS = 'admin'
 GP_API_KEY = '2b2967b0-33b5-47d8-b24c-3239b325f812'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
 TLS_P12_PWD = "test"
@@ -31,14 +33,12 @@ if __name__ == "__main__":
 
     try:
         readers = gp.get_readers()
-        print("Readers:")
-        for reader in readers:
-            pprint(reader)
-            if reader.name == "INNER DOOR IN":
-                signin_event_fired = gp.simulate_access_event(controller_uid=reader.controllerUID,
-                                                              reader_num=reader.number,
-                                                              card_code="8534BE8F")
-                print("Access Event Returned: " + str(signin_event_fired))
+
+        #print("Readers:")
+        #for reader in readers:
+        #    pprint(reader)
+
+        print("Total Readers returned: " + str(len(readers)))
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

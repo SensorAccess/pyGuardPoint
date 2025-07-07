@@ -333,7 +333,7 @@ class CardholdersAPI:
         if self.site_uid is not None:
             if 'ownerSiteUID' in match_args:
                 log.info(f"ownerSiteUID overridden")
-            match_args['ownerSiteUID'] = self.site_uid
+                match_args['ownerSiteUID'] = self.site_uid
 
         url = "/odata/API_Cardholders"
 

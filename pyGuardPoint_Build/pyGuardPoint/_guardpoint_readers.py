@@ -1,4 +1,5 @@
 import validators
+from ._odata_filter import _compose_filter
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import Reader
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -16,7 +17,7 @@ class ReadersAPI:
     get_reader(reader_uid: str):
         Retrieves a specific reader by its unique identifier (UID).
     """
-    def get_readers(self, ):
+    def get_readers(self, offset: int = 0, limit: int = 500, **reader_kwargs):
         """
         Retrieve a list of readers from the GuardPoint API.
 
@@ -30,35 +31,72 @@ class ReadersAPI:
         :return: A list of `Reader` objects.
         :rtype: list
         """
-        url = "/odata/API_Readers"
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
-
-        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
-
-        if code != 200:
-            error_msg = GuardPointResponse.extract_error_msg(json_body)
-
-            if code == 401:
-                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
-            elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
-            else:
-                raise GuardPointError(f"{error_msg}")
-
-        if not isinstance(json_body, dict):
-            raise GuardPointError("Badly formatted response.")
-        if 'value' not in json_body:
-            raise GuardPointError("Badly formatted response.")
-        if not isinstance(json_body['value'], list):
-            raise GuardPointError("Badly formatted response.")
-
         readers = []
-        for x in json_body['value']:
-            readers.append(Reader(x))
-        return readers
+
+        if limit <= 0:
+            return readers
+        if limit > 50:
+            i_offset = offset
+            offset = 0
+            batch_limit = 50
+            while len(readers) == offset:
+                if offset + batch_limit > limit:
+                    batch_limit = limit - offset
+                if batch_limit > 0:
+                    readers.extend(self.get_readers(offset=offset + i_offset, limit=batch_limit))
+                if (offset + batch_limit) >= limit:
+                    break
+                elif len(readers) > offset:
+                    offset = len(readers)
+                else:
+                    break
+            return readers
+        else:
+            url = "/odata/API_Readers"
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+
+            # Filter arguments which have to exact match
+            match_args = dict()
+            for k, v in reader_kwargs.items():
+                if hasattr(Reader, k):
+                    match_args[k] = v
+
+            # Force site_uid filter if present
+            if self.site_uid is not None:
+                if 'ownerSiteUID' in match_args:
+                    match_args['ownerSiteUID'] = self.site_uid
+
+            filter_str = _compose_filter(exact_match=match_args)
+            url_query_params = ("?" + filter_str)
+            url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
+
+            code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+            if code != 200:
+                error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+                if code == 401:
+                    raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+                elif code == 404:  # Not Found
+                    raise GuardPointError(f"Cardholder Not Found")
+                else:
+                    raise GuardPointError(f"{error_msg}")
+
+            if not isinstance(json_body, dict):
+                raise GuardPointError("Badly formatted response.")
+            if 'value' not in json_body:
+                raise GuardPointError("Badly formatted response.")
+            if not isinstance(json_body['value'], list):
+                raise GuardPointError("Badly formatted response.")
+
+            readers = []
+            for x in json_body['value']:
+                readers.append(Reader(x))
+
+            return readers
 
     def get_reader(self, reader_uid: str):
         """

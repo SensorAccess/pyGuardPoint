@@ -30,6 +30,7 @@ if __name__ == "__main__":
         cardholders = gp.get_card_holders(offset=0, limit=10)
         for cardholder in cardholders:
             print("Cardholder:")
+            print(f"\tUID: {cardholder.uid}")
             print(f"\tFirstName: {cardholder.firstName}")
             print(f"\tLastName: {cardholder.lastName}")
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
