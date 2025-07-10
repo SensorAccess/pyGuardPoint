@@ -17,6 +17,7 @@ class ReadersAPI:
     get_reader(reader_uid: str):
         Retrieves a specific reader by its unique identifier (UID).
     """
+
     def get_readers(self, offset: int = 0, limit: int = 500, **reader_kwargs):
         """
         Retrieve a list of readers from the GuardPoint API.
@@ -38,7 +39,7 @@ class ReadersAPI:
         if limit > 50:
             i_offset = offset
             offset = 0
-            batch_limit = 50
+            batch_limit = 40
             while len(readers) == offset:
                 if offset + batch_limit > limit:
                     batch_limit = limit - offset

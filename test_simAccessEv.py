@@ -7,8 +7,8 @@ from pysignalr.exceptions import AuthorizationError
 from pysignalr.messages import CompletionMessage
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
-# GP_HOST = 'http://localhost/'
+#GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'http://192.168.1.103:10695'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection
