@@ -29,7 +29,10 @@ if __name__ == "__main__":
                                p12_file=TLS_P12,
                                p12_pwd=TLS_P12_PWD,
                                site_uid='11111111-1111-1111-1111-111111111111')
+
         try:
+            #await gp.close()
+            await gp.reopen()
             pprint("SIG-R Enabled = " + str(await gp.is_sigr_enabled()))
             print(f"\n\n")
             await gp.close()

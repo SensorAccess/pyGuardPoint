@@ -59,6 +59,9 @@ class GuardPointConnection:
         if self.session:
             await self.session.close()
 
+    async def reopen(self):
+        conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
+        self.session = aiohttp.ClientSession(connector=conn)
     def open(self, url_components, auth, user, pwd, key, token=None,
              cert_file=None, key_file=None, key_pwd="", ca_file=None, p12_file=None, p12_pwd="", timeout=5):
         self.ssl_context = None
