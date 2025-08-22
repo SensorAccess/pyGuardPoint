@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
 
         # Create a New Cardholder
-        cardholder_pd = CardholderPersonalDetail(email="john.owen@countermac.com")
+        cardholder_pd = CardholderPersonalDetail()
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")
         cardholder = Cardholder(firstName="John", lastName="O'Neil",
@@ -55,6 +55,7 @@ if __name__ == "__main__":
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf,
                                 accessGroupUIDs=access_groups_uid_list)
+        cardholder.cardholderIdNumber = "12"
         cardholder = gp.new_card_holder(cardholder)
         print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
         print("New Cardholder AccessGroups:" + cardholder.accessGroupUIDs)

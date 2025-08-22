@@ -64,6 +64,53 @@ class CardholderOrderBy(Enum):
 
 
 @dataclass
+class Input:
+    inputPhysicalState: str = ""
+    logicalStatus: str = ""
+    isUnderAlarm: bool = False
+    uid: str = ""
+    number: int = 0,
+    name: str = ""
+    descriprion: any = None
+    weeklyProgramUID: any = None
+    delayType: str = ""
+    delayTime: int = 0,
+    inputType: str = ""
+    statusType: str = ""
+    controllerUID: str = ""
+    cameraUID: any = None
+    lastEventDate: any = None
+    lastEventType: any = None
+    latestAction: any = None
+    inputGroupUID: any = None
+    alarmPriority: int = 0,
+    isArm: bool = False
+    isBypassed: bool = False
+    instructions: any = None
+    isGalaxy: bool = False
+    omitted: int = 0,
+    apiKey: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        input_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in input_dict:
+            if isinstance(input_dict[property_name], (str, type(None), bool, int, dict)):
+                setattr(self, property_name, input_dict[property_name])
+
+    def dict(self):
+        input_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                input_dict[k] = v
+            elif isinstance(v, type(None)):
+                input_dict[k] = None
+            else:
+                input_dict[k] = str(v)
+
+
+@dataclass
 class AlarmState:
     acknowledgedDate: any = None
     acknowledgedUserUID: any = None

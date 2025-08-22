@@ -33,6 +33,11 @@ async def on_close() -> None:
 async def on_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received message: {message}')
 
+async def on_alarm_message(message: List[Dict[str, Any]]) -> None:
+    print(f'Received ALARM message: {message}')
+
+async def on_audit_message(message: List[Dict[str, Any]]) -> None:
+    print(f'Received AUDIT message: {message}')
 async def on_su_message(message: List[Dict[str, Any]]) -> None:
     print(f'Received SU message: {message}')
 async def on_ac_message(message: List[Dict[str, Any]]) -> None:
@@ -83,8 +88,8 @@ if __name__ == "__main__":
         signal_client.on_close(on_close)
         signal_client.on_error(on_error)
         signal_client.on('AccessEventArrived', on_ac_message)
-        signal_client.on("AlarmEventArrived", on_message)
-        signal_client.on("AuditEventArrived", on_message)
+        signal_client.on("AlarmEventArrived", on_alarm_message)
+        signal_client.on("AuditEventArrived", on_audit_message)
         signal_client.on("CommEventArrived", on_message)
         signal_client.on("GeneralEventArrived", on_message)
         signal_client.on("IOEventArrived", on_message)

@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     try:
 
-        cardholders = gp.get_card_holders(firstName="tt")
+        cardholders = gp.get_card_holders(pinCode="0000")
         '''cardholders = gp.get_card_holders(limit=20,
                                           filter_expired=True,
                                           select_ignore_list=['photo'])'''

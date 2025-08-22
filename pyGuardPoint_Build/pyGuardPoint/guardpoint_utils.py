@@ -57,9 +57,13 @@ class GuardPointResponse:
                 if isinstance(response_body['errors'], dict):
                     for key in response_body['errors']:
                         if isinstance(response_body['errors'][key], list):
-                            error_msg = error_msg + response_body['errors'][key][0] + '\n';
+                            error_msg = error_msg + response_body['errors'][key][0] + '\n'
                         elif isinstance(response_body['errors'][key], str):
-                            error_msg = error_msg + response_body['errors'][key][0] + '\n';
+                            error_msg = error_msg + response_body['errors'][key][0] + '\n'
+            if error_msg == "":
+                if 'value' in response_body:
+                    if isinstance(response_body['value'], str):
+                        error_msg = response_body['value']
         return error_msg
 
     @staticmethod
