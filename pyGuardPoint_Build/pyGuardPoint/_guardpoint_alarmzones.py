@@ -31,7 +31,7 @@ class AlarmZonesAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"AlarmZone Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 
@@ -40,6 +40,10 @@ class AlarmZonesAPI:
         if 'success' in json_body:
             if json_body['success']:
                 return True
+            else:
+                return False
+        else:
+            return False
 
     def disarm_alarm_zone(self, alarm_zone: AlarmZone):
         url = self.baseurl + "/odata/API_AlarmZones/DisarmAlarmZone"

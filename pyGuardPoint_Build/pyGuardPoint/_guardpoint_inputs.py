@@ -58,7 +58,7 @@ class InputsAPI:
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
-        # Compose list of security groups
+        # Compose list of inputs
         inputs = []
         for entry in json_body['value']:
             if isinstance(entry, dict):

@@ -62,6 +62,31 @@ class CardholderOrderBy(Enum):
     fromDateValid_DESC = 0,
     lastPassDate_DESC = 1
 
+@dataclass
+class ManualEvent:
+    uid: str = ""
+    name: str = ""
+    description: any = None
+    apiKey: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        me_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in me_dict:
+            if isinstance(me_dict[property_name], (str, type(None), bool, int, dict)):
+                setattr(self, property_name, me_dict[property_name])
+
+    def dict(self):
+        me_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                me_dict[k] = v
+            elif isinstance(v, type(None)):
+                me_dict[k] = None
+            else:
+                me_dict[k] = str(v)
+
 
 @dataclass
 class Input:
