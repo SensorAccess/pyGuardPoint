@@ -37,29 +37,41 @@ if __name__ == "__main__":
         alarm_zones = gp.get_alarm_zones()
         for zone in alarm_zones:
             #pprint(zone) #Print all fields within Zone
-            '''print("Zone Name: " + zone.name)
+            print("Zone Name: " + zone.name)
             print("Zone uid: " + zone.uid)
+            print("Zone Status: " + str(zone.alarmStatus))
             print("Zone RealTimeStatus: " + str(zone.isRealTimeStatusArm))
             print("Zone WP-Status: " + str(zone.iswpStatusArm))
             print("Zone Description: " + str(zone.description))
-            print(f"\n\n")'''
+            print(f"\n\n")
             #pprint(zone)
 
 
         # Get a single alarm zone by UID
-        zone = gp.get_alarm_zone('8888cd6b-9342-4955-a6f8-070b793614d1')
+        zone = gp.get_alarm_zone('404847c1-18ec-4143-a14f-b458946b10f6')
         pprint(zone)
-        zone = gp.get_alarm_zone('7ae0f4ed-f913-4e5d-8bf3-6dc117aafc72')
-        pprint(zone)
+        #zone = gp.get_alarm_zone('7ae0f4ed-f913-4e5d-8bf3-6dc117aafc72')
+        #pprint(zone)
 
 
         # Disarm Alarm Zone
         if zone.isRealTimeStatusArm:
             if gp.disarm_alarm_zone(zone):
-                print(f"{zone.name} is disarmed")
+                print(f"{zone.name} disarm attempt fired! \n")
         else:
             if gp.arm_alarm_zone(zone):
-                print(f"{zone.name} is armed")
+                print(f"{zone.name} arm attempt fired! \n")
+
+        alarm_zones = gp.get_alarm_zones()
+        for zone in alarm_zones:
+            # pprint(zone) #Print all fields within Zone
+            print("Zone Name: " + zone.name)
+            print("Zone uid: " + zone.uid)
+            print("Zone Status: " + str(zone.alarmStatus))
+            print("Zone RealTimeStatus: " + str(zone.isRealTimeStatusArm))
+            print("Zone WP-Status: " + str(zone.iswpStatusArm))
+            print("Zone Description: " + str(zone.description))
+            print(f"\n\n")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

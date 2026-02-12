@@ -1,8 +1,8 @@
 from enum import Enum
 
 import validators
-
 from .guardpoint_dataclasses import AlarmZone, AlarmZoneOption
+
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 

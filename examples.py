@@ -3,19 +3,23 @@ import logging
 from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
-import pkg_resources
-
-from pyGuardPoint_Build.pyGuardPoint import SortAlgorithm
-
-py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
+GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_USER = 'admin'
+GP_PASS = 'admin'
+TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"
+TLS_P12_PWD = "test"
 
 if __name__ == "__main__":
-    print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host=GP_HOST,
+                    username=GP_USER,
+                    pwd=GP_PASS,
+                    p12_file=TLS_P12,
+                    p12_pwd=TLS_P12_PWD
+                    )
 
     try:
-        cardholder = gp.get_card_holder(card_code='1B1A1B1C')
+        cardholder = gp.get_card_holder(lastName='Owen')
 
         print("Cardholder:")
         print("\tUID: " + cardholder.uid)
