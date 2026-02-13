@@ -38,6 +38,37 @@ class ManualEventsAPI:
                 manual_events.append(manual_event)
         return manual_events
 
+    def activate_manual_event_by_api_key(self, api_key):
+        url = self.baseurl + "/odata/API_ManualEvents/ActivateManualEvent"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+        body = dict()
+        body['apiKey'] = api_key
+
+        code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"ManualEvent Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'success' in json_body:
+            if json_body['success']:
+                return True
+            else:
+                return False
+        else:
+            return False
+
     def activate_manual_event(self, manual_event):
         url = self.baseurl + "/odata/API_ManualEvents/ActivateManualEvent"
         headers = {

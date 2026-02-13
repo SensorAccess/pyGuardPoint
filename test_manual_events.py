@@ -2,11 +2,11 @@ import logging, sys
 from pprint import pprint
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
-#sys.path.insert(1, 'pyGuardPoint_Build')
-#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
+sys.path.insert(1, 'pyGuardPoint_Build')
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
 
 # Use release version of PyGuardPoint from PiPy
-from pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
+#from pyGuardPoint import GuardPoint, GuardPointError, SortAlgorithm
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
@@ -32,14 +32,20 @@ if __name__ == "__main__":
                 pprint(event)
                 print("\n")
 
-            # Try and Activate all of the Manual Events
-            print("Activating all Manual Events.....\n")
-            for event in manual_events:
-                print(f"Activating .. {event.name} ....")
-                if gp.activate_manual_event(event):
-                    print("Event Activated\n")
-                else:
-                    print("Event Failed To Activate\n")
+            api_key = 'beep'
+            if gp.activate_manual_event_by_api_key(api_key):
+                print(f"Manual Event({api_key}) Activated")
+
+
+            # Loop over the Manual Events
+            '''for event in manual_events:
+                # When we get a event name which matches
+                if event.name == "TheNameOfTheManualEvent":
+                    print(f"Activating .. {event.name} ....")
+                    if gp.activate_manual_event(event):
+                        print("Event Activated\n")
+                    else:
+                        print("Event Failed To Activate\n")'''
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
