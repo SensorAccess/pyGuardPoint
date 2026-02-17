@@ -4,13 +4,13 @@ from pprint import pprint
 from importlib.metadata import version
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
-sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
-#from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+#sys.path.insert(1, 'pyGuardPoint_Build')
+#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
 
 # GuardPoint
 GP_HOST = 'https://sensoraccess.duckdns.org'
-GP_HOST = 'http://192.168.1.103:10695'
+#GP_HOST = 'http://192.168.1.103:10695'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection
@@ -37,10 +37,10 @@ if __name__ == "__main__":
         # Get all alarm zones
         inputs = gp.get_inputs()
         for input in inputs:
-            #pprint(input)
-            print("name: " + str(input.name))
-            print("isUnderAlarm: " + str(input.isUnderAlarm))
-            print(f"")
+            pprint(input)
+            #print("name: " + str(input.name))
+            #print("isUnderAlarm: " + str(input.isUnderAlarm))
+            #print(f"")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")
