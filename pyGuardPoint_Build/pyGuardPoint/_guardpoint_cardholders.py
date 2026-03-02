@@ -363,7 +363,7 @@ class CardholdersAPI:
 
     def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
-                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
+                         sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 15,
                          count: bool = False, earliest_last_pass: datetime = None,
                          select_ignore_list: list = None, select_include_list: list = None,
                          cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
@@ -404,9 +404,9 @@ class CardholdersAPI:
         :raises GuardPointUnauthorized: If the request is unauthorized.
         :raises GuardPointError: If there is an error in retrieving cardholders or if cardholders are not found.
         """
-        if limit <= 0:
+        if limit <= 0 and count is False:
             return []
-        if limit > 50:
+        if limit > 50 and count is False:
             i_offset = offset
             offset = 0
             batch_limit = 50
@@ -415,17 +415,19 @@ class CardholdersAPI:
                 if offset + batch_limit > limit:
                     batch_limit = limit - offset
                 if batch_limit > 0:
-                    card_holders.extend(
-                        self._get_card_holders(offset=offset+i_offset, limit=batch_limit, search_terms=search_terms,
-                                               areas=areas,
-                                               filter_expired=filter_expired,
-                                               cardholder_type_name=cardholder_type_name,
-                                               sort_algorithm=sort_algorithm, threshold=threshold,
-                                               count=count, earliest_last_pass=earliest_last_pass,
-                                               select_ignore_list=select_ignore_list,
-                                               select_include_list=select_include_list,
-                                               cardholder_orderby=cardholder_orderby,
-                                               **cardholder_kwargs))
+                    batch = self._split_get_card_holders_query(offset=offset + i_offset, limit=batch_limit,
+                                                               search_terms=search_terms,
+                                                               areas=areas,
+                                                               filter_expired=filter_expired,
+                                                               cardholder_type_name=cardholder_type_name,
+                                                               count=count, earliest_last_pass=earliest_last_pass,
+                                                               select_ignore_list=select_ignore_list,
+                                                               select_include_list=select_include_list,
+                                                               cardholder_orderby=cardholder_orderby,
+                                                               **cardholder_kwargs)
+                    if isinstance(batch, list):
+                        card_holders.extend(batch)
+
                 if (offset + batch_limit) >= limit:
                     break
                 elif len(card_holders) > offset:
@@ -433,22 +435,77 @@ class CardholdersAPI:
                 else:
                     break
 
+        else:
+            card_holders = self._split_get_card_holders_query(offset=offset, limit=limit, search_terms=search_terms,
+                                                              areas=areas,
+                                                              filter_expired=filter_expired,
+                                                              cardholder_type_name=cardholder_type_name,
+                                                              count=count, earliest_last_pass=earliest_last_pass,
+                                                              select_ignore_list=select_ignore_list,
+                                                              select_include_list=select_include_list,
+                                                              cardholder_orderby=cardholder_orderby,
+                                                              **cardholder_kwargs)
+            if count:
+                return card_holders
+
+        if sort_algorithm == SortAlgorithm.FUZZY_MATCH:
+            card_holders = fuzzy_match(search_words=search_terms, cardholders=card_holders, threshold=threshold)
+
+        return card_holders
+
+    '''Function '_split_get_card_holders_query' is a fix for: The "node count limit of 100" error in OData/API queries occurs when an expression (like
+                    $filter) is too complex, exceeding 100 nodes in its syntax tree. To fix it, reduce the number of or conditions, 
+                    break the query into smaller requests, or increase MaxNodeCount in ODataValidationSettings'''
+
+    def _split_get_card_holders_query(self, offset: int = 0, limit: int = 10, search_terms: str = None,
+                                            areas: list = None,
+                                            filter_expired: bool = False, cardholder_type_name: str = None,
+                                            count: bool = False, earliest_last_pass: datetime = None,
+                                            select_ignore_list: list = None, select_include_list: list = None,
+                                            cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
+                                            **cardholder_kwargs):
+
+        count_total = 0
+        card_holders = []
+        if areas is not None:
+            for area in areas:
+                batch = self._get_card_holders(offset=offset, limit=limit,
+                                               search_terms=search_terms,
+                                               areas=[area],
+                                               filter_expired=filter_expired,
+                                               cardholder_type_name=cardholder_type_name,
+                                               count=count, earliest_last_pass=earliest_last_pass,
+                                               select_ignore_list=select_ignore_list,
+                                               select_include_list=select_include_list,
+                                               cardholder_orderby=cardholder_orderby,
+                                               **cardholder_kwargs)
+                if not count:
+                    card_holders.extend(batch)
+                elif isinstance(batch, int):
+                    count_total += batch
+
+        else:
+            batch = self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
+                                           areas=areas,
+                                           filter_expired=filter_expired,
+                                           cardholder_type_name=cardholder_type_name,
+                                           count=count, earliest_last_pass=earliest_last_pass,
+                                           select_ignore_list=select_ignore_list,
+                                           select_include_list=select_include_list,
+                                           cardholder_orderby=cardholder_orderby,
+                                           **cardholder_kwargs)
+            if not count:
+                card_holders.extend(batch)
+            elif isinstance(batch, int):
+                count_total += batch
+
+        if not count:
             return card_holders
         else:
-            return self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
-                                          areas=areas,
-                                          filter_expired=filter_expired,
-                                          cardholder_type_name=cardholder_type_name,
-                                          sort_algorithm=sort_algorithm, threshold=threshold,
-                                          count=count, earliest_last_pass=earliest_last_pass,
-                                          select_ignore_list=select_ignore_list,
-                                          select_include_list=select_include_list,
-                                          cardholder_orderby=cardholder_orderby,
-                                          **cardholder_kwargs)
+            return count_total
 
     def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                           filter_expired: bool = False, cardholder_type_name: str = None,
-                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 75,
                           count: bool = False, earliest_last_pass: datetime = None,
                           select_ignore_list: list = None, select_include_list: list = None,
                           cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
@@ -514,8 +571,5 @@ class CardholdersAPI:
         cardholders: list = []
         for x in json_body['value']:
             cardholders.append(Cardholder(x))
-
-        if sort_algorithm == SortAlgorithm.FUZZY_MATCH:
-            cardholders = fuzzy_match(search_words=search_terms, cardholders=cardholders, threshold=threshold)
 
         return cardholders
