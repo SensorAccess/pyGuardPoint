@@ -53,12 +53,13 @@ if __name__ == "__main__":
         cardholders = gp.get_card_holders(count=False,
                                           areas=areas,
                                           #firstName='Remko',
-                                          search_terms='r.vanderlaan@schoutentechniek.nl',
+                                          search_terms='Owen',
                                           sort_algorithm=SortAlgorithm.FUZZY_MATCH,
-                                          threshold=65)
+                                          threshold=15)
         if isinstance(cardholders, int):
             print(cardholders)
         else:
+
             for cardholder in cardholders:
                 print(f"\tFirst Name: {cardholder.firstName}")
                 print(f"\tLast Name: {cardholder.lastName}")
@@ -69,6 +70,7 @@ if __name__ == "__main__":
                 print(f"\tCompany: {cardholder.cardholderPersonalDetail.company}")
                 print(f"\n")
             #print(f"\tStatus: {cardholder.status}")
+            print(len(cardholders))
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

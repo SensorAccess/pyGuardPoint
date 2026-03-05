@@ -10,7 +10,7 @@ def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
     for cardholder in cardholders:
         cardholder_patterns.append(cardholder.to_search_pattern())
 
-    match_ratios = process.extract(search_words, cardholder_patterns, scorer=fuzz.WRatio)
+    match_ratios = process.extract(search_words, cardholder_patterns, scorer=fuzz.WRatio, limit=20)
 
     sorted_cardholders = []
     for match in match_ratios:
