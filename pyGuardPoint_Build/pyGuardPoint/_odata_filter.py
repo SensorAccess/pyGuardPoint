@@ -156,6 +156,7 @@ def _compose_filter(search_words=None,
                     if "'" in v:
                         v = v.replace("'", "''")
                     search_phrases.append(f"contains({f},'{v}')")
+                    #search_phrases.append(f"({f}%20eq%20'{v}')")
             filter_phrases.append(f"({'%20or%20'.join(search_phrases)})")
 
     # compose filter string

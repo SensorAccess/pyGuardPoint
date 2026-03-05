@@ -50,11 +50,12 @@ if __name__ == "__main__":
         a.append(areas[3])
         a.append(areas[4])
 
-        cardholders = gp.get_card_holders(count=True,
-                                          areas=a,
-                                          cardholder_type_name="Visitor",
-                                          search_terms="john owen john_owen",
-                                          sort_algorithm=SortAlgorithm.FUZZY_MATCH)
+        cardholders = gp.get_card_holders(count=False,
+                                          areas=areas,
+                                          #firstName='Remko',
+                                          search_terms='r.vanderlaan@schoutentechniek.nl',
+                                          sort_algorithm=SortAlgorithm.FUZZY_MATCH,
+                                          threshold=65)
         if isinstance(cardholders, int):
             print(cardholders)
         else:
@@ -65,6 +66,8 @@ if __name__ == "__main__":
             #print(f"\townerSiteUID: {cardholder.ownerSiteUID}")
                 print(f"\tCardholderUID: {cardholder.uid}")
                 print(f"\tPin Code: {cardholder.pinCode}")
+                print(f"\tCompany: {cardholder.cardholderPersonalDetail.company}")
+                print(f"\n")
             #print(f"\tStatus: {cardholder.status}")
 
     except GuardPointError as e:
