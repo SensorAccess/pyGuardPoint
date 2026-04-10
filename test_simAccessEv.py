@@ -28,8 +28,11 @@ if __name__ == "__main__":
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
 
+        controllers = gp.get_controllers()
+        for controller in controllers:
+            print(controller)
         # Fire Event on known Reader/Controller
-        controller_uid = "b25da46c-f62f-41a5-aaa3-2edd8ec25aa7"
+        controller_uid = "09f32039-1ea3-4058-87ca-b40fe509dd22"
         reader_num = 1
         card_code = "44332211"
         '''cardholders = gp.get_card_holders(search_terms="John")

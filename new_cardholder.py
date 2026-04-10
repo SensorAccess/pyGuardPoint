@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     try:
         # Delete any previously made Test Users + cards
-        cardholders = gp.get_card_holders(search_terms="O'Neil", lastName="O'Neil", threshold=50)
+        cardholders = gp.get_card_holders(search_terms="O'Neil", lastName="O'Neil", threshold=0)
         if len(cardholders) == 0:
             print("No Cardholder Found")
         for cardholder in cardholders:
@@ -48,20 +48,23 @@ if __name__ == "__main__":
 
         # Create a New Cardholder
         cardholder_pd = CardholderPersonalDetail()
+        cardholder_pd.company = "NinjaTech"
         cardholder_cf = CardholderCustomizedField()
         setattr(cardholder_cf, "cF_StringField_20", "hello")
         cardholder = Cardholder(firstName="John", lastName="O'Neil",
-                                insideAreaUID="00000000-0000-0000-0000-100000000001",
+                                #insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
-                                cardholderCustomizedField=cardholder_cf,
-                                accessGroupUIDs=access_groups_uid_list)
+                                #cardholderCustomizedField=cardholder_cf,
+                                #accessGroupUIDs=access_groups_uid_list
+                                )
         cardholder.cardholderIdNumber = "12"
         cardholder = gp.new_card_holder(cardholder)
         print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
         print("New Cardholder AccessGroups:" + cardholder.accessGroupUIDs)
+        print(cardholder.cardholderPersonalDetail)
         # Append Cardholder
         # New Card
-        card = Card(cardType="Magnetic", cardCode="1A1B1C9D")
+        card = Card(cardType="Magnetic", cardCode="1A1B1C00")
         # If we make a new card independently - we must set cardholderUID and status
         # card = gp.new_card(card=card)
         # card.cardholderUID = cardholder.uid
