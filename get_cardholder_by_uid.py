@@ -2,11 +2,11 @@ import logging, sys
 from importlib.metadata import version
 from pprint import pprint
 
-#sys.path.insert(1, 'pyGuardPoint_Build')
-#from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
-from pyGuardPoint import GuardPoint, GuardPointError
+sys.path.insert(1, 'pyGuardPoint_Build')
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+#from pyGuardPoint import GuardPoint, GuardPointError
 
-GP_HOST = 'https://sensoraccess.duckdns.org:10002'
+GP_HOST = 'https://sensoraccess.duckdns.org'
 #GP_HOST = 'http://192.168.1.111:10695'
 GP_USER = 'admin'
 GP_PASS = 'admin'
@@ -38,8 +38,10 @@ if __name__ == "__main__":
                     )
 
     try:
-        cardholder = gp.get_card_holder(uid="ad4020aa-b0fb-452a-9509-839cef3da553")
+        cardholder = gp.get_card_holder(uid="dd35c23a-e36b-44e1-bccd-4969fc1f74f4")
         pprint(cardholder)
+        #cardholder = gp.get_card_holder(uid="dd35c23a-e36b-44e1-bccd-4969fc1f74f4")
+        #pprint(cardholder)
         #print(f"\tFirst Name: {cardholder.firstName}")
         #print(f"\tLast Name: {cardholder.lastName}")
         #print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")

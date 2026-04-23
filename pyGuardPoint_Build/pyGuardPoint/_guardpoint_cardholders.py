@@ -336,10 +336,11 @@ class CardholdersAPI:
                                        "securityGroup," \
                                        "insideArea"
 
-        if self.site_uid is not None:
-            match_args = {'ownerSiteUID': self.site_uid}
-            filter_str = _compose_filter(exact_match=match_args)
-            url_query_params += ("&" + filter_str)
+        # Do not apply site filter, when looking for individuals
+        #if self.site_uid is not None:
+        #    match_args = {'ownerSiteUID': self.site_uid}
+        #    filter_str = _compose_filter(exact_match=match_args)
+        #    url_query_params += ("&" + filter_str)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 

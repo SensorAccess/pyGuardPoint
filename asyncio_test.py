@@ -29,8 +29,8 @@ if __name__ == "__main__":
                         p12_file=TLS_P12,
                         p12_pwd=TLS_P12_PWD)
         try:
-            cardholders = await gp.get_card_holders(offset=50, limit=100)
-            print(len(cardholders))
+            cardholder = await gp.get_card_holder(uid="dd35c23a-e36b-44e1-bccd-4969fc1f74f4")
+            print(cardholder)
             '''for cardholder in cardholders:
                 print(f"Firstname: {cardholder.firstName}")'''
 

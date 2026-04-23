@@ -208,10 +208,15 @@ class GuardPointConnection:
             else:
                 raw_body = json.dumps(json_body)
 
-        headers = headers or {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        }
+        if len(raw_body) == 0:
+            headers = headers or {
+                'Accept': 'application/json',
+            }
+        else:
+            headers = headers or {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
 
         if auth_str:
             headers['Authorization'] = auth_str
