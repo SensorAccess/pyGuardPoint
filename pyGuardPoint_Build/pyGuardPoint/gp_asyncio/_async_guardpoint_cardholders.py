@@ -194,8 +194,16 @@ class CardholdersAPI:
                               uid: str = None,
                               card_code: str = None):
         if card_code:
+            cards = await self.get_cards(cardCode=card_code)
+            if len(cards) > 0:
+                if cards[0].cardholderUID is not None:
+                    return await self._get_card_holder(cards[0].cardholderUID)
+                else:
+                    return None
+            else:
+                return None
             # Part of the Cards_API
-            return await self.get_cardholder_by_card_code(card_code)
+            # (Broken)return await self.get_cardholder_by_card_code(card_code)
         else:
             return await self._get_card_holder(uid)
 

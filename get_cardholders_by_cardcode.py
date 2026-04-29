@@ -2,10 +2,10 @@ import asyncio
 import logging, sys
 import pprint
 
-from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
-    CardholderCustomizedField, SortAlgorithm
+#from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, \
+#    CardholderCustomizedField, SortAlgorithm
 
-from pyGuardPoint_Build.pyGuardPoint import GuardPointUnauthorized, GuardPointAsyncIO
+from pyGuardPoint_Build.pyGuardPoint import GuardPointUnauthorized, GuardPointAsyncIO, GuardPoint,GuardPointError
 
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'

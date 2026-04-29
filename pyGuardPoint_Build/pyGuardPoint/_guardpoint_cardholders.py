@@ -280,8 +280,17 @@ class CardholdersAPI:
         :raises ValueError: If neither `uid` nor `card_code` is provided.
         """
         if card_code:
+            cards = self.get_cards(cardCode=card_code)
+            if len(cards) > 0:
+                if cards[0].cardholderUID is not None:
+                    return self._get_card_holder(cards[0].cardholderUID)
+                else:
+                    return None
+            else:
+                return None
             # Part of the Cards_API
-            return self.get_cardholder_by_card_code(card_code)
+            # (Broken API Call)
+            #return self.get_cardholder_by_card_code(card_code)
         else:
             return self._get_card_holder(uid)
 
