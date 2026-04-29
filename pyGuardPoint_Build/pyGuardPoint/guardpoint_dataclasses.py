@@ -63,6 +63,41 @@ class CardholderOrderBy(Enum):
     lastPassDate_DESC = 1
 
 @dataclass
+class CustomizedField:
+    customizedFieldType: str = ""
+    description: str = ""
+    cardholderCFName: str = ""
+    name: str = ""
+    uid: str = ""
+    booleanDefaultValue: any = None
+    dateTimeDefaultValue: any = None
+    fromValue: any = None
+    toValue: any = None
+    numberDefaultValue: any = None
+    minValue: any = None
+    maxValue: any = None
+    stringDefaultValue: str = ""
+    isMultiLine: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        cf_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in cf_dict:
+            if isinstance(cf_dict[property_name], (str, type(None), bool, int, dict)):
+                setattr(self, property_name, cf_dict[property_name])
+
+    def dict(self):
+        cf_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                cf_dict[k] = v
+            elif isinstance(v, type(None)):
+                cf_dict[k] = None
+            else:
+                cf_dict[k] = str(v)
+
+@dataclass
 class ManualEvent:
     uid: str = ""
     name: str = ""

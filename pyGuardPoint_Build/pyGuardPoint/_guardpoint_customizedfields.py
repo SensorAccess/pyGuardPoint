@@ -1,7 +1,7 @@
 import validators
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
-from .guardpoint_dataclasses import CardholderCustomizedField
+from .guardpoint_dataclasses import CardholderCustomizedField, CustomizedField
 
 
 class CustomizedFieldsAPI:
@@ -13,6 +13,38 @@ class CustomizedFieldsAPI:
     update_custom_fields(cardholder_uid: str, customFields: CardholderCustomizedField)
         Updates the custom fields for a specified cardholder.
     """
+
+    def get_custom_fields(self):
+        url = "/odata/API_CustomizedFields"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        code, json_body = self.gp_json_query("GET", headers=headers, url=url)
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"CustomizedFields Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        customizedFields = []
+        for x in json_body['value']:
+            customizedFields.append(CustomizedField(x))
+        return customizedFields
+
 
     def update_custom_fields(self, cardholder_uid: str, customFields: CardholderCustomizedField):
         """
@@ -36,7 +68,7 @@ class CustomizedFieldsAPI:
         if not validators.uuid(cardholder_uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
 
-        url = "/odata/API_CardholderCustomizedFields"
+        url = "/odata/API_CustomizedFields"
         url_query_params = f"({cardholder_uid})"
 
         headers = {
