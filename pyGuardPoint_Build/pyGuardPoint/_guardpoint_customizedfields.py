@@ -68,7 +68,7 @@ class CustomizedFieldsAPI:
         if not validators.uuid(cardholder_uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder_uid}')
 
-        url = "/odata/API_CustomizedFields"
+        url = "/odata/API_CardholderCustomizedFields"
         url_query_params = f"({cardholder_uid})"
 
         headers = {

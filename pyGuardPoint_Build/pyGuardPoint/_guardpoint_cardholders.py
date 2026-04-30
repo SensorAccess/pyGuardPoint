@@ -231,19 +231,22 @@ class CardholdersAPI:
         if code == 201:  # HTTP CREATED
             new_cardholder = Cardholder(json_body)
             if cardholder.cardholderPersonalDetail:
-                self.update_personal_details(cardholder_uid=new_cardholder.uid,
+                if len(cardholder.cardholderPersonalDetail.changed_attributes) > 0:
+                    self.update_personal_details(cardholder_uid=new_cardholder.uid,
                                              personal_details=cardholder.cardholderPersonalDetail)
             if cardholder.cardholderCustomizedField:
-                self.update_custom_fields(cardholder_uid=new_cardholder.uid,
-                                          customFields=cardholder.cardholderCustomizedField)
+                if len(cardholder.cardholderCustomizedField.changed_attributes) > 0:
+                    self.update_custom_fields(cardholder_uid=new_cardholder.uid,
+                                              customFields=cardholder.cardholderCustomizedField)
             if cardholder.cards:
                 if isinstance(cardholder.cards, list):
                     for card in cardholder.cards:
-                        if validators.uuid(card.uid):
-                            self.update_card(card)
-                        else:
-                            card.cardholderUID = new_cardholder.uid
-                            self.new_card(card)
+                        if len(card.changed_attributes) > 0:
+                            if validators.uuid(card.uid):
+                                self.update_card(card)
+                            else:
+                                card.cardholderUID = new_cardholder.uid
+                                self.new_card(card)
 
             return self._get_card_holder(new_cardholder.uid)
 

@@ -50,11 +50,12 @@ if __name__ == "__main__":
         cardholder_pd = CardholderPersonalDetail()
         cardholder_pd.company = "NinjaTech"
         cardholder_cf = CardholderCustomizedField()
-        setattr(cardholder_cf, "cF_StringField_20", "hello")
+        setattr(cardholder_cf, "cF_StringField_19", "hello")
+        print("CustomFields Changed: " + str(cardholder_cf.changed_attributes))
         cardholder = Cardholder(firstName="John", lastName="O'Neil",
                                 #insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
-                                #cardholderCustomizedField=cardholder_cf,
+                                cardholderCustomizedField=cardholder_cf,
                                 #accessGroupUIDs=access_groups_uid_list
                                 )
         cardholder.cardholderIdNumber = "12"
@@ -75,7 +76,9 @@ if __name__ == "__main__":
 
         #print(cardholder.changed_attributes)
 
+        print(cardholder.uid)
         if gp.update_card_holder(cardholder):
+            print(cardholder.uid)
             cardholder = gp.get_card_holder(uid=cardholder.uid)
             print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Updated")
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
