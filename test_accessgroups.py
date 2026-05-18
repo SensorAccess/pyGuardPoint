@@ -5,7 +5,8 @@ from pprint import pprint
 
 # Force to use pyGuardPoint from pyGuardPoint_Build directory
 sys.path.insert(1, 'pyGuardPoint_Build')
-from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
+from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, GuardPointAsyncIO
+
 #from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
 
 
@@ -39,5 +40,30 @@ if __name__ == "__main__":
         print(f"GuardPointUnauthorized: {e}")
     except Exception as e:
         print(f"Exception: {e}")
+
+
+    async def test():
+        gp = GuardPointAsyncIO(host=GP_HOST,
+                               username=GP_USER,
+                               pwd=GP_PASS,
+                               p12_file=TLS_P12,
+                               p12_pwd=TLS_P12_PWD)
+        try:
+            access_groups = await gp.get_access_groups()
+            if access_groups is None:
+                print("No access groups found")
+            for access_group in access_groups:
+                pprint(access_group)
+                print(f"\n\n")
+            await gp.close()
+        except GuardPointError as e:
+            print(f"GuardPointError: {e}")
+        except GuardPointUnauthorized as e:
+            print(f"GuardPointUnauthorized: {e}")
+        except Exception as e:
+            print(f"Exception: {e}")
+
+
+    asyncio.run(test())
 
 

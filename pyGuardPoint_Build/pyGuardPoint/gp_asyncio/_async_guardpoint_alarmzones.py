@@ -9,7 +9,7 @@ class AlarmZonesAPI:
 
     async def arm_alarm_zone(self, alarm_zone: AlarmZone, option=AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram):
         if option == AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram:
-            url = self.baseurl + "/odata/API_AlarmZones/ReturnAlarmZoneToWeeklyProgram"
+            url = "/odata/API_AlarmZones/ReturnAlarmZoneToWeeklyProgram"
         else:
             raise GuardPointError(f"Unsupported Arming Option")
 

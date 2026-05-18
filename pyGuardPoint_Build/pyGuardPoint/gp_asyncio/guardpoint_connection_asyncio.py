@@ -204,7 +204,8 @@ class GuardPointConnection:
             headers['Authorization'] = auth_str
 
         log.debug(f"Request data: host={self.baseurl}, {method}, {url}, {headers}, {raw_body}")
-        url = self.baseurl + url
+        if 'http' not in url:
+            url = self.baseurl + url
 
         if method.lower() == "get":
             try:
