@@ -44,7 +44,7 @@ def stop_listening(client: SignalRClient):
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI,
                  PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI,
                  ControllersAPI, AlarmStatesAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI,
-                 AlarmZonesAPI, InputsAPI, ManualEventsAPI):
+                 AlarmZonesAPI, InputsAPI, ManualEventsAPI, AccessGroupsAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,

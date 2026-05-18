@@ -22,6 +22,7 @@ if __name__ == "__main__":
                     site_uid="11111111-1111-1111-1111-111111111111")
 
     try:
+
         personalDetails = CardholderPersonalDetail(email="john.owen@countermac.com")
         numOfCardholders = gp.get_cardholder_count()
         print(f"Total Cardholders: {numOfCardholders}")
