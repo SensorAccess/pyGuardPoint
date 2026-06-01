@@ -36,8 +36,10 @@ if __name__ == "__main__":
         # Get all alarm zones
         alarm_zones = gp.get_alarm_zones()
         for zone in alarm_zones:
+
             #pprint(zone) #Print all fields within Zone
             print("Zone Name: " + zone.name)
+
             print("Zone uid: " + zone.uid)
             print("Zone Status: " + str(zone.alarmStatus))
             print("Zone RealTimeStatus: " + str(zone.isRealTimeStatusArm))

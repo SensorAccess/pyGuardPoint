@@ -62,6 +62,7 @@ class CardholderOrderBy(Enum):
     fromDateValid_DESC = 0,
     lastPassDate_DESC = 1
 
+
 @dataclass
 class CustomizedField:
     customizedFieldType: str = ""
@@ -96,6 +97,32 @@ class CustomizedField:
                 cf_dict[k] = None
             else:
                 cf_dict[k] = str(v)
+
+@dataclass
+class WeeklyProgram:
+    uid: str = ""
+    name: str = ""
+    apiKey: any = None
+    description: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        me_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in me_dict:
+            if isinstance(me_dict[property_name], (str, type(None), bool, int, dict)):
+                setattr(self, property_name, me_dict[property_name])
+
+    def dict(self):
+        me_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                me_dict[k] = v
+            elif isinstance(v, type(None)):
+                me_dict[k] = None
+            else:
+                me_dict[k] = str(v)
+
 
 @dataclass
 class ManualEvent:
@@ -515,7 +542,7 @@ class AccessEvent:
     accessDeniedCode: str = ""
     cardCode: str = ""
     cardholderFirstName: any = None
-    cardholderIdNumber: any = None
+    cardholderIdNumber: str = None
     cardholderLastName: any = None
     cardholderTypeName: any = None
     cardholderTypeUID: any = None
@@ -1105,7 +1132,7 @@ class Cardholder(Observable):
     uid: str = ""
     lastName: str = ""
     firstName: str = ""
-    cardholderIdNumber: any = None
+    cardholderIdNumber: str = ""
     status: any = None
     fromDateValid: any = None
     isFromDateActive: any = None
@@ -1134,6 +1161,7 @@ class Cardholder(Observable):
     securityGroupUID: str = ""
     accessGroupUIDs: any = None
     liftAccessGroupUIDs: any = None
+    personalCrisisLevel: int = 0
     lastDownloadTime: any = None
     lastInOutArea: str = ""
     lastInOutReaderUID: any = None
@@ -1144,6 +1172,8 @@ class Cardholder(Observable):
     lastReaderPassUID: any = None
     insideAreaUID: str = ""
     cards: list = None
+    #resetAPBLevelWhenDownload: bool = False
+    noAntiPassback: bool = False
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -1184,7 +1214,16 @@ class Cardholder(Observable):
                     self.cardholderCustomizedField = CardholderCustomizedField(cardholder_dict[property_name])
 
             if isinstance(cardholder_dict[property_name], (str, type(None), bool, int)):
-                setattr(self, property_name, cardholder_dict[property_name])
+                value = cardholder_dict[property_name]
+
+                try:
+                    if isinstance(getattr(self, property_name), str):
+                        value = str(value)
+                except:
+                    pass
+
+
+                setattr(self, property_name, value)
 
         # Monitor Changes
         for k, v in asdict(self).items():

@@ -37,7 +37,7 @@ if __name__ == "__main__":
                     )
 
     try:
-        cardholders = gp.get_card_holders(cardholderIdNumber="10636076")
+        cardholders = gp.get_card_holders(firstName='Olusola')
         #gp.u
         for cardholder in cardholders:
             #cardholder.firstname = "Frank "
@@ -51,6 +51,7 @@ if __name__ == "__main__":
             print(f"\townerSiteUID: {cardholder.ownerSiteUID}")
             print(f"\tCardholderUID: {cardholder.uid}")
             print(f"\tStatus: {cardholder.status}")
+            print(f"\tPersonalAccessGroups: {cardholder.accessGroupUIDs}")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

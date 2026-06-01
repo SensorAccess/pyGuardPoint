@@ -19,7 +19,7 @@ if __name__ == "__main__":
                     p12_file=TLS_P12,
                     p12_pwd=TLS_P12_PWD,
                     #site_uid="11111111-1111-1111-1111-111111111111"
-    )
+                    )
 
     try:
         # Delete any previously made Test Users + cards
@@ -45,7 +45,6 @@ if __name__ == "__main__":
                 access_groups_uid_list.append(access_group.uid)
             #print(access_group.name)
 
-
         # Create a New Cardholder
         cardholder_pd = CardholderPersonalDetail()
         cardholder_pd.company = "NinjaTech"
@@ -53,14 +52,16 @@ if __name__ == "__main__":
         setattr(cardholder_cf, "cF_StringField_19", "hello")
         print("CustomFields Changed: " + str(cardholder_cf.changed_attributes))
         cardholder = Cardholder(firstName="John", lastName="O'Neil",
+                                cardholderIdNumber=123,
                                 #insideAreaUID="00000000-0000-0000-0000-100000000001",
                                 cardholderPersonalDetail=cardholder_pd,
                                 cardholderCustomizedField=cardholder_cf,
                                 #accessGroupUIDs=access_groups_uid_list
                                 )
-        cardholder.cardholderIdNumber = "12"
+        #cardholder.cardholderIdNumber = "12"
         cardholder = gp.new_card_holder(cardholder)
-        print(f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
+        print(
+            f"Cardholder {cardholder.firstName} {cardholder.lastName} {cardholder.cardholderIdNumber} {cardholder.cardholderCustomizedField.cF_StringField_20} Created")
         print("New Cardholder AccessGroups:" + cardholder.accessGroupUIDs)
         print(cardholder.cardholderPersonalDetail)
         # Append Cardholder
@@ -81,6 +82,7 @@ if __name__ == "__main__":
             print(cardholder.uid)
             cardholder = gp.get_card_holder(uid=cardholder.uid)
             print(f"Cardholder {cardholder.firstName} {cardholder.lastName} Updated")
+            print(f"\tCardholderIDNumber: {cardholder.cardholderIdNumber}")
             print(f"\tEmail: {cardholder.cardholderPersonalDetail.email}")
             print(f"\tCards: {cardholder.cards}")
             # cardholder.pretty_print()
