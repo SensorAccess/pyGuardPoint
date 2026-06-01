@@ -47,8 +47,11 @@ class GuardPointResponse:
         if isinstance(response_body, dict):
             if "errorMessages" in response_body:
                 if isinstance(response_body["errorMessages"], list):
-                    if 'message' in response_body["errorMessages"][0] and 'other' in response_body["errorMessages"][0]:
-                        error_msg = f'{response_body["errorMessages"][0]["message"]}-{response_body["errorMessages"][0]["other"]}'
+                    if len(response_body["errorMessages"]) > 0:
+                        if 'message' in response_body["errorMessages"][0] and 'other' in response_body["errorMessages"][0]:
+                            error_msg = f'{response_body["errorMessages"][0]["message"]}-{response_body["errorMessages"][0]["other"]}'
+                        elif isinstance(response_body["errorMessages"][0], str):
+                            error_msg = response_body["errorMessages"][0]
             if 'message' in response_body:
                 error_msg = response_body['message']
             if 'error' in response_body:
