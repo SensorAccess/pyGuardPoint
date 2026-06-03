@@ -8,10 +8,22 @@ from typing import TYPE_CHECKING
 from aiohttp import ClientSession, TCPConnector
 from aiohttp import ClientTimeout
 from aiohttp import ServerConnectionError
-from websockets.asyncio.client import ClientConnection
-from websockets.asyncio.client import connect
+
+# Handle websockets version compatibility
+try:
+    from websockets.asyncio.client import ClientConnection, connect
+except ImportError:
+    # websockets<13.0 compatibility
+    from websockets.client import WebSocketClientProtocol as ClientConnection
+    from websockets.client import connect
+
 from websockets.exceptions import ConnectionClosed
-from websockets.protocol import State
+
+try:
+    from websockets.protocol import State
+except ImportError:
+    # websockets<13.0 compatibility
+    State = None
 
 import pysignalr.exceptions as exceptions
 from pysignalr.messages import CompletionMessage
