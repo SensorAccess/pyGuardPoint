@@ -4,7 +4,7 @@ from datetime import datetime
 import validators
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
-from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area, CardholderOrderBy
+from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area, CardholderOrderBy, CardholderType, SecurityGroup
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from .guardpoint_utils import GuardPointResponse
 
@@ -213,6 +213,12 @@ class CardholdersAPI:
         if enroll_face_from_photo:
             headers['EnrollFaceFromPhoto'] = ""
 
+        if isinstance(cardholder.cardholderType, CardholderType):
+            cardholder.cardholderTypeUID = cardholder.cardholderType.uid
+
+        if isinstance(cardholder.securityGroup, SecurityGroup):
+            cardholder.securityGroupUID = cardholder.securityGroup.uid
+
         if changed_only:
             ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)
         else:
@@ -230,6 +236,7 @@ class CardholdersAPI:
 
         if code == 201:  # HTTP CREATED
             new_cardholder = Cardholder(json_body)
+
             if cardholder.cardholderPersonalDetail:
                 if len(cardholder.cardholderPersonalDetail.changed_attributes) > 0:
                     self.update_personal_details(cardholder_uid=new_cardholder.uid,

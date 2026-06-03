@@ -33,7 +33,7 @@ class Observable:
 
     def add_observer(self, name):
         with self._observer_lock:
-            self.observed[name].append(lambda name: self.changed_attributes.add(name))
+            self.observed[name].append(lambda attr_name: self.changed_attributes.add(attr_name))
 
 
 def sanitise_args(obj: Observable, args, kwargs):
@@ -56,12 +56,12 @@ def sanitise_args(obj: Observable, args, kwargs):
 
 
 class SortAlgorithm(Enum):
-    SERVER_DEFAULT = 0,
+    SERVER_DEFAULT = 0
     FUZZY_MATCH = 1
 
 
 class CardholderOrderBy(Enum):
-    fromDateValid_DESC = 0,
+    fromDateValid_DESC = 0
     lastPassDate_DESC = 1
 
 
@@ -99,6 +99,7 @@ class CustomizedField:
                 cf_dict[k] = None
             else:
                 cf_dict[k] = str(v)
+        return cf_dict
 
 @dataclass
 class WeeklyProgram:
@@ -124,6 +125,7 @@ class WeeklyProgram:
                 me_dict[k] = None
             else:
                 me_dict[k] = str(v)
+        return me_dict
 
 
 @dataclass
@@ -150,6 +152,7 @@ class ManualEvent:
                 me_dict[k] = None
             else:
                 me_dict[k] = str(v)
+        return me_dict
 
 
 @dataclass
@@ -158,12 +161,12 @@ class Input:
     logicalStatus: str = ""
     isUnderAlarm: bool = False
     uid: str = ""
-    number: int = 0,
+    number: int = 0
     name: str = ""
     descriprion: any = None
     weeklyProgramUID: any = None
     delayType: str = ""
-    delayTime: int = 0,
+    delayTime: int = 0
     inputType: str = ""
     statusType: str = ""
     controllerUID: str = ""
@@ -172,12 +175,12 @@ class Input:
     lastEventType: any = None
     latestAction: any = None
     inputGroupUID: any = None
-    alarmPriority: int = 0,
+    alarmPriority: int = 0
     isArm: bool = False
     isBypassed: bool = False
     instructions: any = None
     isGalaxy: bool = False
-    omitted: int = 0,
+    omitted: int = 0
     apiKey: any = None
 
     def __init__(self, *args, **kwargs):
@@ -197,6 +200,7 @@ class Input:
                 input_dict[k] = None
             else:
                 input_dict[k] = str(v)
+        return input_dict
 
 
 @dataclass
@@ -233,6 +237,7 @@ class AlarmState:
                 alarm_state_dict[k] = None
             else:
                 alarm_state_dict[k] = str(v)
+        return alarm_state_dict
 
 
 @dataclass
@@ -868,7 +873,7 @@ class ScheduledMag(Observable):
 @dataclass
 class CardholderCustomizedField(Observable):
     uid: str = ""
-    cF_BoolField_1: bool = False,
+    cF_BoolField_1: bool = False
     cF_BoolField_2: bool = False
     cF_BoolField_3: bool = False
     cF_BoolField_4: bool = False

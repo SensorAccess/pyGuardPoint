@@ -108,7 +108,8 @@ class GuardPointConnection:
 
             if cert_file and key_file:
                 # Loading of client certificate
-                self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=p12_pwd)
+                pwd_bytes = p12_pwd.encode() if isinstance(p12_pwd, str) else p12_pwd
+                self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=pwd_bytes if pwd_bytes else None)
 
             if ca_file:
                 # Loading of CA certificate.

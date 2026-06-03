@@ -97,25 +97,27 @@ def _compose_filter(search_words=None,
                     else:
                         filter_phrases.append(f"({k}%20eq%20'{quote(v)}')")
                 if isinstance(v, (bool, int)):
-                    filter_phrases.append(f"({k}%20eq%20{quote(v)})")
+                    filter_phrases.append(f"({k}%20eq%20{v})")
                 if k == "cardholderPersonalDetail" and v.__class__.__name__ == "CardholderPersonalDetail":
                     details = v.dict(changed_only=True)
                     for dk, dv in details.items():
                         if isinstance(dv, str):
                             dv = dv.replace("'", "''")
-                        filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
+                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
+                        else:
+                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{str(dv)}')")
                 if k == "cardholderCustomizedField" and v.__class__.__name__ == "CardholderCustomizedField":
                     details = v.dict(changed_only=True)
                     for dk, dv in details.items():
                         if isinstance(dv, type(None)):
-                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{quote('null')})")
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20null)")
                         elif isinstance(dv, (bool, int)):
                             filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20{str(dv).lower()})")
                         elif isinstance(dv, str):
                             dv = dv.replace("'", "''")
                             filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{quote(dv)}')")
                         else:
-                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{quote(dv)}')")
+                            filter_phrases.append(f"(CardholderCustomizedField/{dk}%20eq%20'{str(dv)}')")
 
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):
