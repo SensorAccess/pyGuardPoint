@@ -6,19 +6,29 @@ from .guardpoint_error import GuardPointError
 
 
 def url_parser(url):
+    if not url or not isinstance(url, str):
+        raise GuardPointError("Invalid URL: must be a non-empty string")
+
     parts = urlparse(url)
-    directories = parts.path.strip('/').split('/')
-    queries = parts.query.strip('&').split('&')
+
+    if not parts.netloc:
+        raise GuardPointError("Invalid URL: missing host")
+
+    directories = parts.path.strip('/').split('/') if parts.path else ['']
+    queries = parts.query.strip('&').split('&') if parts.query else []
     host = parts.netloc.strip(':').split(':')[0]
 
+    if not host:
+        raise GuardPointError("Invalid URL: empty host")
+
     elements = {
-        'scheme': parts.scheme,
+        'scheme': parts.scheme or '',
         'host': host,
-        'path': parts.path,
-        'params': parts.params,
-        'query': parts.query,
+        'path': parts.path or '',
+        'params': parts.params or '',
+        'query': parts.query or '',
         'port': parts.port,
-        'fragment': parts.fragment,
+        'fragment': parts.fragment or '',
         'directories': directories,
         'queries': queries,
     }

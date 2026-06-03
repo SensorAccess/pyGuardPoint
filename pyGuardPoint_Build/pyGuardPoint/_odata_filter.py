@@ -93,7 +93,7 @@ def _compose_filter(search_words=None,
                 if isinstance(v, str):
                     v = v.replace("'", "''")
                     if validators.uuid(v):
-                        filter_phrases.append(f"({k}%20eq%20{quote(v)})")
+                        filter_phrases.append(f"({k}%20eq%20{v})")
                     else:
                         filter_phrases.append(f"({k}%20eq%20'{quote(v)}')")
                 if isinstance(v, (bool, int)):
@@ -104,8 +104,13 @@ def _compose_filter(search_words=None,
                         if isinstance(dv, str):
                             dv = dv.replace("'", "''")
                             filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv)}')")
+                        elif isinstance(dv, (bool, int)):
+                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20{dv})")
+                        elif isinstance(dv, type(None)):
+                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20null)")
                         else:
-                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{str(dv)}')")
+                            dv_str = str(dv).replace("'", "''")
+                            filter_phrases.append(f"(CardholderPersonalDetail/{dk}%20eq%20'{quote(dv_str)}')")
                 if k == "cardholderCustomizedField" and v.__class__.__name__ == "CardholderCustomizedField":
                     details = v.dict(changed_only=True)
                     for dk, dv in details.items():
@@ -138,7 +143,7 @@ def _compose_filter(search_words=None,
     if areas:
         if isinstance(areas, Area):
             filter_phrases.append(f"(insideAreaUID%20eq%20{areas.uid})")
-        if isinstance(areas, list):
+        elif isinstance(areas, list):
             if len(areas) > 0:
                 area_phrases = []
                 for area in areas:

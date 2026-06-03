@@ -298,9 +298,6 @@ class CardholdersAPI:
                     return None
             else:
                 return None
-            # Part of the Cards_API
-            # (Broken API Call)
-            #return self.get_cardholder_by_card_code(card_code)
         else:
             return self._get_card_holder(uid)
 
@@ -354,12 +351,6 @@ class CardholdersAPI:
                                        "cardholderPersonalDetail," \
                                        "securityGroup," \
                                        "insideArea"
-
-        # Do not apply site filter, when looking for individuals
-        #if self.site_uid is not None:
-        #    match_args = {'ownerSiteUID': self.site_uid}
-        #    filter_str = _compose_filter(exact_match=match_args)
-        #    url_query_params += ("&" + filter_str)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
 
@@ -428,14 +419,14 @@ class CardholdersAPI:
             return []
         if limit > 50 and count is False:
             i_offset = offset
-            offset = 0
+            current_offset = 0
             batch_limit = 50
             card_holders = []
-            while len(card_holders) == offset:
-                if offset + batch_limit > limit:
-                    batch_limit = limit - offset
+            while len(card_holders) < limit:
+                if current_offset + batch_limit > limit:
+                    batch_limit = limit - current_offset
                 if batch_limit > 0:
-                    batch = self._split_get_card_holders_query(offset=offset + i_offset, limit=batch_limit,
+                    batch = self._split_get_card_holders_query(offset=current_offset + i_offset, limit=batch_limit,
                                                                search_terms=search_terms,
                                                                areas=areas,
                                                                filter_expired=filter_expired,
@@ -447,11 +438,11 @@ class CardholdersAPI:
                                                                **cardholder_kwargs)
                     if isinstance(batch, list):
                         card_holders.extend(batch)
-
-                if (offset + batch_limit) >= limit:
-                    break
-                elif len(card_holders) > offset:
-                    offset = len(card_holders)
+                        if len(batch) < batch_limit:
+                            break
+                    else:
+                        break
+                    current_offset = len(card_holders)
                 else:
                     break
 
@@ -571,9 +562,6 @@ class CardholdersAPI:
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", url=(url + url_query_params))
-        # Check response body is formatted correctly
-        # if json_body:
-        #    GuardPointResponse.check_odata_body_structure(json_body)
 
         if code != 200:
             error_msg = GuardPointResponse.extract_error_msg(json_body)

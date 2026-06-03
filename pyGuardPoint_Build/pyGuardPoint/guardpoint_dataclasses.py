@@ -549,7 +549,7 @@ class AccessEvent:
     accessDeniedCode: str = ""
     cardCode: str = ""
     cardholderFirstName: any = None
-    cardholderIdNumber: str = None
+    cardholderIdNumber: any = None
     cardholderLastName: any = None
     cardholderTypeName: any = None
     cardholderTypeUID: any = None
@@ -1188,8 +1188,8 @@ class Cardholder(Observable):
 
         for property_name in cardholder_dict:
             if isinstance(cardholder_dict[property_name], list):
-                if property_name == "accessGroupUIDs":
-                    setattr(self, property_name, ";".join(cardholder_dict[property_name]))
+                if property_name == "accessGroupUIDs" or property_name == "liftAccessGroupUIDs":
+                    setattr(self, property_name, cardholder_dict[property_name])
                 elif property_name == "cards":
                     setattr(self, property_name, [])
                     for card_entry in cardholder_dict[property_name]:

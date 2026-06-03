@@ -72,7 +72,7 @@ class CardsAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"Cards Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 

@@ -12,11 +12,20 @@ def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
 
     match_ratios = process.extract(search_words, cardholder_patterns, scorer=fuzz.WRatio, limit=20)
 
+    pattern_to_indices = {}
+    for idx, pattern in enumerate(cardholder_patterns):
+        if pattern not in pattern_to_indices:
+            pattern_to_indices[pattern] = []
+        pattern_to_indices[pattern].append(idx)
+
     sorted_cardholders = []
+    seen = set()
     for match in match_ratios:
         if match[1] >= threshold:
-            pos = cardholder_patterns.index(match[0])
-            sorted_cardholders.append(cardholders[pos])
+            for pos in pattern_to_indices.get(match[0], []):
+                if pos not in seen:
+                    sorted_cardholders.append(cardholders[pos])
+                    seen.add(pos)
 
     return sorted_cardholders
 
