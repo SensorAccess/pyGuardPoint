@@ -33,7 +33,10 @@ class DepartmentsAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Department(json_body['value'])
+        value = json_body['value']
+        if isinstance(value, list):
+            return Department(value[0]) if value else None
+        return Department(value)
 
     def get_departments(self):
         url = "/odata/API_Departments"

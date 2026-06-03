@@ -1,385 +1,147 @@
-# PyGuardPoint Test Suite
+# pyGuardPoint Test Suite
 
-Comprehensive test suite for pyGuardPoint SDK using pytest.
+Two styles of test are provided:
 
-## Test Structure
+| Style | Files | Purpose |
+|---|---|---|
+| **Script runners** | `run_tests.py`, `run_tests_async.py` | Human-readable output, quick sanity check, good first read for new users |
+| **pytest suite** | `test_*.py` | Structured assertions, CI integration, per-feature isolation |
 
-```
-tests/
-├── conftest.py              # Pytest fixtures and configuration
-├── test_cardholders.py      # Cardholder CRUD operations
-├── test_cards.py            # Card operations
-├── test_api_endpoints.py    # Various API endpoints (areas, events, etc.)
-├── test_error_handling.py   # Error scenarios and edge cases
-└── README.md               # This file
-```
+---
 
-## Setup
-
-### Prerequisites
+## Prerequisites
 
 ```bash
-pip install pytest pytest-timeout pytest-asyncio
-cd /path/to/pyGuardPoint
+pip install pytest
 ```
 
-### Configuration
+The test server at `https://sensoraccess.duckdns.org` requires **mutual TLS (mTLS)** — you must supply a client certificate in PKCS#12 format.
 
-Tests use the public test server at `https://sensoraccess.duckdns.org` with default credentials.
+---
 
-Configure via environment variables (optional):
+## Configuration
+
+All settings are driven by environment variables. The client certificate (`MobileGuardDefault.p12`, password `test`) is bundled in this directory and used by default, so no extra setup is needed to run against the public test server.
+
+| Variable | Default | Description |
+|---|---|---|
+| `GP_HOST` | `https://sensoraccess.duckdns.org` | GuardPoint server URL |
+| `GP_USER` | `admin` | Username |
+| `GP_PASS` | `admin` | Password |
+| `GP_P12` | `tests/MobileGuardDefault.p12` | Path to the client certificate (mTLS) |
+| `GP_P12_PWD` | `test` | Password for the P12 file |
+
+Override any of these to run against a different server:
 
 ```bash
-export GP_HOST="https://sensoraccess.duckdns.org"
-export GP_USER="admin"
-export GP_PASS="admin"
-export GP_TLS_P12=""              # Optional: path to certificate
-export GP_TLS_P12_PWD=""          # Optional: certificate password
+export GP_HOST="https://my-server.example.com"
+export GP_P12="/path/to/my-cert.p12"
+export GP_P12_PWD="mypassword"
 ```
 
-## Running Tests
+---
 
-### Run All Tests
+## Script runners
+
+These scripts print a clear pass/fail for every API call and are the fastest way to verify a working setup.
 
 ```bash
+# Synchronous API
+python tests/run_tests.py
+
+# Async API (GuardPointAsyncIO)
+python tests/run_tests_async.py
+```
+
+Both scripts can also be run from the project root:
+
+```bash
+python tests/run_tests.py
+```
+
+### Example output
+
+```
+===========================================================================
+  PyGuardPoint Integration Test Suite
+===========================================================================
+
+  Server : https://sensoraccess.duckdns.org
+  User   : admin
+  P12    : /path/to/MobileGuardDefault.p12
+
+1. AUTHENTICATION & CONNECTION
+  ✓ Connect to server                              | https://sensoraccess.duckdns.org
+
+2. CARDHOLDERS
+  ✓ Get cardholders (limit 5)                      | 5 returned
+  ✓ Get cardholder count                           | total=493
+  ...
+
+  PASSED  : 36/36
+  SUCCESS : 100.0%
+```
+
+---
+
+## pytest suite
+
+```bash
+# Run all tests from the project root
 pytest
-```
 
-### Run Specific Category
+# Run only read-only tests (no data created or deleted)
+pytest -m "integration and not destructive"
 
-```bash
-# Cardholder tests only
-pytest tests/test_cardholders.py
-
-# Card tests only
-pytest tests/test_cards.py
-
-# API endpoint tests only
-pytest tests/test_api_endpoints.py
-
-# Error handling tests only
-pytest tests/test_error_handling.py
-```
-
-### Run with Markers
-
-```bash
-# Integration tests only (default)
-pytest -m integration
-
-# Destructive tests (creates/modifies data)
+# Run only destructive tests (creates/modifies/deletes data)
 pytest -m destructive
 
-# Async tests
-pytest -m async
+# Run a single file
+pytest tests/test_cardholders.py
 
-# Exclude destructive tests
-pytest -m "not destructive"
-
-# Only integration tests
-pytest -m integration
-```
-
-### Run with Verbosity
-
-```bash
-# Verbose output
-pytest -v
-
-# Very verbose (show all test names)
-pytest -vv
-
-# Show print statements
-pytest -s
-
-# Show local variables on failure
-pytest -l
-```
-
-### Run with Filtering
-
-```bash
-# Run only cardholder creation tests
+# Run a single test
 pytest tests/test_cardholders.py::TestCardholderCRUD::test_create_cardholder
 
-# Run tests matching pattern
-pytest -k "create"
-
-# Run tests NOT matching pattern
-pytest -k "not delete"
-
-# Run specific test class
-pytest tests/test_cardholders.py::TestCardholderCRUD
+# Verbose output
+pytest -v
 ```
 
-## Test Coverage
+### Test files
 
-### Test Categories
+| File | What it covers |
+|---|---|
+| `test_cardholders.py` | Cardholder CRUD, search, pagination, edge cases |
+| `test_cards.py` | Card CRUD, field validation, cardholder linkage |
+| `test_api_endpoints.py` | Read-only checks across every resource type |
+| `test_error_handling.py` | Auth errors, missing resources, data validation |
 
-#### 1. **test_cardholders.py** - Cardholder Operations
-- ✅ Create cardholder
-- ✅ Create with personal details
-- ✅ Read by UID
-- ✅ Update properties
-- ✅ Delete cardholder
-- ✅ Search by name/email/site
-- ✅ Error handling (nonexistent, duplicates)
-- ✅ Data integrity (cards collection, personal details)
+### Markers
 
-**Classes**: TestCardholderCRUD, TestCardholderRetrieval, TestCardholderErrorHandling
+| Marker | Meaning |
+|---|---|
+| `integration` | Requires a live GuardPoint server |
+| `destructive` | Creates, modifies, or deletes data on the server |
+| `slow` | Takes longer than a few seconds |
 
-#### 2. **test_cards.py** - Card Operations
-- ✅ Create card
-- ✅ Get card by UID
-- ✅ Update card
-- ✅ Delete card
-- ✅ List all cards
-- ✅ Card validation (types, status)
-- ✅ Cardholder card relationships
+---
 
-**Classes**: TestCardOperations, TestCardValidation
+## What the tests cover
 
-#### 3. **test_api_endpoints.py** - API Endpoints
-- ✅ Areas (get, list, by UID)
-- ✅ Access Events (get, pagination)
-- ✅ Alarm Events (get, list)
-- ✅ Security Groups (get, list, by UID)
-- ✅ Readers (get, list, by UID)
-- ✅ Alarm Zones (get, list, by UID)
-- ✅ Departments (get, list, by UID)
-- ✅ Sites (get, list, by UID)
-- ✅ Access Groups (get, list, by UID)
-- ✅ Weekly Programs (get, list, by UID)
-- ✅ Count operations
+- **Connection** — mTLS handshake, bearer-token authentication
+- **Cardholders** — create, read, update, delete, search, pagination, personal details
+- **Cards** — create, read, update, delete, type validation, cardholder linkage
+- **Access control** — security groups, access groups, scheduled mags
+- **Areas / Sites / Departments** — list and fetch by UID
+- **Alarms** — alarm states, alarm zones (list and fetch by UID)
+- **Hardware** — readers, controllers, inputs, relays
+- **Events** — access events, alarm events, audit events (counts + paginated lists)
+- **Scheduling** — weekly programs (list and fetch by UID)
+- **System info** — generic info entries, SignalR status, manual events, cardholder types
 
-**Classes**: TestAreasAPI, TestAccessEventsAPI, TestSecurityGroupsAPI, TestReadersAPI, TestAlarmZonesAPI, TestDepartmentsAPI, TestSitesAPI, TestAccessGroupsAPI, TestWeeklyProgramsAPI, TestCardholdersCountAPI
+---
 
-#### 4. **test_error_handling.py** - Error Scenarios
-- ✅ Authentication errors (bad credentials)
-- ✅ Connection errors (bad host)
-- ✅ Resource not found (nonexistent UIDs)
-- ✅ Data validation (special chars, unicode, length)
-- ✅ List edge cases (zero/negative limits, large limits)
-- ✅ Search edge cases (empty terms, special chars)
-- ✅ Concurrent operations (update while listing)
+## Notes
 
-**Classes**: TestAuthenticationErrors, TestResourceNotFound, TestDataValidation, TestListOperations, TestConcurrentOperations
-
-## Fixtures
-
-### Provided by conftest.py
-
-#### Configuration
-- **config** - Test server configuration (host, credentials, timeout)
-
-#### Clients
-- **gp_sync** - Synchronous GuardPoint client
-- **gp_async** - Asynchronous GuardPoint client (async fixture)
-
-#### Test Data
-- **test_cardholder** - Basic cardholder object
-- **test_cardholder_pd** - Cardholder with personal details
-
-#### Cleanup
-- **cleanup_cardholders** - Auto-deletes created cardholders after test
-- **cleanup_cards** - Auto-deletes created cards after test
-
-### Usage Example
-
-```python
-def test_something(gp_sync, test_cardholder, cleanup_cardholders):
-    # test_cardholder is a fresh Cardholder object
-    # gp_sync is connected GuardPoint client
-    # cleanup_cardholders automatically removes created objects
-    
-    uid = gp_sync.new_card_holder(test_cardholder)
-    cleanup_cardholders.append(gp_sync.get_card_holder(uid=uid))
-```
-
-## Cleanup Behavior
-
-Tests are designed to be **self-cleaning**:
-
-1. **Cleanup Fixtures** - Automatically delete all created resources
-2. **Unique Identifiers** - Each test gets a unique ID for data isolation
-3. **Error Recovery** - Cleanup happens even if test fails
-
-Cleanup happens in this order:
-1. Cards created during test are deleted
-2. Cardholders created during test are deleted
-3. Fixture cleanup runs (in reverse order of creation)
-
-## Test Execution Flow
-
-```
-Session Start
-│
-├─ conftest.py loaded
-│  ├─ TestConfig created
-│  └─ Fixtures registered
-│
-├─ For each test:
-│  ├─ Setup fixtures
-│  ├─ Run test
-│  ├─ Cleanup fixtures
-│  └─ Log results
-│
-└─ Session End
-   └─ Summary printed
-```
-
-## Expected Test Results
-
-### Passing Tests
-All tests should pass against the test server at `https://sensoraccess.duckdns.org` with default credentials.
-
-### Skipped Tests
-Some tests may be skipped if:
-- Server is unavailable
-- Feature not available on server version
-- Async tests in non-async environment
-
-### Failed Tests
-Failures indicate:
-- Bug in pyGuardPoint SDK
-- Test environment issue
-- API incompatibility
-
-## Performance Considerations
-
-- **Timeout**: 30 seconds per test (configurable in pytest.ini)
-- **Cleanup**: Runs after each test (add ~1-2s per test)
-- **Network**: Tests depend on internet connectivity to test server
-- **Total Runtime**: ~3-5 minutes for full suite (depends on server)
-
-### Optimization Tips
-
-```bash
-# Run only fast tests
-pytest --timeout=5
-
-# Run in parallel (requires pytest-xdist)
-pip install pytest-xdist
-pytest -n auto
-
-# Skip cleanup (risky, for debugging only)
-pytest -m "not destructive"
-```
-
-## Common Issues
-
-### Connection Refused
-```
-Error: Connection refused to https://sensoraccess.duckdns.org
-```
-**Solution**: Check internet connection, verify test server is reachable
-
-### Authentication Failed
-```
-GuardPointUnauthorized: Invalid credentials
-```
-**Solution**: Verify GP_USER and GP_PASS environment variables
-
-### Timeout
-```
-TIMEOUT: Exceeded 30 seconds
-```
-**Solution**: Increase timeout in pytest.ini, check network latency
-
-### Port Already in Use
-```
-OSError: [Errno 48] Address already in use
-```
-**Solution**: Close other applications, wait for cleanup
-
-## Extending Tests
-
-### Add New Test
-
-```python
-@pytest.mark.integration
-class TestMyFeature:
-    """Test my feature."""
-    
-    def test_something(self, gp_sync, cleanup_cardholders):
-        """Test description."""
-        # Create test data
-        ch = Cardholder()
-        ch.firstName = "Test"
-        uid = gp_sync.new_card_holder(ch)
-        
-        # Add to cleanup
-        cleanup_cardholders.append(gp_sync.get_card_holder(uid=uid))
-        
-        # Assert something
-        assert uid is not None
-```
-
-### Add New Fixture
-
-Edit conftest.py:
-
-```python
-@pytest.fixture
-def my_fixture(gp_sync):
-    """My custom fixture."""
-    # Setup
-    data = gp_sync.get_something()
-    
-    yield data
-    
-    # Teardown (optional)
-```
-
-## CI/CD Integration
-
-### GitHub Actions Example
-
-```yaml
-name: PyGuardPoint Tests
-
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - run: pip install -r requirements.txt pytest
-      - run: pytest tests/ -m integration
-```
-
-## Troubleshooting
-
-### Debug Single Test
-
-```bash
-pytest tests/test_cardholders.py::TestCardholderCRUD::test_create_cardholder -vvs
-```
-
-### Show Full Traceback
-
-```bash
-pytest --tb=long
-```
-
-### Save Test Results
-
-```bash
-pytest --html=report.html --self-contained-html
-```
-
-### Log File
-
-```
-tests/pytest.log
-```
-
-## Security Note
-
-Tests use default credentials on public test server. Never run against production with these fixtures.
-
-For production testing, create isolated test fixtures with unique credentials.
+- The server **soft-deletes** cardholders — a fetch immediately after deletion may still return the record. Tests rely on the HTTP 204 response rather than a post-delete re-fetch to confirm deletion.
+- `run_tests_async.py` does not test `get_inputs` because that endpoint is not yet implemented in `GuardPointAsyncIO`.
+- Tests are self-cleaning: the pytest `cleanup_cardholders` and `cleanup_cards` fixtures delete any data created during a test, even on failure.

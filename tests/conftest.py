@@ -1,136 +1,142 @@
 """Pytest configuration and fixtures for pyGuardPoint tests."""
 
 import os
-import pytest
 import sys
-from dataclasses import dataclass
+import pytest
 
-sys.path.insert(1, 'pyGuardPoint_Build')
+# Resolve path relative to this file so tests run correctly from any directory
+sys.path.insert(1, os.path.join(os.path.dirname(__file__), '..', 'pyGuardPoint_Build'))
+
 from pyGuardPoint_Build.pyGuardPoint import (
     GuardPoint, GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized,
-    Cardholder, Card, Area, CardholderPersonalDetail
+    Cardholder, Card, CardholderPersonalDetail,
 )
 
 
-@dataclass
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+_default_p12 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MobileGuardDefault.p12')
+
+
 class TestConfig:
-    """Test server configuration."""
-    host: str = os.getenv('GP_HOST', 'https://sensoraccess.duckdns.org')
-    username: str = os.getenv('GP_USER', 'admin')
-    password: str = os.getenv('GP_PASS', 'admin')
-    tls_p12_file: str = os.getenv('GP_TLS_P12')
-    tls_p12_pwd: str = os.getenv('GP_TLS_P12_PWD', '')
-    timeout: int = 10
+    """Test server configuration — driven by environment variables."""
+    host     = os.getenv('GP_HOST',    'https://sensoraccess.duckdns.org')
+    username = os.getenv('GP_USER',    'admin')
+    password = os.getenv('GP_PASS',    'admin')
+    p12_file = os.getenv('GP_P12',     _default_p12)
+    p12_pwd  = os.getenv('GP_P12_PWD', 'test')
+    timeout  = 30
 
 
 @pytest.fixture(scope='session')
 def config():
-    """Test server configuration."""
     return TestConfig()
 
 
+# ---------------------------------------------------------------------------
+# Clients
+# ---------------------------------------------------------------------------
+
 @pytest.fixture
 def gp_sync(config):
-    """Sync GuardPoint client."""
+    """Synchronous GuardPoint client."""
     gp = GuardPoint(
         host=config.host,
         username=config.username,
         pwd=config.password,
-        timeout=config.timeout
+        p12_file=config.p12_file,
+        p12_pwd=config.p12_pwd,
+        timeout=config.timeout,
     )
     yield gp
 
 
 @pytest.fixture
 async def gp_async(config):
-    """Async GuardPoint client."""
+    """Asynchronous GuardPoint client."""
     gp = GuardPointAsyncIO(
         host=config.host,
         username=config.username,
         pwd=config.password,
-        timeout=config.timeout
+        p12_file=config.p12_file,
+        p12_pwd=config.p12_pwd,
+        timeout=config.timeout,
     )
     yield gp
     await gp.close()
 
 
+# ---------------------------------------------------------------------------
+# Test data factories
+# ---------------------------------------------------------------------------
+
 @pytest.fixture
-def test_cardholder():
-    """Create a test cardholder object."""
+def unique_id():
+    """Eight-character hex ID unique to this test run."""
+    return os.urandom(4).hex()
+
+
+@pytest.fixture
+def test_cardholder(unique_id):
+    """Minimal cardholder object ready for creation."""
     ch = Cardholder()
-    ch.firstName = f"Test_Cardholder"
-    ch.lastName = f"pytest_{pytest.current_test_id}"
-    ch.pinCode = "1234"
-    ch.description = "Created by pytest - will be deleted"
+    ch.firstName = f"PyTest_{unique_id}"
+    ch.lastName  = "auto"
+    ch.pinCode   = "1234"
+    ch.description = "Created by pytest — will be deleted"
     return ch
 
 
 @pytest.fixture
-def test_cardholder_pd():
-    """Create test cardholder with personal details."""
+def test_cardholder_pd(unique_id):
+    """Cardholder with personal details."""
     ch = Cardholder()
-    ch.firstName = "TestPD"
-    ch.lastName = f"pytest_{pytest.current_test_id}"
+    ch.firstName = f"PyTestPD_{unique_id}"
+    ch.lastName  = "auto"
 
     pd = CardholderPersonalDetail()
-    pd.company = "PyTest Corp"
-    pd.email = f"test-{pytest.current_test_id}@example.com"
+    pd.company    = "PyTest Corp"
+    pd.email      = f"pytest-{unique_id}@example.com"
     pd.department = "QA"
-
     ch.cardholderPersonalDetail = pd
     return ch
 
 
+# ---------------------------------------------------------------------------
+# Cleanup helpers
+# ---------------------------------------------------------------------------
+
 @pytest.fixture
 def cleanup_cardholders(gp_sync):
-    """Cleanup fixture - removes cardholders created during tests."""
-    created_cardholders = []
-
-    yield created_cardholders
-
-    # Cleanup: delete all created cardholders
-    for ch in created_cardholders:
+    """Append created Cardholder objects; they are deleted after the test."""
+    created = []
+    yield created
+    for ch in created:
         try:
-            if gp_sync.delete_card_holder(ch):
-                print(f"Deleted cardholder: {ch.firstName} {ch.lastName}")
-        except GuardPointError as e:
-            print(f"Failed to cleanup cardholder {ch.uid}: {e}")
+            gp_sync.delete_card_holder(ch)
+        except GuardPointError:
+            pass
 
 
 @pytest.fixture
 def cleanup_cards(gp_sync):
-    """Cleanup fixture - removes cards created during tests."""
-    created_cards = []
-
-    yield created_cards
-
-    # Cleanup: delete all created cards
-    for card in created_cards:
+    """Append created Card objects; they are deleted after the test."""
+    created = []
+    yield created
+    for card in created:
         try:
-            if gp_sync.delete_card(card):
-                print(f"Deleted card: {card.cardCode}")
-        except GuardPointError as e:
-            print(f"Failed to cleanup card {card.uid}: {e}")
+            gp_sync.delete_card(card)
+        except GuardPointError:
+            pass
 
+
+# ---------------------------------------------------------------------------
+# Markers
+# ---------------------------------------------------------------------------
 
 def pytest_configure(config):
-    """Pytest configuration hook."""
-    # Add custom markers
-    config.addinivalue_line(
-        "markers", "integration: integration tests that require live server"
-    )
-    config.addinivalue_line(
-        "markers", "async: async operation tests"
-    )
-    config.addinivalue_line(
-        "markers", "slow: slow tests"
-    )
-    config.addinivalue_line(
-        "markers", "destructive: tests that create/modify/delete data"
-    )
-
-
-@pytest.fixture(autouse=True)
-def setup_test_id():
-    """Setup unique test ID for each test."""
-    pytest.current_test_id = os.urandom(4).hex()[:8]
+    config.addinivalue_line("markers", "integration: requires a live GuardPoint server")
+    config.addinivalue_line("markers", "destructive: creates, modifies, or deletes data")
+    config.addinivalue_line("markers", "slow: takes longer than a few seconds")

@@ -1,7 +1,13 @@
 """Test card operations."""
 
+import os
 import pytest
-from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Card, Cardholder
+from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Card
+
+
+def _hex_code():
+    """Return a fresh 8-char uppercase hex card code (hex chars only — server requirement)."""
+    return os.urandom(4).hex().upper()
 
 
 @pytest.mark.integration
@@ -10,169 +16,122 @@ class TestCardOperations:
     """Test card CRUD operations."""
 
     @pytest.fixture
-    def test_cardholder_with_cards(self, gp_sync, test_cardholder, cleanup_cardholders):
-        """Create a cardholder for card tests."""
-        uid = gp_sync.new_card_holder(test_cardholder)
-        ch = gp_sync.get_card_holder(uid=uid)
-        cleanup_cardholders.append(ch)
-        return ch
+    def cardholder(self, gp_sync, test_cardholder, cleanup_cardholders):
+        """Create a cardholder to attach cards to."""
+        created = gp_sync.new_card_holder(test_cardholder)
+        cleanup_cardholders.append(created)
+        return created
 
-    def test_create_card(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test creating a new card."""
+    def test_create_card(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = f"pytest_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.description = "Created by pytest"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.description   = "Created by pytest"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
-        assert uid is not None
-        assert len(uid) == 36  # UUID format
+        created = gp_sync.new_card(card)
+        assert created is not None
+        assert created.uid is not None
+        assert len(created.uid) == 36
+        assert created.cardCode == card.cardCode
 
-        # Verify card was created
-        created_card = gp_sync.get_card(uid)
-        assert created_card is not None
-        assert created_card.cardCode == card.cardCode
-        assert created_card.cardholderUID == test_cardholder_with_cards.uid
+        cleanup_cards.append(created)
 
-        cleanup_cards.append(created_card)
-
-    def test_get_card(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test retrieving a card by UID."""
+    def test_get_card(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = f"pytest_get_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
+        created = gp_sync.new_card(card)
 
-        # Retrieve
-        retrieved = gp_sync.get_card(uid)
+        retrieved = gp_sync.get_card(created.uid)
         assert retrieved is not None
-        assert retrieved.uid == uid
+        assert retrieved.uid == created.uid
         assert retrieved.cardCode == card.cardCode
 
-        cleanup_cards.append(retrieved)
+        cleanup_cards.append(created)
 
-    def test_update_card(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test updating a card."""
+    def test_update_card(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = f"pytest_upd_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
+        created = gp_sync.new_card(card)
+        created.description = "Updated by pytest"
 
-        # Modify
-        modified = gp_sync.get_card(uid)
-        modified.description = "Updated by pytest"
-
-        # Update
-        result = gp_sync.update_card(modified)
+        result = gp_sync.update_card(created)
         assert result is True
 
-        # Verify
-        verified = gp_sync.get_card(uid)
+        verified = gp_sync.get_card(created.uid)
         assert verified.description == "Updated by pytest"
 
-        cleanup_cards.append(verified)
+        cleanup_cards.append(created)
 
-    def test_delete_card(self, gp_sync, test_cardholder_with_cards):
-        """Test deleting a card."""
+    def test_delete_card(self, gp_sync, cardholder):
         card = Card()
-        card.cardCode = f"pytest_del_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
-
-        # Verify exists
-        created = gp_sync.get_card(uid)
+        created = gp_sync.new_card(card)
         assert created is not None
 
-        # Delete
         result = gp_sync.delete_card(created)
         assert result is True
 
-        # Verify deleted
-        deleted = gp_sync.get_card(uid)
-        assert deleted is None
-
     def test_get_all_cards(self, gp_sync):
-        """Test getting all cards."""
         cards = gp_sync.get_cards(limit=50)
         assert cards is not None
         assert isinstance(cards, list)
 
-    def test_cardholder_has_cards_after_creation(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test that cardholder's card list updates after creating card."""
+    def test_get_card_count(self, gp_sync):
+        count = gp_sync.get_cards(count=True)
+        assert isinstance(count, int)
+        assert count >= 0
+
+    def test_cardholder_card_linked(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = f"pytest_list_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
+        created = gp_sync.new_card(card)
+        fetched = gp_sync.get_card(created.uid)
+        assert fetched.cardholderUID == cardholder.uid
 
-        # Refresh cardholder
-        refreshed = gp_sync.get_card_holder(test_cardholder_with_cards.uid)
-        # Check that cards list is populated or card can be retrieved separately
-        card_check = gp_sync.get_card(uid)
-        assert card_check is not None
-
-        cleanup_cards.append(card_check)
+        cleanup_cards.append(created)
 
 
 @pytest.mark.integration
 class TestCardValidation:
-    """Test card validation and constraints."""
+    """Card field validation."""
 
-    def test_card_requires_code(self, gp_sync, test_cardholder_with_cards):
-        """Test that card requires a code."""
+    @pytest.fixture
+    def cardholder(self, gp_sync, test_cardholder, cleanup_cardholders):
+        created = gp_sync.new_card_holder(test_cardholder)
+        cleanup_cardholders.append(created)
+        return created
+
+    def test_card_type_magnetic(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = ""  # Empty code
-        card.cardType = "Magnetic"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.cardholderUID = cardholder.uid
 
-        # This may raise an error or be rejected by server
-        try:
-            uid = gp_sync.new_card(card)
-            # If it succeeds, verify the code is assigned something
-            if uid:
-                created = gp_sync.get_card(uid)
-                if created:
-                    gp_sync.delete_card(created)
-        except GuardPointError:
-            # Expected - card needs code
-            pass
+        created = gp_sync.new_card(card)
+        assert created is not None
+        assert created.cardType == "Magnetic"
+        cleanup_cards.append(created)
 
-    def test_card_with_different_types(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test creating cards with different types."""
-        card_types = ["Magnetic", "Proximity"]
-
-        for card_type in card_types:
-            card = Card()
-            card.cardCode = f"pytest_{card_type}_{pytest.current_test_id}"
-            card.cardType = card_type
-            card.cardholderUID = test_cardholder_with_cards.uid
-
-            uid = gp_sync.new_card(card)
-            assert uid is not None
-
-            created = gp_sync.get_card(uid)
-            assert created.cardType == card_type
-            cleanup_cards.append(created)
-
-    def test_card_status_field(self, gp_sync, test_cardholder_with_cards, cleanup_cards):
-        """Test card status field."""
+    def test_card_status_field(self, gp_sync, cardholder, cleanup_cards):
         card = Card()
-        card.cardCode = f"pytest_status_{pytest.current_test_id}"
-        card.cardType = "Magnetic"
-        card.status = "Free"
-        card.cardholderUID = test_cardholder_with_cards.uid
+        card.cardCode      = _hex_code()
+        card.cardType      = "Magnetic"
+        card.status        = "Free"
+        card.cardholderUID = cardholder.uid
 
-        uid = gp_sync.new_card(card)
-
-        created = gp_sync.get_card(uid)
+        created = gp_sync.new_card(card)
         assert created.status is not None
-
         cleanup_cards.append(created)

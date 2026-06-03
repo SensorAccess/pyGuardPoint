@@ -141,5 +141,8 @@ class ReadersAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Reader(json_body['value'])
+        value = json_body['value']
+        if isinstance(value, list):
+            return Reader(value[0]) if value else None
+        return Reader(value)
 
