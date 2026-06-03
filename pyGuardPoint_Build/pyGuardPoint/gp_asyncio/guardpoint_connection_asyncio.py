@@ -172,11 +172,11 @@ class GuardPointConnection:
                 if code != 200:
                     return code, auth_body
             if self.auto_renew:
-                if self.token_expiry < (time.time() - (20 * 60)):  # If Token will expire within 20 minutes
+                if self.token_expiry < (time.time() + (20 * 60)) and self.token_expiry > time.time():
                     code, auth_body = await self._renew_token()
                     if code != 200:
                         return code, auth_body
-                if self.token_expiry < time.time():
+                elif self.token_expiry < time.time():
                     code, auth_body = await self._new_token()
                     if code != 200:
                         return code, auth_body
@@ -220,54 +220,70 @@ class GuardPointConnection:
                         json_body = None
             except InvalidURL as e:
                 log.error(str(e))
-                return
+                return 400, {"error": str(e)}
             except Exception as e:
                 log.error(str(e))
-                return
+                return 500, {"error": str(e)}
 
         elif method.lower() == "post":
-            async with self.session.post(url, data=raw_body, headers=headers) as response:
-                body = await response.text()
-                try:
-                    json_body = json.loads(body)
-                except JSONDecodeError:
-                    json_body = None
-                except Exception as e:
-                    log.error(e)
-                    json_body = None
+            try:
+                async with self.session.post(url, data=raw_body, headers=headers) as response:
+                    body = await response.text()
+                    try:
+                        json_body = json.loads(body)
+                    except JSONDecodeError:
+                        json_body = None
+                    except Exception as e:
+                        log.error(e)
+                        json_body = None
+            except Exception as e:
+                log.error(str(e))
+                return 500, {"error": str(e)}
 
         elif method.lower() == "patch":
-            async with self.session.patch(url, data=raw_body, headers=headers) as response:
-                body = await response.text()
-                try:
-                    json_body = json.loads(body)
-                except JSONDecodeError:
-                    json_body = None
-                except Exception as e:
-                    log.error(e)
-                    json_body = None
+            try:
+                async with self.session.patch(url, data=raw_body, headers=headers) as response:
+                    body = await response.text()
+                    try:
+                        json_body = json.loads(body)
+                    except JSONDecodeError:
+                        json_body = None
+                    except Exception as e:
+                        log.error(e)
+                        json_body = None
+            except Exception as e:
+                log.error(str(e))
+                return 500, {"error": str(e)}
 
         elif method.lower() == "delete":
-            async with self.session.delete(url, data=raw_body, headers=headers) as response:
-                body = await response.text()
-                try:
-                    json_body = json.loads(body)
-                except JSONDecodeError:
-                    json_body = None
-                except Exception as e:
-                    log.error(e)
-                    json_body = None
+            try:
+                async with self.session.delete(url, data=raw_body, headers=headers) as response:
+                    body = await response.text()
+                    try:
+                        json_body = json.loads(body)
+                    except JSONDecodeError:
+                        json_body = None
+                    except Exception as e:
+                        log.error(e)
+                        json_body = None
+            except Exception as e:
+                log.error(str(e))
+                return 500, {"error": str(e)}
 
         elif method.lower() == "put":
-            async with self.session.put(url, data=raw_body, headers=headers) as response:
-                body = await response.text()
-                try:
-                    json_body = json.loads(body)
-                except JSONDecodeError:
-                    json_body = None
-                except Exception as e:
-                    log.error(e)
-                    json_body = None
+            try:
+                async with self.session.put(url, data=raw_body, headers=headers) as response:
+                    body = await response.text()
+                    try:
+                        json_body = json.loads(body)
+                    except JSONDecodeError:
+                        json_body = None
+                    except Exception as e:
+                        log.error(e)
+                        json_body = None
+            except Exception as e:
+                log.error(str(e))
+                return 500, {"error": str(e)}
 
         else:
             raise ValueError("Method Not Supported")

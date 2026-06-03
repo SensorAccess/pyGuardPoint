@@ -1,4 +1,5 @@
 import logging
+import threading
 from collections import defaultdict
 from dataclasses import dataclass, asdict, field
 from enum import Enum
@@ -18,20 +19,21 @@ class EventOrder(Enum):
 
 
 class Observable:
-    # A set of all attributes which get changed
-    changed_attributes = set()
-
     def __init__(self):
-        self.observed = defaultdict(list)
+        super().__setattr__('changed_attributes', set())
+        super().__setattr__('observed', defaultdict(list))
+        super().__setattr__('_observer_lock', threading.RLock())
 
     def __setattr__(self, name, value):
         super().__setattr__(name, value)
 
-        for observer in self.observed.get(name, []):
-            observer(name)
+        with self._observer_lock:
+            for observer in self.observed.get(name, []):
+                observer(name)
 
     def add_observer(self, name):
-        self.observed[name].append(lambda name: self.changed_attributes.add(name))
+        with self._observer_lock:
+            self.observed[name].append(lambda name: self.changed_attributes.add(name))
 
 
 def sanitise_args(obj: Observable, args, kwargs):
@@ -1161,7 +1163,7 @@ class Cardholder(Observable):
     securityGroupUID: str = ""
     accessGroupUIDs: any = None
     liftAccessGroupUIDs: any = None
-    personalCrisisLevel: int = 0
+    personalCrisisLevel: int = None
     lastDownloadTime: any = None
     lastInOutArea: str = ""
     lastInOutReaderUID: any = None
@@ -1219,7 +1221,7 @@ class Cardholder(Observable):
                 try:
                     if isinstance(getattr(self, property_name), str):
                         value = str(value)
-                except:
+                except AttributeError:
                     pass
 
 
