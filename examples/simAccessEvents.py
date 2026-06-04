@@ -33,18 +33,18 @@ if __name__ == "__main__":
         reader_num = 1
         card_code = "AABB1122"
 
-        if gp.simulate_access_event(controller_uid=controller_uid, reader_num=reader_num, card_code=card_code):
-            print("Event Fired Successfully")
+        '''if gp.simulate_access_event(controller_uid=controller_uid, reader_num=reader_num, card_code=card_code):
+            print("Event Fired Successfully")'''
 
         # Cycle through all Readers + fire event
         readers = gp.get_readers()
         for reader in readers:
             print(reader.controllerUID)
-            '''if gp.simulate_access_event(
+            if gp.simulate_access_event(
                     controller_uid=reader.controllerUID,
                     reader_num=reader.number,
                     card_code=card_code):
-                print("Event Fired Successfully")'''
+                print("Event Fired Successfully")
 
     except GuardPointError as e:
         print(f"GuardPointError: {e}")

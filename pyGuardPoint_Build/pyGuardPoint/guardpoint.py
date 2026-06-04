@@ -35,11 +35,7 @@ from .guardpoint_utils import url_parser, ConvertBase64
 log = logging.getLogger(__name__)
 
 
-def stop_listening(client: SignalRClient):
-    async def stop_signal_client() -> None:
-        await client._transport.close()
 
-    asyncio.run(stop_signal_client())
 
 
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI,
@@ -224,3 +220,9 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
             asyncio.run(run_signal_client())
         except asyncio.CancelledError:
             print(f"{self.task.get_name()} cancelled")
+
+    def stop_listening(self, client: SignalRClient):
+        async def stop_signal_client() -> None:
+            await client._transport.close()
+
+        asyncio.run(stop_signal_client())
