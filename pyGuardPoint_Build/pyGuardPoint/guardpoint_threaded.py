@@ -47,8 +47,8 @@ class GuardPointThreaded:
         callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 
-    def delete_cardholder(self, on_finished, cardholder: Cardholder):
-        future = self.executor.submit(self.gp.delete_card_holder, cardholder=cardholder)
+    def delete_cardholder(self, on_finished, cardholder: Cardholder, delete_cards: bool = False):
+        future = self.executor.submit(self.gp.delete_card_holder, cardholder=cardholder, delete_cards=delete_cards)
         callback = GPThreadCallBack(on_finished)
         future.add_done_callback(callback.handle_future)
 

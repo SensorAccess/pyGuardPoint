@@ -38,9 +38,14 @@ class CardholdersAPI:
         Retrieves a list of cardholders based on various filters and search criteria.
     """
 
-    async def delete_card_holder(self, cardholder: Cardholder):
+    async def delete_card_holder(self, cardholder: Cardholder, delete_cards: bool = False):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
+
+        if delete_cards:
+            cards = await self.get_cards(cardholderUID=cardholder.uid)
+            for card in cards:
+                await self.delete_card(card)
 
         url = "/odata/API_Cardholders"
         url_query_params = "(" + cardholder.uid + ")"

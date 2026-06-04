@@ -39,7 +39,7 @@ class CardholdersAPI:
         Retrieves a list of cardholders based on various filters and search criteria.
     """
 
-    def delete_card_holder(self, cardholder: Cardholder):
+    def delete_card_holder(self, cardholder: Cardholder, delete_cards: bool = False):
         """
         Delete a cardholder from the system.
 
@@ -50,6 +50,9 @@ class CardholdersAPI:
 
         :param cardholder: The cardholder object to be deleted.
         :type cardholder: Cardholder
+        :param delete_cards: If True, all cards associated with the cardholder are
+                             deleted before the cardholder is removed. Default is False.
+        :type delete_cards: bool
 
         :raises ValueError: If the cardholder UID is malformed.
         :raises GuardPointUnauthorized: If the request is unauthorized (HTTP 401).
@@ -61,6 +64,11 @@ class CardholdersAPI:
         """
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
+
+        if delete_cards:
+            cards = self.get_cards(cardholderUID=cardholder.uid)
+            for card in cards:
+                self.delete_card(card)
 
         url = self.baseurl + "/odata/API_Cardholders"
         url_query_params = "(" + cardholder.uid + ")"
