@@ -186,7 +186,16 @@ class CardholdersAPI:
                                 await self.update_card(card)
                             else:
                                 card.cardholderUID = new_cardholder.uid
-                                await self.new_card(card)
+                                try:
+                                    await self.new_card(card)
+                                except GuardPointError as e:
+                                    if 'CardCode_Already_Exists' not in str(e):
+                                        raise
+                                    existing_cards = await self.get_cards(cardCode=card.cardCode)
+                                    if existing_cards and existing_cards[0].status == 'Free':
+                                        existing_card = existing_cards[0]
+                                        existing_card.cardholderUID = new_cardholder.uid
+                                        await self.update_card(existing_card)
 
             return await self._get_card_holder(new_cardholder.uid)
 
