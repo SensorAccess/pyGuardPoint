@@ -66,6 +66,22 @@ class CardholderOrderBy(Enum):
     lastPassDate_DESC = 1
 
 
+class CardType(Enum):
+    NONE = 0
+    Wiegand = 1
+    Magnetic = 2
+    TypeA = 3
+    TypeB = 4
+    TypeC = 5
+    TypeD = 6
+    TypeE = 7
+    TypeF = 8
+    TypeG = 9
+    TypeH = 10
+    SmartCard13_65MHz = 11
+    LPR = 12
+
+
 @dataclass
 class CustomizedField:
     customizedFieldType: str = ""
@@ -737,8 +753,13 @@ class Card(Observable):
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
-    cardType: str = "Wiegand"
+    cardType: str = CardType.Wiegand.name
     readerFunctionUID: any = None
+    licensePlate: str = ""
+    isFromDateActive: bool = False
+    fromDateValid: any = None
+    isToDateActive: bool = False
+    toDateValid: any = None
     uid: str = ""
 
     def __init__(self, *args, **kwargs):
@@ -746,8 +767,17 @@ class Card(Observable):
         card_dict = sanitise_args(self, args, kwargs)
 
         for property_name in card_dict:
-            if isinstance(card_dict[property_name], (str, type(None), bool, int)):
-                setattr(self, property_name, card_dict[property_name])
+            value = card_dict[property_name]
+            if property_name == 'cardType' and isinstance(value, CardType):
+                setattr(self, property_name, value.name)
+            elif property_name in ('fromDateValid', 'toDateValid'):
+                if isinstance(value, datetime.datetime):
+                    dt = value.replace(microsecond=0)
+                    setattr(self, property_name, dt.isoformat(timespec='seconds'))
+                elif isinstance(value, (str, type(None))):
+                    setattr(self, property_name, value)
+            elif isinstance(value, (str, type(None), bool, int)):
+                setattr(self, property_name, value)
 
         # Monitor Changes
         for k, v in asdict(self).items():
