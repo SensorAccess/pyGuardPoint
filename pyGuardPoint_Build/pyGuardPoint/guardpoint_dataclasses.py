@@ -737,7 +737,7 @@ class Card(Observable):
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
-    cardType: any = None
+    cardType: str = "Wiegand"
     readerFunctionUID: any = None
     uid: str = ""
 

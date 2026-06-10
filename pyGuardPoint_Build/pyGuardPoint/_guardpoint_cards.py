@@ -74,7 +74,7 @@ class CardsAPI:
             elif code == 404:  # Not Found
                 raise GuardPointError(f"Cards Not Found")
             else:
-                raise GuardPointError(f"{error_msg}")
+                raise GuardPointError(f"Failed to create Card, check parameters ({error_msg})")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")

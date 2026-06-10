@@ -127,7 +127,7 @@ class CardsAPI:
             elif "message" in json_body:
                 raise GuardPointError(json_body['message'])
             else:
-                raise GuardPointError(str(code))
+                raise GuardPointError(f"Failed to create Card, check parameters ({str(code)})")
 
     async def get_card(self, card_uid: str):
         url = "/odata/API_Cards"
