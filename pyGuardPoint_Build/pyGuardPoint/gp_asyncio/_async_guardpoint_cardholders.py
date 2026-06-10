@@ -194,6 +194,7 @@ class CardholdersAPI:
                                     existing_cards = await self.get_cards(cardCode=card.cardCode)
                                     if existing_cards and existing_cards[0].status == 'Free':
                                         existing_card = existing_cards[0]
+                                        existing_card.status = 'Used'
                                         existing_card.cardholderUID = new_cardholder.uid
                                         await self.update_card(existing_card)
 

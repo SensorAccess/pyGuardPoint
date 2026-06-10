@@ -168,8 +168,13 @@ class CardsAPI:
 
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+
+            if "errorMessages" in json_body:
+                raise GuardPointError(json_body["errorMessages"][0]["other"])
+            elif "message" in json_body:
+                raise GuardPointError(json_body['message'])
             else:
-                raise GuardPointError(f"No body - ({code})")
+                raise GuardPointError(str(code))
 
         return True
 

@@ -1,5 +1,6 @@
 """Test cardholder CRUD operations."""
 
+import datetime
 import pytest
 from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Cardholder
 
@@ -119,6 +120,25 @@ class TestCardholderCRUD:
         results = gp_sync.get_card_holders(lastName="UniqueLastName", limit=10)
         assert results is not None
         assert any(c.uid == created.uid for c in results)
+
+        cleanup_cardholders.append(created)
+
+    def test_create_cardholder_with_to_date_valid(self, gp_sync, unique_id, cleanup_cardholders):
+        expiry = datetime.datetime(2027, 6, 15, 9, 0, 0)
+        ch = Cardholder(
+            firstName=f"PyTestExpiry_{unique_id}",
+            lastName="auto",
+            toDateValid=expiry,
+        )
+
+        created = gp_sync.new_card_holder(ch)
+        assert created is not None
+        assert created.uid is not None
+
+        fetched = gp_sync.get_card_holder(uid=created.uid)
+        assert fetched is not None
+        assert fetched.toDateValid is not None
+        assert fetched.toDateValid.startswith("2027-06-15")
 
         cleanup_cardholders.append(created)
 

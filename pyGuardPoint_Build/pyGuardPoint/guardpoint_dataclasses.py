@@ -1,3 +1,4 @@
+import datetime
 import logging
 import threading
 from collections import defaultdict
@@ -736,7 +737,7 @@ class Card(Observable):
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
-    cardType: str = "Magnetic"
+    cardType: any = None
     readerFunctionUID: any = None
     uid: str = ""
 
@@ -1208,6 +1209,16 @@ class Cardholder(Observable):
                 if isinstance(cardholder_dict[property_name], CardholderCustomizedField):
                     self.cardholderCustomizedField = cardholder_dict[property_name]
 
+            if property_name == "fromDateValid":
+                if isinstance(cardholder_dict[property_name], datetime.datetime):
+                    dt = cardholder_dict[property_name]
+                    self.fromDateValid = dt.isoformat(timespec='seconds')
+
+            if property_name == "toDateValid":
+                if isinstance(cardholder_dict[property_name], datetime.datetime):
+                    dt = cardholder_dict[property_name]
+                    self.toDateValid = dt.isoformat(timespec='seconds')
+
             if isinstance(cardholder_dict[property_name], dict):
                 if property_name == "insideArea":
                     self.insideArea = Area(cardholder_dict[property_name])
@@ -1321,7 +1332,13 @@ class Cardholder(Observable):
         if 'lastReaderPassUID' in ch:
             ch.pop('lastReaderPassUID')
         if 'status' in ch:
-            ch.pop('status')
+            'Cannot_Set_ValidationDates_While_Setting_State_To_Invalidate_Or_Archived'
+            if 'fromDateValid' or 'toDateValid' in ch:
+                if ch['status'] != 'Validated':
+                    ch.pop('status')
+            else:
+                if ch['status'] != 'Validated' and ch['status'] != 'Invalidated' and ch['status'] != 'Archived':
+                    ch.pop('status')
         if 'insideArea' in ch:
             ch.pop('insideArea')
         if 'cardholderPersonalDetail' in ch:

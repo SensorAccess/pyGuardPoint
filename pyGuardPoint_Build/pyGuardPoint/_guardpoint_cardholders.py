@@ -227,6 +227,12 @@ class CardholdersAPI:
         if isinstance(cardholder.securityGroup, SecurityGroup):
             cardholder.securityGroupUID = cardholder.securityGroup.uid
 
+        if isinstance(cardholder.fromDateValid, datetime):
+            cardholder.fromDateValid = cardholder.fromDateValid.isoformat(timespec='seconds')
+
+        if isinstance(cardholder.toDateValid, datetime):
+            cardholder.toDateValid = cardholder.toDateValid.isoformat(timespec='seconds')
+
         if changed_only:
             ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)
         else:
@@ -248,7 +254,7 @@ class CardholdersAPI:
             if cardholder.cardholderPersonalDetail:
                 if len(cardholder.cardholderPersonalDetail.changed_attributes) > 0:
                     self.update_personal_details(cardholder_uid=new_cardholder.uid,
-                                             personal_details=cardholder.cardholderPersonalDetail)
+                                                 personal_details=cardholder.cardholderPersonalDetail)
             if cardholder.cardholderCustomizedField:
                 if len(cardholder.cardholderCustomizedField.changed_attributes) > 0:
                     self.update_custom_fields(cardholder_uid=new_cardholder.uid,
@@ -269,6 +275,7 @@ class CardholdersAPI:
                                     existing_cards = self.get_cards(cardCode=card.cardCode)
                                     if existing_cards and existing_cards[0].status == 'Free':
                                         existing_card = existing_cards[0]
+                                        existing_card.status = 'Used'
                                         existing_card.cardholderUID = new_cardholder.uid
                                         self.update_card(existing_card)
 
@@ -486,12 +493,12 @@ class CardholdersAPI:
                     break the query into smaller requests, or increase MaxNodeCount in ODataValidationSettings'''
 
     def _split_get_card_holders_query(self, offset: int = 0, limit: int = 10, search_terms: str = None,
-                                            areas: list = None,
-                                            filter_expired: bool = False, cardholder_type_name: str = None,
-                                            count: bool = False, earliest_last_pass: datetime = None,
-                                            select_ignore_list: list = None, select_include_list: list = None,
-                                            cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
-                                            **cardholder_kwargs):
+                                      areas: list = None,
+                                      filter_expired: bool = False, cardholder_type_name: str = None,
+                                      count: bool = False, earliest_last_pass: datetime = None,
+                                      select_ignore_list: list = None, select_include_list: list = None,
+                                      cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
+                                      **cardholder_kwargs):
 
         count_total = 0
         card_holders = []
