@@ -753,7 +753,7 @@ class Card(Observable):
     cardCode: str = ""
     status: str = "Free"
     cardholderUID: any = None
-    cardType: str = CardType.Wiegand.name
+    cardType: CardType = CardType.Wiegand
     readerFunctionUID: any = None
     licensePlate: str = ""
     isFromDateActive: bool = False
@@ -768,8 +768,19 @@ class Card(Observable):
 
         for property_name in card_dict:
             value = card_dict[property_name]
-            if property_name == 'cardType' and isinstance(value, CardType):
-                setattr(self, property_name, value.name)
+            if property_name == 'cardType':
+                if isinstance(value, CardType):
+                    setattr(self, property_name, value)
+                elif isinstance(value, str):
+                    try:
+                        setattr(self, property_name, CardType[value])
+                    except KeyError:
+                        pass
+                elif isinstance(value, int):
+                    try:
+                        setattr(self, property_name, CardType(value))
+                    except ValueError:
+                        pass
             elif property_name in ('fromDateValid', 'toDateValid'):
                 if isinstance(value, datetime.datetime):
                     dt = value.replace(microsecond=0)
@@ -781,7 +792,7 @@ class Card(Observable):
 
         # Monitor Changes
         for k, v in asdict(self).items():
-            if isinstance(v, (str, type(None), bool, int)):
+            if isinstance(v, (str, type(None), bool, int, CardType)):
                 self.add_observer(k)
 
     def _remove_non_changed(self, ch: dict):
@@ -793,7 +804,9 @@ class Card(Observable):
     def dict(self, editable_only=False, changed_only=False):
         c = {}
         for k, v in asdict(self).items():
-            if isinstance(v, (list, dict, bool, int)):
+            if isinstance(v, CardType):
+                c[k] = v.name
+            elif isinstance(v, (list, dict, bool, int)):
                 c[k] = v
             elif isinstance(v, type(None)):
                 c[k] = None

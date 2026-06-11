@@ -2,7 +2,7 @@
 
 import os
 import pytest
-from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Card
+from pyGuardPoint_Build.pyGuardPoint import GuardPointError, Card, CardType
 
 
 def _hex_code():
@@ -122,7 +122,7 @@ class TestCardValidation:
 
         created = gp_sync.new_card(card)
         assert created is not None
-        assert created.cardType == "Magnetic"
+        assert created.cardType == CardType.Magnetic
         cleanup_cards.append(created)
 
     def test_card_status_field(self, gp_sync, cardholder, cleanup_cards):

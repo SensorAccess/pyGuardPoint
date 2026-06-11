@@ -153,6 +153,17 @@ class CardholdersAPI:
         if isinstance(cardholder.securityGroup, SecurityGroup):
             cardholder.securityGroupUID = cardholder.securityGroup.uid
 
+        if isinstance(cardholder.fromDateValid, datetime):
+            if cardholder.fromDateValid.tzinfo is None:
+                cardholder.fromDateValid = cardholder.fromDateValid.replace(tzinfo=timezone.utc)
+            cardholder.fromDateValid = cardholder.fromDateValid.isoformat(timespec='seconds')
+
+        if isinstance(cardholder.toDateValid, datetime):
+            if cardholder.toDateValid.tzinfo is None:
+                cardholder.toDateValid = cardholder.toDateValid.replace(tzinfo=timezone.utc)
+            cardholder.toDateValid = cardholder.toDateValid.isoformat(timespec='seconds')
+
+
         if changed_only:
             ch = cardholder.dict(editable_only=True, changed_only=True, non_empty_only=True)
         else:

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 import validators
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
@@ -228,9 +228,13 @@ class CardholdersAPI:
             cardholder.securityGroupUID = cardholder.securityGroup.uid
 
         if isinstance(cardholder.fromDateValid, datetime):
+            if cardholder.fromDateValid.tzinfo is None:
+                cardholder.fromDateValid = cardholder.fromDateValid.replace(tzinfo=timezone.utc)
             cardholder.fromDateValid = cardholder.fromDateValid.isoformat(timespec='seconds')
 
         if isinstance(cardholder.toDateValid, datetime):
+            if cardholder.toDateValid.tzinfo is None:
+                cardholder.toDateValid = cardholder.toDateValid.replace(tzinfo=timezone.utc)
             cardholder.toDateValid = cardholder.toDateValid.isoformat(timespec='seconds')
 
         if changed_only:
