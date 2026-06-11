@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 import validators
 from .._odata_filter import _compose_filter, _compose_select, _compose_expand
 from .._str_match_algo import fuzzy_match
