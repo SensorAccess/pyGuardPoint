@@ -1375,8 +1375,8 @@ class Cardholder(Observable):
         if 'lastReaderPassUID' in ch:
             ch.pop('lastReaderPassUID')
         if 'status' in ch:
-            'Cannot_Set_ValidationDates_While_Setting_State_To_Invalidate_Or_Archived'
-            if 'fromDateValid' or 'toDateValid' in ch:
+            #Cannot_Set_ValidationDates_While_Setting_State_To_Invalidate_Or_Archived
+            if 'fromDateValid' in ch or 'toDateValid' in ch:
                 if ch['status'] != 'Validated':
                     ch.pop('status')
             else:
