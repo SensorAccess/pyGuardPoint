@@ -55,7 +55,7 @@ class GuardPointConnection:
 
     def __init__(self, url_components, auth, user, pwd, key, token=None,
                  cert_file=None, key_file=None, ca_file=None, p12_file=None, p12_pwd="",
-                 timeout=5):
+                 timeout=5, check_hostname=False):
         self.ssl_context = None
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
@@ -115,6 +115,10 @@ class GuardPointConnection:
                 # Loading of CA certificate.
                 self.ssl_context.load_verify_locations(cafile=ca_file)
 
+            if not check_hostname:
+                self.ssl_context.check_hostname = False
+                self.ssl_context.verify_mode = ssl.CERT_NONE
+
             self.connection = http.client.HTTPSConnection(
                 host=url_components['host'],
                 port=url_components['port'],
@@ -147,7 +151,10 @@ class GuardPointConnection:
             code, body = self._new_token()
             if int(code) != 200:
                 msg = GuardPointResponse.extract_error_msg(body)
-                raise GuardPointUnauthorized(msg)
+                if int(code) == 401:
+                    raise GuardPointUnauthorized(msg)
+                else:
+                    raise GuardPointError(msg)
 
         '''print("TOKEN EXPIRY: \t" + str(datetime.fromtimestamp(self.token_expiry)))
         print("RENEWAL COUNT: \t" + str(datetime.fromtimestamp(time.time() + (60 * renewal_minutes))))

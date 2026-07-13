@@ -3,6 +3,8 @@ import logging
 from pyGuardPoint.guardpoint import GuardPoint, GuardPointError
 from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
+from pyGuardPoint_Build.pyGuardPoint import SortAlgorithm
+
 GP_HOST = 'https://sensoraccess.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'

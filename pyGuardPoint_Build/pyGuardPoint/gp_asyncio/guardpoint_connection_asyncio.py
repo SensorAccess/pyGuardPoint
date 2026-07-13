@@ -12,7 +12,7 @@ from aiohttp import InvalidURL
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, BestAvailableEncryption, \
     pkcs12
-from ..guardpoint_error import GuardPointUnauthorized
+from ..guardpoint_error import GuardPointUnauthorized, GuardPointError
 from ..guardpoint_utils import ConvertBase64, GuardPointResponse
 import time
 
@@ -64,7 +64,8 @@ class GuardPointConnection:
         self.session = aiohttp.ClientSession(connector=conn)
 
     def open(self, url_components, auth, user, pwd, key, token=None,
-             cert_file=None, key_file=None, key_pwd="", ca_file=None, p12_file=None, p12_pwd="", timeout=5):
+             cert_file=None, key_file=None, key_pwd="", ca_file=None, p12_file=None, p12_pwd="",
+             timeout=5, check_hostname=True):
         self.ssl_context = None
         self.url_components = url_components
         if not isinstance(auth, GuardPointAuthType):
@@ -124,6 +125,10 @@ class GuardPointConnection:
             # Loading of CA certificate.
             self.ssl_context.load_verify_locations(cafile=ca_file)
 
+        if not check_hostname:
+            self.ssl_context.check_hostname = False
+            self.ssl_context.verify_mode = ssl.CERT_NONE
+
         conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
         self.session = aiohttp.ClientSession(connector=conn)
         '''self.connection = http.client.HTTPSConnection(
@@ -150,7 +155,10 @@ class GuardPointConnection:
             code, body = await self._new_token()
             if int(code) != 200:
                 msg = GuardPointResponse.extract_error_msg(body)
-                raise GuardPointUnauthorized(msg)
+                if int(code) == 401:
+                    raise GuardPointUnauthorized(msg)
+                else:
+                    raise GuardPointError(msg)
         return self.token
 
     def set_token(self, gp_token):

@@ -109,6 +109,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
         timeout = kwargs.get('timeout', 5)
         p12_file = kwargs.get('p12_file', None)
         p12_pwd = kwargs.get('p12_pwd', "")
+        check_hostname = kwargs.get('check_hostname', True)
 
         self.site_uid = kwargs.get('site_uid', None)
         if self.site_uid is not None:
@@ -117,7 +118,7 @@ class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, Secur
 
         super().__init__(url_components=url_components, auth=auth, user=user, pwd=pwd, key=key, token=token,
                          cert_file=certfile, key_file=keyfile, ca_file=cafile, timeout=timeout,
-                         p12_file=p12_file, p12_pwd=p12_pwd)
+                         p12_file=p12_file, p12_pwd=p12_pwd, check_hostname=check_hostname)
 
     def get_cardholder_count(self):
         """
