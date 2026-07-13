@@ -1323,7 +1323,12 @@ class Cardholder(Observable):
         ch = dict()
 
         for k, v in asdict(self).items():
-            if isinstance(v, (list, dict, bool, int)):
+            if k == 'cards' and isinstance(v, list):
+                for card_dict in v:
+                    if isinstance(card_dict, dict) and isinstance(card_dict.get('cardType'), CardType):
+                        card_dict['cardType'] = card_dict['cardType'].name
+                ch[k] = v
+            elif isinstance(v, (list, dict, bool, int)):
 
                 ch[k] = v
             elif isinstance(v, type(None)):

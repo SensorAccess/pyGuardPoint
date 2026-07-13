@@ -13,7 +13,7 @@ setup(name="pyGuardPoint",
       data_files=[
           ('', ['CLAUDE.md', 'llms.txt']),
       ],
-      version="2.3.6",
+      version="2.3.7",
       author="John Owen",
       description="Python wrapper for GuardPoint 10 Access Control System",
       long_description_content_type='text/markdown',
