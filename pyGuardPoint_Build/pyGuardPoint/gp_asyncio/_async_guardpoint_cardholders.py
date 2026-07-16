@@ -80,7 +80,7 @@ class CardholdersAPI:
 
         return await self.update_card_holder(cardholder)
 
-    async def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False):
+    async def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False, use_existing_cards=True):
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
@@ -100,7 +100,19 @@ class CardholdersAPI:
                             await self.update_card(card)
                         else:
                             card.cardholderUID = cardholder.uid
-                            await self.new_card(card)
+                            try:
+                                await self.new_card(card)
+                            except GuardPointError as e:
+                                if 'CardCode_Already_Exists' not in str(e):
+                                    raise
+                                if not use_existing_cards:
+                                    raise
+                                existing_cards = await self.get_cards(cardCode=card.cardCode)
+                                if existing_cards and existing_cards[0].status == 'Free':
+                                    existing_card = existing_cards[0]
+                                    existing_card.status = 'Used'
+                                    existing_card.cardholderUID = cardholder.uid
+                                    await self.update_card(existing_card)
 
         ch = cardholder.dict(editable_only=True, changed_only=True)
 
@@ -133,7 +145,7 @@ class CardholdersAPI:
 
         return True
 
-    async def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False):
+    async def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False, use_existing_cards=True):
 
         # url = "/odata/API_Cardholders/CreateFullCardholder"
         url = "/odata/API_Cardholders"
@@ -201,6 +213,8 @@ class CardholdersAPI:
                                     await self.new_card(card)
                                 except GuardPointError as e:
                                     if 'CardCode_Already_Exists' not in str(e):
+                                        raise
+                                    if not use_existing_cards:
                                         raise
                                     existing_cards = await self.get_cards(cardCode=card.cardCode)
                                     if existing_cards and existing_cards[0].status == 'Free':

@@ -117,7 +117,7 @@ class CardholdersAPI:
 
         return self.update_card_holder(cardholder)
 
-    def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False):
+    def update_card_holder(self, cardholder: Cardholder, enroll_face_from_photo=False, use_existing_cards=True):
         """
         Update the details of a cardholder in the system.
 
@@ -155,7 +155,19 @@ class CardholdersAPI:
                             self.update_card(card)
                         else:
                             card.cardholderUID = cardholder.uid
-                            self.new_card(card)
+                            try:
+                                self.new_card(card)
+                            except GuardPointError as e:
+                                if 'CardCode_Already_Exists' not in str(e):
+                                    raise
+                                if not use_existing_cards:
+                                    raise
+                                existing_cards = self.get_cards(cardCode=card.cardCode)
+                                if existing_cards and existing_cards[0].status == 'Free':
+                                    existing_card = existing_cards[0]
+                                    existing_card.status = 'Used'
+                                    existing_card.cardholderUID = cardholder.uid
+                                    self.update_card(existing_card)
 
         ch = cardholder.dict(editable_only=True, changed_only=True)
 
@@ -188,7 +200,7 @@ class CardholdersAPI:
 
         return True
 
-    def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False):
+    def new_card_holder(self, cardholder: Cardholder, changed_only=False, enroll_face_from_photo=False, use_existing_cards=True):
         """
         Create a new cardholder in the system.
 
@@ -275,6 +287,8 @@ class CardholdersAPI:
                                     self.new_card(card)
                                 except GuardPointError as e:
                                     if 'CardCode_Already_Exists' not in str(e):
+                                        raise
+                                    if not use_existing_cards:
                                         raise
                                     existing_cards = self.get_cards(cardCode=card.cardCode)
                                     if existing_cards and existing_cards[0].status == 'Free':
