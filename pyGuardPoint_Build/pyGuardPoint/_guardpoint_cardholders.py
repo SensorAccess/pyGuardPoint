@@ -10,6 +10,26 @@ from .guardpoint_utils import GuardPointResponse
 
 log = logging.getLogger(__name__)
 
+_MIN_ORDER_DATE = datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _parse_order_date(value):
+    """Parse an OData ISO datetime string for client-side ordering.
+    Missing/unparseable values sort last on DESC, matching the server's NULLS-LAST behaviour."""
+    if not value:
+        return _MIN_ORDER_DATE
+    try:
+        return datetime.fromisoformat(value.replace('Z', '+00:00'))
+    except ValueError:
+        return _MIN_ORDER_DATE
+
+
+def _is_node_count_error(err) -> bool:
+    """True if `err` is the OData "node count limit" validation error, raised when a
+    $filter's syntax tree (e.g. many areas OR'd together, plus any other conditions)
+    gets too complex."""
+    return 'node count limit' in str(err).lower()
+
 
 class CardholdersAPI:
     """
@@ -541,46 +561,132 @@ class CardholdersAPI:
                                       cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                                       **cardholder_kwargs):
 
-        count_total = 0
-        card_holders = []
-        if areas is not None:
-            for area in areas:
-                batch = self._get_card_holders(offset=offset, limit=limit,
-                                               search_terms=search_terms,
-                                               areas=[area],
+        try:
+            return self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
+                                          areas=areas,
+                                          filter_expired=filter_expired,
+                                          cardholder_type_name=cardholder_type_name,
+                                          count=count, earliest_last_pass=earliest_last_pass,
+                                          earliest_last_pass_include_null=earliest_last_pass_include_null,
+                                          select_ignore_list=select_ignore_list,
+                                          select_include_list=select_include_list,
+                                          cardholder_orderby=cardholder_orderby,
+                                          **cardholder_kwargs)
+        except GuardPointError as e:
+            if not (isinstance(areas, list) and len(areas) > 1) or not _is_node_count_error(e):
+                raise
+
+        # The combined $filter was too complex for the server's node-count limit.
+        # Halve the areas list and retry each half (recursing further if a half is
+        # still too complex) rather than dropping straight to one area at a time.
+        if count:
+            return self._count_areas(areas, search_terms=search_terms,
+                                     filter_expired=filter_expired,
+                                     cardholder_type_name=cardholder_type_name,
+                                     earliest_last_pass=earliest_last_pass,
+                                     earliest_last_pass_include_null=earliest_last_pass_include_null,
+                                     select_ignore_list=select_ignore_list,
+                                     select_include_list=select_include_list,
+                                     cardholder_orderby=cardholder_orderby,
+                                     **cardholder_kwargs)
+
+        # The server's own tie-break for equal/null order-field values is opaque and not
+        # guaranteed consistent with ours (empirically, its "top N" selection among tied
+        # rows differs from its "top M" selection for M != N). So a partial window per
+        # group can't be trusted to contain every candidate our own tie-break would rank
+        # into the requested slice - each group's FULL result set must be fetched and
+        # re-sorted client-side (by the same field, with `uid` as a deterministic
+        # tie-break) before slicing out the caller's window.
+        combined = self._fetch_areas_all(areas, search_terms=search_terms,
+                                         filter_expired=filter_expired,
+                                         cardholder_type_name=cardholder_type_name,
+                                         earliest_last_pass=earliest_last_pass,
+                                         earliest_last_pass_include_null=earliest_last_pass_include_null,
+                                         select_ignore_list=select_ignore_list,
+                                         select_include_list=select_include_list,
+                                         cardholder_orderby=cardholder_orderby,
+                                         **cardholder_kwargs)
+
+        order_field = 'lastPassDate' if cardholder_orderby == CardholderOrderBy.lastPassDate_DESC else 'fromDateValid'
+        combined.sort(key=lambda ch: (_parse_order_date(getattr(ch, order_field, None)), ch.uid), reverse=True)
+
+        return combined[offset:offset + limit]
+
+    _MAX_PAGE_SIZE = 50
+
+    def _count_areas(self, areas, search_terms, filter_expired, cardholder_type_name,
+                     earliest_last_pass, earliest_last_pass_include_null,
+                     select_ignore_list, select_include_list, cardholder_orderby,
+                     **cardholder_kwargs):
+        """Count cardholders matching `areas` as one combined filter; on the OData
+        node-count limit, split the list in half and recurse. A cardholder's
+        insideAreaUID is single-valued, so per-group counts can simply be summed."""
+        try:
+            return self._get_card_holders(offset=0, limit=1, search_terms=search_terms, areas=areas,
+                                          filter_expired=filter_expired,
+                                          cardholder_type_name=cardholder_type_name,
+                                          count=True, earliest_last_pass=earliest_last_pass,
+                                          earliest_last_pass_include_null=earliest_last_pass_include_null,
+                                          select_ignore_list=select_ignore_list,
+                                          select_include_list=select_include_list,
+                                          cardholder_orderby=cardholder_orderby,
+                                          **cardholder_kwargs)
+        except GuardPointError as e:
+            if not (isinstance(areas, list) and len(areas) > 1) or not _is_node_count_error(e):
+                raise
+            mid = len(areas) // 2
+            left = self._count_areas(areas[:mid], search_terms, filter_expired, cardholder_type_name,
+                                     earliest_last_pass, earliest_last_pass_include_null,
+                                     select_ignore_list, select_include_list, cardholder_orderby,
+                                     **cardholder_kwargs)
+            right = self._count_areas(areas[mid:], search_terms, filter_expired, cardholder_type_name,
+                                      earliest_last_pass, earliest_last_pass_include_null,
+                                      select_ignore_list, select_include_list, cardholder_orderby,
+                                      **cardholder_kwargs)
+            return (left or 0) + (right or 0)
+
+    def _fetch_areas_all(self, areas, search_terms, filter_expired, cardholder_type_name,
+                         earliest_last_pass, earliest_last_pass_include_null,
+                         select_ignore_list, select_include_list, cardholder_orderby,
+                         **cardholder_kwargs):
+        """Fetch every cardholder matching `areas` as one combined filter, paging in
+        chunks of `_MAX_PAGE_SIZE` (the OData API rejects a single $top above that).
+        On the OData node-count limit, split the list in half and recurse - halving
+        again as needed - rather than dropping straight to one area at a time."""
+        try:
+            records = []
+            page_offset = 0
+            while True:
+                batch = self._get_card_holders(offset=page_offset, limit=self._MAX_PAGE_SIZE,
+                                               search_terms=search_terms, areas=areas,
                                                filter_expired=filter_expired,
                                                cardholder_type_name=cardholder_type_name,
-                                               count=count, earliest_last_pass=earliest_last_pass,
+                                               count=False, earliest_last_pass=earliest_last_pass,
                                                earliest_last_pass_include_null=earliest_last_pass_include_null,
                                                select_ignore_list=select_ignore_list,
                                                select_include_list=select_include_list,
                                                cardholder_orderby=cardholder_orderby,
                                                **cardholder_kwargs)
-                if not count:
-                    card_holders.extend(batch)
-                elif isinstance(batch, int):
-                    count_total += batch
-
-        else:
-            batch = self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
-                                           areas=areas,
-                                           filter_expired=filter_expired,
-                                           cardholder_type_name=cardholder_type_name,
-                                           count=count, earliest_last_pass=earliest_last_pass,
-                                           earliest_last_pass_include_null=earliest_last_pass_include_null,
-                                           select_ignore_list=select_ignore_list,
-                                           select_include_list=select_include_list,
-                                           cardholder_orderby=cardholder_orderby,
-                                           **cardholder_kwargs)
-            if not count:
-                card_holders.extend(batch)
-            elif isinstance(batch, int):
-                count_total += batch
-
-        if not count:
-            return card_holders
-        else:
-            return count_total
+                if not isinstance(batch, list) or len(batch) == 0:
+                    break
+                records.extend(batch)
+                if len(batch) < self._MAX_PAGE_SIZE:
+                    break
+                page_offset += self._MAX_PAGE_SIZE
+            return records
+        except GuardPointError as e:
+            if not (isinstance(areas, list) and len(areas) > 1) or not _is_node_count_error(e):
+                raise
+            mid = len(areas) // 2
+            left = self._fetch_areas_all(areas[:mid], search_terms, filter_expired, cardholder_type_name,
+                                         earliest_last_pass, earliest_last_pass_include_null,
+                                         select_ignore_list, select_include_list, cardholder_orderby,
+                                         **cardholder_kwargs)
+            right = self._fetch_areas_all(areas[mid:], search_terms, filter_expired, cardholder_type_name,
+                                          earliest_last_pass, earliest_last_pass_include_null,
+                                          select_ignore_list, select_include_list, cardholder_orderby,
+                                          **cardholder_kwargs)
+            return left + right
 
     def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                           filter_expired: bool = False, cardholder_type_name: str = None,
