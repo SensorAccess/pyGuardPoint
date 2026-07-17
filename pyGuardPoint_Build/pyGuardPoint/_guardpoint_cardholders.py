@@ -434,6 +434,7 @@ class CardholdersAPI:
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 15,
                          count: bool = False, earliest_last_pass: datetime = None,
+                         earliest_last_pass_include_null: bool = True,
                          select_ignore_list: list = None, select_include_list: list = None,
                          cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                          **cardholder_kwargs):
@@ -460,6 +461,9 @@ class CardholdersAPI:
         :type count: bool
         :param earliest_last_pass: Filter cardholders by the earliest last pass date. Default is None.
         :type earliest_last_pass: datetime, optional
+        :param earliest_last_pass_include_null: When earliest_last_pass is set, also include cardholders
+            with no lastPassDate at all. Default is True.
+        :type earliest_last_pass_include_null: bool
         :param select_ignore_list: List of fields to ignore in the select query. Default is None.
         :type select_ignore_list: list, optional
         :param select_include_list: List of fields to include in the select query. Default is None.
@@ -490,6 +494,7 @@ class CardholdersAPI:
                                                                filter_expired=filter_expired,
                                                                cardholder_type_name=cardholder_type_name,
                                                                count=count, earliest_last_pass=earliest_last_pass,
+                                                               earliest_last_pass_include_null=earliest_last_pass_include_null,
                                                                select_ignore_list=select_ignore_list,
                                                                select_include_list=select_include_list,
                                                                cardholder_orderby=cardholder_orderby,
@@ -510,6 +515,7 @@ class CardholdersAPI:
                                                               filter_expired=filter_expired,
                                                               cardholder_type_name=cardholder_type_name,
                                                               count=count, earliest_last_pass=earliest_last_pass,
+                                                              earliest_last_pass_include_null=earliest_last_pass_include_null,
                                                               select_ignore_list=select_ignore_list,
                                                               select_include_list=select_include_list,
                                                               cardholder_orderby=cardholder_orderby,
@@ -530,6 +536,7 @@ class CardholdersAPI:
                                       areas: list = None,
                                       filter_expired: bool = False, cardholder_type_name: str = None,
                                       count: bool = False, earliest_last_pass: datetime = None,
+                                      earliest_last_pass_include_null: bool = True,
                                       select_ignore_list: list = None, select_include_list: list = None,
                                       cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                                       **cardholder_kwargs):
@@ -544,6 +551,7 @@ class CardholdersAPI:
                                                filter_expired=filter_expired,
                                                cardholder_type_name=cardholder_type_name,
                                                count=count, earliest_last_pass=earliest_last_pass,
+                                               earliest_last_pass_include_null=earliest_last_pass_include_null,
                                                select_ignore_list=select_ignore_list,
                                                select_include_list=select_include_list,
                                                cardholder_orderby=cardholder_orderby,
@@ -559,6 +567,7 @@ class CardholdersAPI:
                                            filter_expired=filter_expired,
                                            cardholder_type_name=cardholder_type_name,
                                            count=count, earliest_last_pass=earliest_last_pass,
+                                           earliest_last_pass_include_null=earliest_last_pass_include_null,
                                            select_ignore_list=select_ignore_list,
                                            select_include_list=select_include_list,
                                            cardholder_orderby=cardholder_orderby,
@@ -576,6 +585,7 @@ class CardholdersAPI:
     def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
                           filter_expired: bool = False, cardholder_type_name: str = None,
                           count: bool = False, earliest_last_pass: datetime = None,
+                          earliest_last_pass_include_null: bool = True,
                           select_ignore_list: list = None, select_include_list: list = None,
                           cardholder_orderby: CardholderOrderBy = CardholderOrderBy.fromDateValid_DESC,
                           **cardholder_kwargs):
@@ -601,6 +611,7 @@ class CardholdersAPI:
                                      filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name,
                                      earliest_last_pass=earliest_last_pass,
+                                     earliest_last_pass_include_null=earliest_last_pass_include_null,
                                      exact_match=match_args)
 
         select_str = _compose_select(select_ignore_list, select_include_list)

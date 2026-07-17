@@ -77,6 +77,7 @@ def _compose_filter(search_words=None,
                     cardholder_type_name=None,
                     filter_expired=False,
                     earliest_last_pass=None,
+                    earliest_last_pass_include_null=True,
                     exact_match=None,
                     greater_than=None):
     filter_phrases = []
@@ -127,7 +128,10 @@ def _compose_filter(search_words=None,
     if earliest_last_pass:
         if isinstance(earliest_last_pass, datetime):
             last_pass_date = earliest_last_pass.strftime('%Y-%m-%dT%H:%M:%SZ')
-            filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date}%20or%20lastPassDate%20eq%20null)')
+            if earliest_last_pass_include_null:
+                filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date}%20or%20lastPassDate%20eq%20null)')
+            else:
+                filter_phrases.append(f'(lastPassDate%20ge%20{last_pass_date})')
 
     # Filter out expired cardholders
     if filter_expired:
