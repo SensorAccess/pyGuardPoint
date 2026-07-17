@@ -139,6 +139,22 @@ class CardholdersAPI:
         if not validators.uuid(cardholder.uid):
             raise ValueError(f'Malformed Cardholder UID {cardholder.uid}')
 
+        if isinstance(cardholder.cardholderType, CardholderType):
+            cardholder.cardholderTypeUID = cardholder.cardholderType.uid
+
+        if isinstance(cardholder.securityGroup, SecurityGroup):
+            cardholder.securityGroupUID = cardholder.securityGroup.uid
+
+        if isinstance(cardholder.fromDateValid, datetime):
+            if cardholder.fromDateValid.tzinfo is None:
+                cardholder.fromDateValid = cardholder.fromDateValid.replace(tzinfo=timezone.utc)
+            cardholder.fromDateValid = cardholder.fromDateValid.isoformat(timespec='seconds')
+
+        if isinstance(cardholder.toDateValid, datetime):
+            if cardholder.toDateValid.tzinfo is None:
+                cardholder.toDateValid = cardholder.toDateValid.replace(tzinfo=timezone.utc)
+            cardholder.toDateValid = cardholder.toDateValid.isoformat(timespec='seconds')
+
         if cardholder.cardholderCustomizedField:
             if len(cardholder.cardholderCustomizedField.changed_attributes) > 0:
                 self.update_custom_fields(cardholder.uid, cardholder.cardholderCustomizedField)

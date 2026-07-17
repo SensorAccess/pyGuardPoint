@@ -1255,11 +1255,15 @@ class Cardholder(Observable):
             if property_name == "fromDateValid":
                 if isinstance(cardholder_dict[property_name], datetime.datetime):
                     dt = cardholder_dict[property_name]
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=datetime.timezone.utc)
                     self.fromDateValid = dt.isoformat(timespec='seconds')
 
             if property_name == "toDateValid":
                 if isinstance(cardholder_dict[property_name], datetime.datetime):
                     dt = cardholder_dict[property_name]
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=datetime.timezone.utc)
                     self.toDateValid = dt.isoformat(timespec='seconds')
 
             if isinstance(cardholder_dict[property_name], dict):
