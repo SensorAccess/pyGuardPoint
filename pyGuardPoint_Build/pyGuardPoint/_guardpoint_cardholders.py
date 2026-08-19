@@ -1,7 +1,8 @@
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 
 import validators
+from ._cardholder_orderby import orderby_query_param, sort_combined
 from ._odata_filter import _compose_filter, _compose_select, _compose_expand
 from ._str_match_algo import fuzzy_match
 from .guardpoint_dataclasses import Cardholder, SortAlgorithm, Area, CardholderOrderBy, CardholderType, SecurityGroup
@@ -9,19 +10,6 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 from .guardpoint_utils import GuardPointResponse
 
 log = logging.getLogger(__name__)
-
-_MIN_ORDER_DATE = datetime.min.replace(tzinfo=timezone.utc)
-
-
-def _parse_order_date(value):
-    """Parse an OData ISO datetime string for client-side ordering.
-    Missing/unparseable values sort last on DESC, matching the server's NULLS-LAST behaviour."""
-    if not value:
-        return _MIN_ORDER_DATE
-    try:
-        return datetime.fromisoformat(value.replace('Z', '+00:00'))
-    except ValueError:
-        return _MIN_ORDER_DATE
 
 
 def _is_node_count_error(err) -> bool:
@@ -607,8 +595,7 @@ class CardholdersAPI:
                                          cardholder_orderby=cardholder_orderby,
                                          **cardholder_kwargs)
 
-        order_field = 'lastPassDate' if cardholder_orderby == CardholderOrderBy.lastPassDate_DESC else 'fromDateValid'
-        combined.sort(key=lambda ch: (_parse_order_date(getattr(ch, order_field, None)), ch.uid), reverse=True)
+        combined = sort_combined(combined, cardholder_orderby)
 
         return combined[offset:offset + limit]
 
@@ -729,10 +716,7 @@ class CardholdersAPI:
         if count:
             url_query_params += "$count=true&$top=0"
         else:
-            if cardholder_orderby == CardholderOrderBy.lastPassDate_DESC:
-                url_query_params += "$orderby=lastPassDate%20desc&"
-            else:
-                url_query_params += "$orderby=fromDateValid%20desc&"
+            url_query_params += orderby_query_param(cardholder_orderby)
 
             url_query_params += "$top=" + str(limit) + "&$skip=" + str(offset)
 

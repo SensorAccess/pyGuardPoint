@@ -64,6 +64,18 @@ class SortAlgorithm(Enum):
 class CardholderOrderBy(Enum):
     fromDateValid_DESC = 0
     lastPassDate_DESC = 1
+    firstName_ASC = 2
+    firstName_DESC = 3
+    lastName_ASC = 4
+    lastName_DESC = 5
+    toValidDate_ASC = 6
+    toValidDate_DESC = 7
+    Validated_ASC = 8
+    Validated_DESC = 9
+    CardholderType_ASC = 10
+    CardholderType_DESC = 11
+    SecurityGroup_ASC = 12
+    SecurityGroup_DESC = 13
 
 
 class CardType(Enum):
