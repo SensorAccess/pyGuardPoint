@@ -76,6 +76,7 @@ class CardholderOrderBy(Enum):
     CardholderType_DESC = 11
     SecurityGroup_ASC = 12
     SecurityGroup_DESC = 13
+    fromDateValid_ASC = 14
 
 
 class CardType(Enum):
