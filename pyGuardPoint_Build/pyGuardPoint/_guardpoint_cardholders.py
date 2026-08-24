@@ -438,7 +438,8 @@ class CardholdersAPI:
         else:
             return None
 
-    def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
+    def get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None,
+                         search_match_all: bool = False, areas: list = None,
                          filter_expired: bool = False, cardholder_type_name: str = None,
                          sort_algorithm: SortAlgorithm = SortAlgorithm.SERVER_DEFAULT, threshold: int = 15,
                          count: bool = False, earliest_last_pass: datetime = None,
@@ -455,6 +456,10 @@ class CardholdersAPI:
         :type limit: int
         :param search_terms: Search terms to filter cardholders by name or other attributes. Default is None.
         :type search_terms: str, optional
+        :param search_match_all: When True, every word in search_terms must match somewhere
+            (any searched field) - tightening e.g. "John Smith" to cardholders containing both
+            words rather than either. When False (default), any word matching any field is enough.
+        :type search_match_all: bool
         :param areas: List of areas to filter cardholders by. Default is None.
         :type areas: list, optional
         :param filter_expired: Whether to filter out expired cardholders. Default is False.
@@ -498,6 +503,7 @@ class CardholdersAPI:
                 if batch_limit > 0:
                     batch = self._split_get_card_holders_query(offset=current_offset + i_offset, limit=batch_limit,
                                                                search_terms=search_terms,
+                                                               search_match_all=search_match_all,
                                                                areas=areas,
                                                                filter_expired=filter_expired,
                                                                cardholder_type_name=cardholder_type_name,
@@ -519,6 +525,7 @@ class CardholdersAPI:
 
         else:
             card_holders = self._split_get_card_holders_query(offset=offset, limit=limit, search_terms=search_terms,
+                                                              search_match_all=search_match_all,
                                                               areas=areas,
                                                               filter_expired=filter_expired,
                                                               cardholder_type_name=cardholder_type_name,
@@ -541,6 +548,7 @@ class CardholdersAPI:
                     break the query into smaller requests, or increase MaxNodeCount in ODataValidationSettings'''
 
     def _split_get_card_holders_query(self, offset: int = 0, limit: int = 10, search_terms: str = None,
+                                      search_match_all: bool = False,
                                       areas: list = None,
                                       filter_expired: bool = False, cardholder_type_name: str = None,
                                       count: bool = False, earliest_last_pass: datetime = None,
@@ -551,6 +559,7 @@ class CardholdersAPI:
 
         try:
             return self._get_card_holders(offset=offset, limit=limit, search_terms=search_terms,
+                                          search_match_all=search_match_all,
                                           areas=areas,
                                           filter_expired=filter_expired,
                                           cardholder_type_name=cardholder_type_name,
@@ -569,6 +578,7 @@ class CardholdersAPI:
         # still too complex) rather than dropping straight to one area at a time.
         if count:
             return self._count_areas(areas, search_terms=search_terms,
+                                     search_match_all=search_match_all,
                                      filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name,
                                      earliest_last_pass=earliest_last_pass,
@@ -586,6 +596,7 @@ class CardholdersAPI:
         # re-sorted client-side (by the same field, with `uid` as a deterministic
         # tie-break) before slicing out the caller's window.
         combined = self._fetch_areas_all(areas, search_terms=search_terms,
+                                         search_match_all=search_match_all,
                                          filter_expired=filter_expired,
                                          cardholder_type_name=cardholder_type_name,
                                          earliest_last_pass=earliest_last_pass,
@@ -601,7 +612,7 @@ class CardholdersAPI:
 
     _MAX_PAGE_SIZE = 50
 
-    def _count_areas(self, areas, search_terms, filter_expired, cardholder_type_name,
+    def _count_areas(self, areas, search_terms, search_match_all, filter_expired, cardholder_type_name,
                      earliest_last_pass, earliest_last_pass_include_null,
                      select_ignore_list, select_include_list, cardholder_orderby,
                      **cardholder_kwargs):
@@ -609,7 +620,8 @@ class CardholdersAPI:
         node-count limit, split the list in half and recurse. A cardholder's
         insideAreaUID is single-valued, so per-group counts can simply be summed."""
         try:
-            return self._get_card_holders(offset=0, limit=1, search_terms=search_terms, areas=areas,
+            return self._get_card_holders(offset=0, limit=1, search_terms=search_terms,
+                                          search_match_all=search_match_all, areas=areas,
                                           filter_expired=filter_expired,
                                           cardholder_type_name=cardholder_type_name,
                                           count=True, earliest_last_pass=earliest_last_pass,
@@ -622,17 +634,17 @@ class CardholdersAPI:
             if not (isinstance(areas, list) and len(areas) > 1) or not _is_node_count_error(e):
                 raise
             mid = len(areas) // 2
-            left = self._count_areas(areas[:mid], search_terms, filter_expired, cardholder_type_name,
+            left = self._count_areas(areas[:mid], search_terms, search_match_all, filter_expired, cardholder_type_name,
                                      earliest_last_pass, earliest_last_pass_include_null,
                                      select_ignore_list, select_include_list, cardholder_orderby,
                                      **cardholder_kwargs)
-            right = self._count_areas(areas[mid:], search_terms, filter_expired, cardholder_type_name,
+            right = self._count_areas(areas[mid:], search_terms, search_match_all, filter_expired, cardholder_type_name,
                                       earliest_last_pass, earliest_last_pass_include_null,
                                       select_ignore_list, select_include_list, cardholder_orderby,
                                       **cardholder_kwargs)
             return (left or 0) + (right or 0)
 
-    def _fetch_areas_all(self, areas, search_terms, filter_expired, cardholder_type_name,
+    def _fetch_areas_all(self, areas, search_terms, search_match_all, filter_expired, cardholder_type_name,
                          earliest_last_pass, earliest_last_pass_include_null,
                          select_ignore_list, select_include_list, cardholder_orderby,
                          **cardholder_kwargs):
@@ -645,7 +657,8 @@ class CardholdersAPI:
             page_offset = 0
             while True:
                 batch = self._get_card_holders(offset=page_offset, limit=self._MAX_PAGE_SIZE,
-                                               search_terms=search_terms, areas=areas,
+                                               search_terms=search_terms, search_match_all=search_match_all,
+                                               areas=areas,
                                                filter_expired=filter_expired,
                                                cardholder_type_name=cardholder_type_name,
                                                count=False, earliest_last_pass=earliest_last_pass,
@@ -665,17 +678,18 @@ class CardholdersAPI:
             if not (isinstance(areas, list) and len(areas) > 1) or not _is_node_count_error(e):
                 raise
             mid = len(areas) // 2
-            left = self._fetch_areas_all(areas[:mid], search_terms, filter_expired, cardholder_type_name,
+            left = self._fetch_areas_all(areas[:mid], search_terms, search_match_all, filter_expired, cardholder_type_name,
                                          earliest_last_pass, earliest_last_pass_include_null,
                                          select_ignore_list, select_include_list, cardholder_orderby,
                                          **cardholder_kwargs)
-            right = self._fetch_areas_all(areas[mid:], search_terms, filter_expired, cardholder_type_name,
+            right = self._fetch_areas_all(areas[mid:], search_terms, search_match_all, filter_expired, cardholder_type_name,
                                           earliest_last_pass, earliest_last_pass_include_null,
                                           select_ignore_list, select_include_list, cardholder_orderby,
                                           **cardholder_kwargs)
             return left + right
 
-    def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None, areas: list = None,
+    def _get_card_holders(self, offset: int = 0, limit: int = 10, search_terms: str = None,
+                          search_match_all: bool = False, areas: list = None,
                           filter_expired: bool = False, cardholder_type_name: str = None,
                           count: bool = False, earliest_last_pass: datetime = None,
                           earliest_last_pass_include_null: bool = True,
@@ -700,6 +714,7 @@ class CardholdersAPI:
         url = "/odata/API_Cardholders"
 
         filter_str = _compose_filter(search_words=search_terms,
+                                     search_match_all=search_match_all,
                                      areas=areas,
                                      filter_expired=filter_expired,
                                      cardholder_type_name=cardholder_type_name,

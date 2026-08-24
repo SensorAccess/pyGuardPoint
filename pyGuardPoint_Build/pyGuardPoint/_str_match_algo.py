@@ -2,7 +2,8 @@ import json
 from fuzzywuzzy import process
 from fuzzywuzzy import fuzz
 
-def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
+
+def fuzzy_match(search_words: str, cardholders: list, threshold: int = 0):
     if not search_words:
         return cardholders
 
@@ -10,7 +11,7 @@ def fuzzy_match(search_words: str, cardholders: list, threshold: int = 75):
     for cardholder in cardholders:
         cardholder_patterns.append(cardholder.to_search_pattern())
 
-    match_ratios = process.extract(search_words, cardholder_patterns, scorer=fuzz.WRatio, limit=20)
+    match_ratios = process.extract(search_words, cardholder_patterns, scorer=fuzz.WRatio, limit=len(cardholders))
 
     pattern_to_indices = {}
     for idx, pattern in enumerate(cardholder_patterns):

@@ -73,6 +73,7 @@ def _compose_select(ignore_list, include_list):
 
 
 def _compose_filter(search_words=None,
+                    search_match_all=True,
                     areas=None,
                     cardholder_type_name=None,
                     filter_expired=False,
@@ -161,14 +162,24 @@ def _compose_filter(search_words=None,
             # Split 'search_words' by spaces, remove empty elements, ignore > 5 elements
             words = list(filter(None, search_words.split(" ")))[:5]
             fields = ["firstName", "lastName", "CardholderPersonalDetail/company", "CardholderPersonalDetail/email"]
-            search_phrases = []
-            for f in fields:
+            if search_match_all:
+                # Every word must match somewhere (any field) - narrows "John Smith" to
+                # cardholders containing both words, rather than either word alone.
+                word_groups = []
                 for v in words:
                     if "'" in v:
                         v = v.replace("'", "''")
-                    search_phrases.append(f"contains({f},'{v}')")
-                    #search_phrases.append(f"({f}%20eq%20'{v}')")
-            filter_phrases.append(f"({'%20or%20'.join(search_phrases)})")
+                    field_phrases = [f"contains({f},'{v}')" for f in fields]
+                    word_groups.append(f"({'%20or%20'.join(field_phrases)})")
+                filter_phrases.append(f"({'%20and%20'.join(word_groups)})")
+            else:
+                search_phrases = []
+                for f in fields:
+                    for v in words:
+                        if "'" in v:
+                            v = v.replace("'", "''")
+                        search_phrases.append(f"contains({f},'{v}')")
+                filter_phrases.append(f"({'%20or%20'.join(search_phrases)})")
 
     # compose filter string
     filter_str = ""
