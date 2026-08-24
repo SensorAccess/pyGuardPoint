@@ -124,6 +124,66 @@ class TestCardholderCRUD:
 
 
 @pytest.mark.integration
+@pytest.mark.destructive
+class TestSearchMatchAll:
+    """search_match_all narrows a multi-word search_terms to an AND across words
+    (each word can still match any field), instead of the default OR-across-everything."""
+
+    @pytest.fixture
+    def match_all_cardholders(self, gp_sync, unique_id, cleanup_cardholders):
+        """Two cardholders sharing one search token but differing on the other -
+        `full` contains both search words, `partial` contains only one."""
+        full = Cardholder()
+        full.firstName = f"MatchAll_{unique_id}_John"
+        full.lastName = f"MatchAll_{unique_id}_Smith"
+        full.description = "Created by pytest — will be deleted"
+
+        partial = Cardholder()
+        partial.firstName = f"MatchAll_{unique_id}_John"
+        partial.lastName = "Different"
+        partial.description = "Created by pytest — will be deleted"
+
+        created_full = gp_sync.new_card_holder(full)
+        created_partial = gp_sync.new_card_holder(partial)
+        cleanup_cardholders.append(created_full)
+        cleanup_cardholders.append(created_partial)
+
+        return created_full, created_partial
+
+    def test_or_mode_matches_either_word(self, gp_sync, unique_id, match_all_cardholders):
+        created_full, created_partial = match_all_cardholders
+        search_terms = f"MatchAll_{unique_id}_John MatchAll_{unique_id}_Smith"
+
+        results = gp_sync.get_card_holders(search_terms=search_terms, limit=50)
+        result_uids = {c.uid for c in results}
+
+        assert created_full.uid in result_uids
+        assert created_partial.uid in result_uids
+
+    def test_match_all_excludes_partial_matches(self, gp_sync, unique_id, match_all_cardholders):
+        created_full, created_partial = match_all_cardholders
+        search_terms = f"MatchAll_{unique_id}_John MatchAll_{unique_id}_Smith"
+
+        results = gp_sync.get_card_holders(search_terms=search_terms, search_match_all=True, limit=50)
+        result_uids = {c.uid for c in results}
+
+        assert created_full.uid in result_uids
+        assert created_partial.uid not in result_uids
+
+    def test_match_all_single_word_matches_either_record(self, gp_sync, unique_id, match_all_cardholders):
+        # With only one search word there's nothing to AND against - both cardholders
+        # share it, so match_all behaves the same as the default here.
+        created_full, created_partial = match_all_cardholders
+
+        results = gp_sync.get_card_holders(search_terms=f"MatchAll_{unique_id}_John",
+                                           search_match_all=True, limit=50)
+        result_uids = {c.uid for c in results}
+
+        assert created_full.uid in result_uids
+        assert created_partial.uid in result_uids
+
+
+@pytest.mark.integration
 class TestCardholderRetrieval:
     """Test cardholder listing and search."""
 

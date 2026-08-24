@@ -73,7 +73,7 @@ def _compose_select(ignore_list, include_list):
 
 
 def _compose_filter(search_words=None,
-                    search_match_all=True,
+                    search_match_all=False,
                     areas=None,
                     cardholder_type_name=None,
                     filter_expired=False,
