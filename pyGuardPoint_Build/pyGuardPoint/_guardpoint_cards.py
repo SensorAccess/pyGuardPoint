@@ -29,7 +29,7 @@ class CardsAPI:
     get_cardholder_by_card_code(card_code)
         Retrieve a cardholder by the card code.
     """
-    def get_cards(self, count=False, **card_kwargs):
+    def get_cards(self, count=False, offset: int = 0, limit: int = 500, **card_kwargs):
         """
         Retrieve a list of cards or the count of cards based on the provided filters.
 
@@ -39,6 +39,11 @@ class CardsAPI:
         :param count: If `True`, the method returns the count of cards that match the criteria.
                       If `False`, it returns a list of `Card` objects. Default is `False`.
         :type count: bool
+        :param offset: The number of cards to skip before starting to collect the result set.
+        :type offset: int
+        :param limit: The maximum number of cards to return. Requests for more than 50 are
+                      transparently batched in chunks of 40 to work around the server's page cap.
+        :type limit: int
         :param card_kwargs: Keyword arguments corresponding to the attributes of the `Card` class
                             that will be used to filter the cards. Only exact matches are considered.
         :type card_kwargs: dict
@@ -47,11 +52,6 @@ class CardsAPI:
         :raises GuardPointUnauthorized: If the API response indicates an unauthorized request (HTTP 401).
         :raises GuardPointError: If the API response indicates an error or is badly formatted.
         """
-        match_args = dict()
-        for k, v in card_kwargs.items():
-            if hasattr(Card, k):
-                match_args[k] = v
-
         url = "/odata/API_Cards"
         headers = {
             'Content-Type': 'application/json',
@@ -60,9 +60,52 @@ class CardsAPI:
 
         if count:
             url_query_params = "?$count=true&$top=0"
-        else:
-            filter_str = _compose_filter(exact_match=match_args)
-            url_query_params = ("?" + filter_str)
+
+            code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+            if code != 200:
+                error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+                if code == 401:
+                    raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+                elif code == 404:  # Not Found
+                    raise GuardPointError(f"Cards Not Found")
+                else:
+                    raise GuardPointError(f"Failed to create Card, check parameters ({error_msg})")
+
+            if not isinstance(json_body, dict):
+                raise GuardPointError("Badly formatted response.")
+
+            return json_body['@odata.count']
+
+        cards = []
+
+        if limit <= 0:
+            return cards
+        if limit > 50:
+            i_offset = offset
+            offset = 0
+            batch_limit = 40
+            while len(cards) == offset:
+                if offset + batch_limit > limit:
+                    batch_limit = limit - offset
+                if batch_limit > 0:
+                    cards.extend(self.get_cards(offset=offset + i_offset, limit=batch_limit, **card_kwargs))
+                if (offset + batch_limit) >= limit:
+                    break
+                elif len(cards) > offset:
+                    offset = len(cards)
+                else:
+                    break
+            return cards
+
+        match_args = dict()
+        for k, v in card_kwargs.items():
+            if hasattr(Card, k):
+                match_args[k] = v
+
+        filter_str = _compose_filter(exact_match=match_args)
+        url_query_params = ("?" + filter_str) + "$top=" + str(limit) + "&$skip=" + str(offset)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url+url_query_params))
 
@@ -83,10 +126,6 @@ class CardsAPI:
         if not isinstance(json_body['value'], list):
             raise GuardPointError("Badly formatted response.")
 
-        if count:
-            return json_body['@odata.count']
-
-        cards = []
         for x in json_body['value']:
             cards.append(Card(x))
         return cards
