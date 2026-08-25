@@ -10,6 +10,25 @@ log = logging.getLogger(__name__)
 
 class AlarmZoneOption(Enum):
     ReturnAlarmZoneToWeeklyProgram = 1
+    Arm = 2
+
+
+class AlarmZoneArmType(Enum):
+    ArmConstantly = 0
+    ArmForDuration = 1
+    ArmUntilNextIntervalInWP = 2
+
+
+class ArmBypassMode(Enum):
+    Arm = 0       # Arm anyway
+    Bypass = 1    # Bypass the eventual triggered inputs and arm
+    Cancel = 2    # Cancel arming in case of triggered input
+
+
+class AlarmZoneDisarmType(Enum):
+    DisarmConstantly = 0
+    DisarmForDuration = 1
+    DisarmUntilNextIntervalInWP = 2
 
 
 class EventOrder(Enum):

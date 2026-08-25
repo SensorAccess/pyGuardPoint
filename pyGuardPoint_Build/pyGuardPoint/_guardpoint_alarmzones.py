@@ -1,7 +1,7 @@
 from enum import Enum
 
 import validators
-from .guardpoint_dataclasses import AlarmZone, AlarmZoneOption
+from .guardpoint_dataclasses import AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode, AlarmZoneDisarmType
 
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
@@ -9,9 +9,22 @@ from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 class AlarmZonesAPI:
 
-    def arm_alarm_zone(self, alarm_zone: AlarmZone, option=AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram):
+    def arm_alarm_zone(self, alarm_zone: AlarmZone, option=AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram,
+                        arm_type: AlarmZoneArmType = AlarmZoneArmType.ArmUntilNextIntervalInWP,
+                        period: int = 0, is_minute: bool = True,
+                        bypass_mode: ArmBypassMode = None):
+        body = dict()
+        body['uid'] = alarm_zone.uid
+
         if option == AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram:
             url = self.baseurl + "/odata/API_AlarmZones/ReturnAlarmZoneToWeeklyProgram"
+        elif option == AlarmZoneOption.Arm:
+            url = self.baseurl + "/odata/API_AlarmZones/ArmAlarmZone"
+            body['armType'] = arm_type.name
+            body['period'] = period
+            body['isMinute'] = is_minute
+            if bypass_mode is not None:
+                body['armBypassMode'] = bypass_mode.name
         else:
             raise GuardPointError(f"Unsupported Arming Option")
 
@@ -19,9 +32,6 @@ class AlarmZonesAPI:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         }
-
-        body = dict()
-        body['uid'] = alarm_zone.uid
 
         code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
