@@ -1,7 +1,7 @@
 import validators
 
 from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode
+from ..guardpoint_dataclasses import AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode, AlarmZoneDisarmType
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
@@ -49,7 +49,9 @@ class AlarmZonesAPI:
             if json_body['success']:
                 return True
 
-    async def disarm_alarm_zone(self, alarm_zone: AlarmZone):
+    async def disarm_alarm_zone(self, alarm_zone: AlarmZone,
+                                 disarm_type: AlarmZoneDisarmType = AlarmZoneDisarmType.DisarmUntilNextIntervalInWP,
+                                 period: int = 1, is_minute: bool = True):
         url = self.baseurl + "/odata/API_AlarmZones/DisarmAlarmZone"
         headers = {
             'Content-Type': 'application/json',
@@ -58,9 +60,9 @@ class AlarmZonesAPI:
 
         body = dict()
         body["uid"] = alarm_zone.uid
-        body["disarmType"] = "DisarmUntilNextIntervalInWP"
-        body["period"] = "1"
-        body["isMinute"] = "true"
+        body["disarmType"] = disarm_type.name
+        body["period"] = period
+        body["isMinute"] = is_minute
 
         code, json_body = await self.gp_json_query("POST", headers=headers, url=url, json_body=body)
 
