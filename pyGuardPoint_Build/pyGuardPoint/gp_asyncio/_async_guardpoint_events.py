@@ -2,7 +2,8 @@ from enum import Enum
 
 from .._odata_filter import _compose_filter
 from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import AccessEvent, AlarmEvent, EventOrder, AuditEvent
+from ..guardpoint_dataclasses import (AccessEvent, AlarmEvent, EventOrder, AuditEvent, CommEvent, GeneralEvent,
+                                      TechnicalEvent, UserManualEvent, ExtendedUnionEvent)
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
@@ -161,5 +162,213 @@ class EventsAPI:
             for x in json_body['value']:
                 audit_events.append(AuditEvent(x))
             return audit_events
+
+    async def get_comm_events_count(self):
+        return await self.get_comm_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+
+    async def get_comm_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                              min_log_id=None):
+        url = "/odata/API_CommEventLogs"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Comm Events Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
+        else:
+            comm_events = []
+            for x in json_body['value']:
+                comm_events.append(CommEvent(x))
+            return comm_events
+
+    async def get_general_events_count(self):
+        return await self.get_general_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+
+    async def get_general_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                                 min_log_id=None):
+        url = "/odata/API_GeneralEventLogs"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"General Events Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
+        else:
+            general_events = []
+            for x in json_body['value']:
+                general_events.append(GeneralEvent(x))
+            return general_events
+
+    async def get_technical_events_count(self):
+        return await self.get_technical_events(limit=None, offset=None, count=True,
+                                               orderby=EventOrder.DATETIME_DESC)
+
+    async def get_technical_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                                   min_log_id=None):
+        url = "/odata/API_TechnicalEventLogs"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Technical Events Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
+        else:
+            technical_events = []
+            for x in json_body['value']:
+                technical_events.append(TechnicalEvent(x))
+            return technical_events
+
+    async def get_user_manual_events_count(self):
+        return await self.get_user_manual_events(limit=None, offset=None, count=True,
+                                                 orderby=EventOrder.DATETIME_DESC)
+
+    async def get_user_manual_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
+                                     min_log_id=None):
+        url = "/odata/API_UserManualEventLogs"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"User Manual Events Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
+        else:
+            user_manual_events = []
+            for x in json_body['value']:
+                user_manual_events.append(UserManualEvent(x))
+            return user_manual_events
+
+    async def get_extended_union_events_count(self):
+        return await self.get_extended_union_events(limit=None, offset=None, count=True,
+                                                    orderby=EventOrder.DATETIME_DESC)
+
+    async def get_extended_union_events(self, limit=None, offset=None, count=False,
+                                        orderby=EventOrder.DATETIME_DESC, min_log_id=None):
+        """
+        Retrieve events from the API_ExtendedUnionEvents feed — a single merged view of
+        every event log type (access, alarm, audit, comm, general, technical), each entry
+        carrying an `eventType` field to identify its source log.
+        """
+        url = "/odata/API_ExtendedUnionEvents"
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+
+        code, json_body = await self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
+
+        if code != 200:
+            error_msg = GuardPointResponse.extract_error_msg(json_body)
+
+            if code == 401:
+                raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
+            elif code == 404:  # Not Found
+                raise GuardPointError(f"Extended Union Events Not Found")
+            else:
+                raise GuardPointError(f"{error_msg}")
+
+        if not isinstance(json_body, dict):
+            raise GuardPointError("Badly formatted response.")
+        if 'value' not in json_body:
+            raise GuardPointError("Badly formatted response.")
+        if not isinstance(json_body['value'], list):
+            raise GuardPointError("Badly formatted response.")
+
+        if count:
+            return json_body['@odata.count']
+        else:
+            extended_union_events = []
+            for x in json_body['value']:
+                extended_union_events.append(ExtendedUnionEvent(x))
+            return extended_union_events
 
 

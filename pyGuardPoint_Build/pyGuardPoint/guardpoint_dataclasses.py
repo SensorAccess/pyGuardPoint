@@ -482,6 +482,219 @@ class AlarmEvent:
 
 
 @dataclass
+class CommEvent:
+    additionalSites: any = None
+    additionalSitesNames: any = None
+    controllerName: str = ""
+    controllerUID: str = ""
+    dateTime: str = ""
+    isPastEvent: bool = False
+    journalUpdateDateTime: str = ""
+    networkName: any = None
+    networkUID: any = None
+    ownerSiteName: str = ""
+    ownerSiteUID: str = ""
+    readerName: any = None
+    readerUID: any = None
+    satelliteError: any = None
+    satelliteNumber: any = None
+    type: str = ""
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        comm_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in comm_event_dict:
+            if isinstance(comm_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, comm_event_dict[property_name])
+
+    def dict(self):
+        comm_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                comm_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                comm_event_dict[k] = None
+            else:
+                comm_event_dict[k] = str(v)
+
+        return comm_event_dict
+
+
+@dataclass
+class GeneralEvent:
+    additionalInformation: any = None
+    additionalSites: any = None
+    additionalSitesNames: any = None
+    dateTime: str = ""
+    isPastEvent: bool = False
+    journalUpdateDateTime: str = ""
+    ownerSiteName: str = ""
+    ownerSiteUID: str = ""
+    ownerType: str = ""
+    technicalInformation: any = None
+    type: str = ""
+    uid: str = ""
+    userFirstName: any = None
+    userLastName: any = None
+    userOrGlobalReflexName: any = None
+    userUID: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        general_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in general_event_dict:
+            if isinstance(general_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, general_event_dict[property_name])
+
+    def dict(self):
+        general_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                general_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                general_event_dict[k] = None
+            else:
+                general_event_dict[k] = str(v)
+
+        return general_event_dict
+
+
+@dataclass
+class TechnicalEvent:
+    additionalSites: any = None
+    additionalSitesNames: any = None
+    controllerName: str = ""
+    controllerUID: str = ""
+    dateTime: str = ""
+    inputName: any = None
+    inputUID: any = None
+    isPastEvent: bool = False
+    journalUpdateDateTime: str = ""
+    ownerSiteName: str = ""
+    ownerSiteUID: str = ""
+    readerName: any = None
+    readerUID: any = None
+    tableErrorNumber: any = None
+    type: str = ""
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        technical_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in technical_event_dict:
+            if isinstance(technical_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, technical_event_dict[property_name])
+
+    def dict(self):
+        technical_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                technical_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                technical_event_dict[k] = None
+            else:
+                technical_event_dict[k] = str(v)
+
+        return technical_event_dict
+
+
+@dataclass
+class UserManualEvent:
+    additionalSites: any = None
+    additionalSitesNames: any = None
+    dateTime: str = ""
+    isPastEvent: bool = False
+    journalUpdateDateTime: str = ""
+    ownerSiteName: str = ""
+    ownerSiteUID: str = ""
+    type: str = ""
+    uid: str = ""
+    userComments: any = None
+    userFirstName: any = None
+    userLastName: any = None
+    userUID: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        user_manual_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in user_manual_event_dict:
+            if isinstance(user_manual_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, user_manual_event_dict[property_name])
+
+    def dict(self):
+        user_manual_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                user_manual_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                user_manual_event_dict[k] = None
+            else:
+                user_manual_event_dict[k] = str(v)
+
+        return user_manual_event_dict
+
+
+@dataclass
+class ExtendedUnionEvent:
+    accessDeniedCode: any = None
+    access_ReaderName: any = None
+    alarmType: any = None
+    alarmUID: any = None
+    auditType: any = None
+    cardCode: any = None
+    cardholderFirstName: any = None
+    cardholderLastName: any = None
+    cardholderUID: any = None
+    commType: any = None
+    confirmationComments: any = None
+    controllerName: any = None
+    controllerUID: any = None
+    data: any = None
+    dateTime: str = ""
+    eventType: str = ""
+    genAdditionalInformation: any = None
+    genType: any = None
+    genUserOrGlobalReflexName: any = None
+    inputName: any = None
+    inputUID: any = None
+    isAcknowledged: any = None
+    isConfirmed: any = None
+    networkName: any = None
+    networkUID: any = None
+    objectName: any = None
+    readerName: any = None
+    readerUID: any = None
+    technicalType: any = None
+    uid: str = ""
+    userName: any = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        extended_union_event_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in extended_union_event_dict:
+            if isinstance(extended_union_event_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, extended_union_event_dict[property_name])
+
+    def dict(self):
+        extended_union_event_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                extended_union_event_dict[k] = v
+            elif isinstance(v, type(None)):
+                extended_union_event_dict[k] = None
+            else:
+                extended_union_event_dict[k] = str(v)
+
+        return extended_union_event_dict
+
+
+@dataclass
 class AccessEvent:
     """
     Represents an access event with various attributes related to cardholder and access details.
