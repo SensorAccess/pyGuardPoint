@@ -95,7 +95,7 @@ class CardholdersAPI:
         if isinstance(cardholder.cardholderType, CardholderType):
             cardholder.cardholderTypeUID = cardholder.cardholderType.uid
 
-        if isinstance(cardholder.securityGroup, SecurityGroup):
+        if isinstance(cardholder.securityGroup, SecurityGroup) and 'securityGroupUID' not in cardholder.changed_attributes:
             cardholder.securityGroupUID = cardholder.securityGroup.uid
 
         if isinstance(cardholder.fromDateValid, datetime):
@@ -186,7 +186,7 @@ class CardholdersAPI:
         if isinstance(cardholder.cardholderType, CardholderType):
             cardholder.cardholderTypeUID = cardholder.cardholderType.uid
 
-        if isinstance(cardholder.securityGroup, SecurityGroup):
+        if isinstance(cardholder.securityGroup, SecurityGroup) and 'securityGroupUID' not in cardholder.changed_attributes:
             cardholder.securityGroupUID = cardholder.securityGroup.uid
 
         if isinstance(cardholder.fromDateValid, datetime):

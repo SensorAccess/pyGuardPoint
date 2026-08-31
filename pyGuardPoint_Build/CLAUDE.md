@@ -319,6 +319,12 @@ Single quotes and characters like `*`, `?` in `search_terms` break the OData `$f
 query string and raise `GuardPointError`. Sanitise input before passing to
 `get_card_holders(search_terms=…)`.
 
+### `Input.inputGroupUID` is actually the AlarmZone UID
+Despite the name, `Input.inputGroupUID` holds the parent `AlarmZone.uid`, not an
+"input group" entity. There is no OData `$expand` between `API_Inputs` and
+`API_AlarmZones` — join client-side on this field. Inputs not assigned to any
+zone have `inputGroupUID = None`. See `examples/06_tests/inputs_by_alarmzone.py`.
+
 ### `get_inputs()` is sync-only
 `GuardPointAsyncIO` does not have an async `get_inputs()` — there is no
 `_async_guardpoint_inputs.py` in `gp_asyncio/`.
