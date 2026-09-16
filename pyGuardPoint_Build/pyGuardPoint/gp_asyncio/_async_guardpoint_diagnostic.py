@@ -1,5 +1,5 @@
 import validators
-from pyGuardPoint.guardpoint_utils import GuardPointResponse
+from ..guardpoint_utils import GuardPointResponse
 
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 

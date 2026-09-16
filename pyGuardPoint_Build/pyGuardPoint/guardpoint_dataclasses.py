@@ -336,6 +336,87 @@ class AlarmZone:
 
 
 @dataclass
+class TriggeredInput:
+    """An input that was in alarm when an AlarmZone arm was requested.
+
+    Returned in ArmAlarmZoneResult.triggered_inputs. The server only sends
+    the name and uid - use get_input(uid) for the full Input record.
+    """
+    name: str = ""
+    uid: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        triggered_input_dict = sanitise_args(self, args, kwargs)
+
+        for property_name in triggered_input_dict:
+            if isinstance(triggered_input_dict[property_name], (str, type(None), bool, int)):
+                setattr(self, property_name, triggered_input_dict[property_name])
+
+    def dict(self):
+        triggered_input_dict = {}
+        for k, v in asdict(self).items():
+            if isinstance(v, (list, dict, bool, int)):
+                triggered_input_dict[k] = v
+            elif isinstance(v, type(None)):
+                triggered_input_dict[k] = None
+            else:
+                triggered_input_dict[k] = str(v)
+
+        return triggered_input_dict
+
+
+class ArmAlarmZoneResult:
+    """Result of arm_alarm_zone().
+
+    Truthy when the arm succeeded, so the pre-2.5.1 idiom still works:
+
+        if gp.arm_alarm_zone(zone, option=AlarmZoneOption.Arm):
+            ...
+
+    GuardPoint10 releases that return ACS.API.ArmAlarmZoneResponse also report
+    the inputs that were in alarm at the time of the request:
+
+        result = gp.arm_alarm_zone(zone, option=AlarmZoneOption.Arm,
+                                   bypass_mode=ArmBypassMode.Cancel)
+        if not result:
+            for i in result.triggered_inputs:
+                print(f"blocked by {i.name}")
+
+    Against older servers - and for DisarmAlarmZone /
+    ReturnAlarmZoneToWeeklyProgram, which still return a plain ResponseObject -
+    triggered_inputs is an empty list.
+    """
+
+    def __init__(self, json_body: dict = None):
+        json_body = json_body if isinstance(json_body, dict) else {}
+
+        self.success = bool(json_body.get('success', False))
+
+        error_messages = json_body.get('errorMessages')
+        self.error_messages = error_messages if isinstance(error_messages, list) else []
+
+        triggered_inputs = json_body.get('triggeredInputs')
+        self.triggered_inputs = [TriggeredInput(entry)
+                                 for entry in (triggered_inputs if isinstance(triggered_inputs, list) else [])
+                                 if isinstance(entry, dict)]
+
+    def __bool__(self):
+        return self.success
+
+    def __repr__(self):
+        return (f"ArmAlarmZoneResult(success={self.success}, "
+                f"triggered_inputs={[i.name for i in self.triggered_inputs]})")
+
+    def dict(self):
+        return {
+            'success': self.success,
+            'errorMessages': self.error_messages,
+            'triggeredInputs': [i.dict() for i in self.triggered_inputs],
+        }
+
+
+@dataclass
 class Site:
     apiKey: any = None
     baudrate: int = 9600

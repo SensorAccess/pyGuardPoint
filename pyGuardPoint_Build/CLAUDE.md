@@ -98,6 +98,8 @@ gp = GuardPoint(host=..., site_uid='11111111-1111-1111-1111-111111111111', ...)
 | `delete_card(card)` | `True` (bool) |
 | `get_card_holder(uid=…)` | `Cardholder` or `None` |
 | `get_card_holders(…)` | `list[Cardholder]` |
+| `arm_alarm_zone(zone, …)` | `ArmAlarmZoneResult` (truthy on success, NOT a plain bool) |
+| `disarm_alarm_zone(zone, …)` | `True`/`False` (bool) |
 
 ### No-argument list methods (do NOT pass limit= or offset=)
 
@@ -319,6 +321,36 @@ Single quotes and characters like `*`, `?` in `search_terms` break the OData `$f
 query string and raise `GuardPointError`. Sanitise input before passing to
 `get_card_holders(search_terms=…)`.
 
+### `ArmAlarmZone` returns the inputs that are in alarm
+Newer GuardPoint10 releases return `ACS.API.ArmAlarmZoneResponse` from
+`/odata/API_AlarmZones/ArmAlarmZone`:
+
+```json
+{"success": true, "errorMessages": [], "triggeredInputs": [{"name": "…", "uid": "…"}]}
+```
+
+`arm_alarm_zone()` therefore returns an `ArmAlarmZoneResult`, not a bool. It
+defines `__bool__`, so `if gp.arm_alarm_zone(zone):` still works — but
+`result == True` and `result is True` do not. Use the object for detail:
+
+```python
+result = gp.arm_alarm_zone(zone, option=AlarmZoneOption.Arm,
+                           arm_type=AlarmZoneArmType.ArmConstantly,
+                           bypass_mode=ArmBypassMode.Cancel)
+if not result:
+    for i in result.triggered_inputs:      # list[TriggeredInput] — name + uid only
+        print(f"arming blocked by {i.name}")
+```
+
+`triggeredInputs` only comes back from `ArmAlarmZone`. `DisarmAlarmZone` and
+`ReturnAlarmZoneToWeeklyProgram` still return a plain `ResponseObject`, so
+`disarm_alarm_zone()` stays a bool and `triggered_inputs` is `[]` for the
+`ReturnAlarmZoneToWeeklyProgram` option — as it also is against older servers
+that predate the response change.
+
+`TriggeredInput` carries only `name` and `uid`; use `get_input(uid)` for the
+full `Input` record.
+
 ### `Input.inputGroupUID` is actually the AlarmZone UID
 Despite the name, `Input.inputGroupUID` holds the parent `AlarmZone.uid`, not an
 "input group" entity. There is no OData `$expand` between `API_Inputs` and
@@ -351,9 +383,11 @@ Cardholder, Card, Area, SecurityGroup, AccessGroup, ScheduledMag
 CardholderPersonalDetail, CardholderCustomizedField, CardholderType
 Controller, Reader, Relay, Department, AccessEvent, AlarmEvent, AuditEvent
 CommEvent, GeneralEvent, TechnicalEvent, UserManualEvent, ExtendedUnionEvent
+AlarmZone, TriggeredInput, ArmAlarmZoneResult
 
 # Enums
-SortAlgorithm, EventOrder, AlarmZoneOption, CardholderOrderBy
+SortAlgorithm, EventOrder, CardholderOrderBy, CardType
+AlarmZoneOption, AlarmZoneArmType, AlarmZoneDisarmType, ArmBypassMode
 ```
 
 ---

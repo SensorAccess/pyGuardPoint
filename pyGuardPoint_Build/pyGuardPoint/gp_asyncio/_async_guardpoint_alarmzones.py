@@ -1,7 +1,8 @@
 import validators
 
 from ..guardpoint_utils import GuardPointResponse
-from ..guardpoint_dataclasses import AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode, AlarmZoneDisarmType
+from ..guardpoint_dataclasses import (AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode,
+                                      AlarmZoneDisarmType, ArmAlarmZoneResult)
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
@@ -11,6 +12,13 @@ class AlarmZonesAPI:
                               arm_type: AlarmZoneArmType = AlarmZoneArmType.ArmUntilNextIntervalInWP,
                               period: int = 0, is_minute: bool = True,
                               bypass_mode: ArmBypassMode = None):
+        """Arm an AlarmZone, or return it to its Weekly Program.
+
+        Returns an ArmAlarmZoneResult, which is truthy on success and carries
+        result.triggered_inputs - the inputs that were in alarm when the request
+        was made. Servers older than the ArmAlarmZoneResponse release, and the
+        ReturnAlarmZoneToWeeklyProgram option, report an empty list.
+        """
         body = dict()
         body['uid'] = alarm_zone.uid
 
@@ -39,15 +47,14 @@ class AlarmZonesAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"AlarmZone Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'success' in json_body:
-            if json_body['success']:
-                return True
+
+        return ArmAlarmZoneResult(json_body)
 
     async def disarm_alarm_zone(self, alarm_zone: AlarmZone,
                                  disarm_type: AlarmZoneDisarmType = AlarmZoneDisarmType.DisarmUntilNextIntervalInWP,
@@ -72,15 +79,14 @@ class AlarmZonesAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"AlarmZone Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'success' in json_body:
-            if json_body['success']:
-                return True
+
+        return bool(json_body.get('success', False))
 
     async def get_alarm_zone(self, zone_uid):
         url = self.baseurl + "/odata/API_AlarmZones"
