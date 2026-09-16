@@ -60,7 +60,7 @@ class GuardPointConnection:
             await self.session.close()
 
     def reopen(self):
-        conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
+        conn = aiohttp.TCPConnector(ssl=self.ssl_context or True)
         self.session = aiohttp.ClientSession(connector=conn)
 
     def open(self, url_components, auth, user, pwd, key, token=None,
@@ -91,61 +91,62 @@ class GuardPointConnection:
             self.token_expiry = 0
 
         log.info(f"GP10 server connection: {self.baseurl}")
-        # Loading System Defaults for TLS Client
-        self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        if url_components['scheme'] == 'https':
+            # Loading System Defaults for TLS Client
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
-        p12_key_file = None
-        p12_cert_file = None
-        p12_ca_file = None
-        if p12_file:
-            if os.path.isfile(p12_file):
-                # temporary files
-                key_pwd = p12_pwd
-                p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
-                if os.stat(p12_key_file.name).st_size > 0:
-                    key_file = p12_key_file.name
-                if os.stat(p12_cert_file.name).st_size > 0:
-                    cert_file = p12_cert_file.name
-                if os.stat(p12_ca_file.name).st_size > 0:
-                    ca_file = p12_ca_file.name
+            p12_key_file = None
+            p12_cert_file = None
+            p12_ca_file = None
+            if p12_file:
+                if os.path.isfile(p12_file):
+                    # temporary files
+                    key_pwd = p12_pwd
+                    p12_key_file, p12_cert_file, p12_ca_file = GuardPointConnection.pfx_to_pems(p12_file, p12_pwd)
+                    if os.stat(p12_key_file.name).st_size > 0:
+                        key_file = p12_key_file.name
+                    if os.stat(p12_cert_file.name).st_size > 0:
+                        cert_file = p12_cert_file.name
+                    if os.stat(p12_ca_file.name).st_size > 0:
+                        ca_file = p12_ca_file.name
+                    else:
+                        # p12_ca_file.seek(0)
+                        p12_ca_file.write(default_ca.encode())
+                        p12_ca_file.flush()
+                        ca_file = p12_ca_file.name
                 else:
-                    # p12_ca_file.seek(0)
-                    p12_ca_file.write(default_ca.encode())
-                    p12_ca_file.flush()
-                    ca_file = p12_ca_file.name
-            else:
-                raise ValueError(f"{p12_file} is not found.")
+                    raise ValueError(f"{p12_file} is not found.")
 
-        if cert_file and key_file:
-            # Loading of client certificate
-            pwd_bytes = key_pwd.encode() if isinstance(key_pwd, str) else key_pwd
-            self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=pwd_bytes if pwd_bytes else None)
+            if cert_file and key_file:
+                # Loading of client certificate
+                pwd_bytes = key_pwd.encode() if isinstance(key_pwd, str) else key_pwd
+                self.ssl_context.load_cert_chain(certfile=cert_file, keyfile=key_file, password=pwd_bytes if pwd_bytes else None)
 
-        if ca_file:
-            # Loading of CA certificate.
-            self.ssl_context.load_verify_locations(cafile=ca_file)
+            if ca_file:
+                # Loading of CA certificate.
+                self.ssl_context.load_verify_locations(cafile=ca_file)
 
-        if not check_hostname:
-            self.ssl_context.check_hostname = False
-            self.ssl_context.verify_mode = ssl.CERT_NONE
+            if not check_hostname:
+                self.ssl_context.check_hostname = False
+                self.ssl_context.verify_mode = ssl.CERT_NONE
 
-        conn = aiohttp.TCPConnector(ssl_context=self.ssl_context)
+            # Close temporary files
+            if p12_key_file:
+                p12_key_file.close()
+                os.unlink(p12_key_file.name)
+            if p12_cert_file:
+                p12_cert_file.close()
+                os.unlink(p12_cert_file.name)
+            if p12_ca_file:
+                p12_ca_file.close()
+                os.unlink(p12_ca_file.name)
+
+        conn = aiohttp.TCPConnector(ssl=self.ssl_context or True)
         self.session = aiohttp.ClientSession(connector=conn)
         '''self.connection = http.client.HTTPSConnection(
             host=url_components['host'],
             port=url_components['port'],
             context=self.ssl_context)'''
-
-        # Close temporary files
-        if p12_key_file:
-            p12_key_file.close()
-            os.unlink(p12_key_file.name)
-        if p12_cert_file:
-            p12_cert_file.close()
-            os.unlink(p12_cert_file.name)
-        if p12_ca_file:
-            p12_ca_file.close()
-            os.unlink(p12_ca_file.name)
 
     def get_ssl_context(self):
         return self.ssl_context

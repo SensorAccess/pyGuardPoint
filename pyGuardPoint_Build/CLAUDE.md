@@ -301,11 +301,15 @@ Underscores, letters outside A-F, or longer strings are rejected with
 `None`. Wrap in try/except when fetching potentially non-existent records.
 
 ### Single-item fetch returns object with empty `.uid`
-`get_card(uid)`, `get_reader(uid)`, and `get_department(uid)` return objects where
+`get_card(uid)`, `get_reader(uid)`, and `get_department(uid)` used to return objects where
 `.uid` is an empty string. The `value` field in the OData response is a list; these
 methods were passing the list directly to the dataclass constructor (which only handles
-dicts). The fix — `value[0]` — was applied during this session. If you see empty `.uid`
-on other single-item fetches, the same fix applies.
+dicts). The fix — `value[0]` — is applied in both the sync and async clients. If you see
+empty `.uid` on other single-item fetches, the same fix applies.
+
+Not every entity set wraps single fetches in `value`: `API_AlarmStates(uid)` returns the
+entity itself at the top level (with `@odata.context`, and without honouring
+`$expand=Input`). `get_alarm_state()` accepts either shape.
 
 ### Unpaginated queries cap at 50 results
 The server silently truncates any single OData request without `$top`/`$skip` to 50 rows

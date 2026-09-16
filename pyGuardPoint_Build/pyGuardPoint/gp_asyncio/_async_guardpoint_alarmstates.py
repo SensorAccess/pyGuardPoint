@@ -24,16 +24,20 @@ class AlarmStatesAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"Alarm State Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 
         if not isinstance(json_body, dict):
             raise GuardPointError("Badly formatted response.")
-        if 'value' not in json_body:
-            raise GuardPointError("Badly formatted response.")
 
-        return AlarmState(json_body['value'])
+        # Single-entity fetches return the entity itself, not wrapped in 'value'
+        value = json_body.get('value', json_body)
+        if isinstance(value, list):
+            value = value[0] if value else None
+        if not value:
+            return None
+        return AlarmState({k: v for k, v in value.items() if not k.startswith('@odata.')})
 
     async def get_alarm_states(self):
         url = "/odata/API_AlarmStates?=&$expand=Input"
@@ -50,7 +54,7 @@ class AlarmStatesAPI:
             if code == 401:
                 raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
             elif code == 404:  # Not Found
-                raise GuardPointError(f"Cardholder Not Found")
+                raise GuardPointError(f"Alarm State Not Found")
             else:
                 raise GuardPointError(f"{error_msg}")
 

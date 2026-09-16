@@ -34,7 +34,10 @@ class DepartmentsAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Department(json_body['value'])
+        value = json_body['value']
+        if isinstance(value, list):
+            return Department(value[0]) if value else None
+        return Department(value)
 
     async def get_departments(self, offset: int = 0, limit: int = 500, **dept_kwargs):
         departments = []

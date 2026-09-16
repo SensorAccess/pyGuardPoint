@@ -187,7 +187,10 @@ class CardsAPI:
         if 'value' not in json_body:
             raise GuardPointError("Badly formatted response.")
 
-        return Card(json_body['value'])
+        value = json_body['value']
+        if isinstance(value, list):
+            return Card(value[0]) if value else None
+        return Card(value)
 
     async def get_cardholder_by_card_code(self, card_code):
         url = "/odata/API_Cards"
