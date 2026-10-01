@@ -134,3 +134,28 @@ class Stopwatch:
 
     def __str__(self):
         return str(self._time)
+
+
+# Reader fields holding the uid of an Input wired to that reader's door. A door's
+# AlarmZone is found through these, because Input.inputGroupUID is the AlarmZone uid
+# (despite the name - there is no "input group" entity) and neither API_AlarmZone nor
+# API_Reader exposes a direct relationship.
+READER_INPUT_UID_FIELDS = ('doorAlarmInputUID', 'doorControlInput1UID', 'doorControlInput2UID',
+                           'doorRemoteInputUID', 'motorizedReaderInputUID')
+
+
+def reader_zone_uid(reader, inputs_by_uid):
+    """Resolve the AlarmZone uid owning any of a Reader's door inputs.
+
+    :param reader: Reader whose door inputs are followed, in READER_INPUT_UID_FIELDS order.
+    :param inputs_by_uid: dict of Input keyed by uid, as built from get_inputs().
+    :return: the AlarmZone uid, or None if no door input is assigned to a zone.
+    """
+    for field in READER_INPUT_UID_FIELDS:
+        input_uid = getattr(reader, field, None)
+        if not input_uid:
+            continue
+        gp_input = inputs_by_uid.get(input_uid)
+        if gp_input is not None and gp_input.inputGroupUID:
+            return gp_input.inputGroupUID
+    return None

@@ -4,7 +4,7 @@ import validators
 from .guardpoint_dataclasses import (AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode,
                                      AlarmZoneDisarmType, ArmAlarmZoneResult)
 
-from .guardpoint_utils import GuardPointResponse
+from .guardpoint_utils import GuardPointResponse, reader_zone_uid
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 
@@ -118,6 +118,63 @@ class AlarmZonesAPI:
             raise GuardPointError("Badly formatted response.")
 
         return AlarmZone(json_body['value'][0])
+
+    def get_reader_alarm_zone(self, reader, inputs=None, alarm_zones=None):
+        """Return the AlarmZone a Reader's door belongs to, or None.
+
+        GuardPoint10 exposes no direct Reader-to-AlarmZone relationship, so this
+        follows the only chain that exists:
+
+            Reader.doorAlarmInputUID -> Input.uid, Input.inputGroupUID -> AlarmZone.uid
+
+        falling back through the reader's other door-input fields. Returns None when
+        none of the reader's inputs are assigned to a zone - common, since inputs
+        default to no zone.
+
+        Pass pre-fetched `inputs` / `alarm_zones` when calling this in a loop,
+        otherwise every call re-fetches both collections.
+
+        :param reader: a Reader, or a reader uid to look up via get_reader().
+        :param inputs: optional list of Input, defaults to get_inputs().
+        :param alarm_zones: optional list of AlarmZone, defaults to get_alarm_zones().
+        :raises ValueError: if a malformed reader uid is passed.
+        :raises GuardPointError: if a reader uid is passed and no such reader exists.
+        :return: the AlarmZone, or None.
+        """
+        if isinstance(reader, str):
+            reader = self.get_reader(reader)
+
+        inputs = self.get_inputs() if inputs is None else inputs
+        alarm_zones = self.get_alarm_zones() if alarm_zones is None else alarm_zones
+
+        zone_uid = reader_zone_uid(reader, {i.uid: i for i in inputs})
+        if zone_uid is None:
+            return None
+
+        for alarm_zone in alarm_zones:
+            if alarm_zone.uid == zone_uid:
+                return alarm_zone
+        return None
+
+    def get_alarm_zone_readers(self, alarm_zone, readers=None, inputs=None):
+        """Return the Readers whose doors belong to an AlarmZone.
+
+        The reverse of get_reader_alarm_zone() - see there for how the join works
+        and why a reader may belong to no zone at all.
+
+        :param alarm_zone: an AlarmZone, or an alarm zone uid.
+        :param readers: optional list of Reader, defaults to get_readers().
+        :param inputs: optional list of Input, defaults to get_inputs().
+        :return: list of Reader, empty if the zone owns no reader's door inputs.
+        """
+        zone_uid = alarm_zone if isinstance(alarm_zone, str) else alarm_zone.uid
+
+        readers = self.get_readers() if readers is None else readers
+        inputs = self.get_inputs() if inputs is None else inputs
+        inputs_by_uid = {i.uid: i for i in inputs}
+
+        return [reader for reader in readers
+                if reader_zone_uid(reader, inputs_by_uid) == zone_uid]
 
     def get_alarm_zones(self):
         url = self.baseurl + "/odata/API_AlarmZones"

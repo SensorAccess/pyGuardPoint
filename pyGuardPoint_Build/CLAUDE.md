@@ -100,13 +100,15 @@ gp = GuardPoint(host=..., site_uid='11111111-1111-1111-1111-111111111111', ...)
 | `get_card_holders(…)` | `list[Cardholder]` |
 | `arm_alarm_zone(zone, …)` | `ArmAlarmZoneResult` (truthy on success, NOT a plain bool) |
 | `disarm_alarm_zone(zone, …)` | `True`/`False` (bool) |
+| `get_reader_alarm_zone(reader, …)` | `AlarmZone` or `None` |
+| `get_alarm_zone_readers(zone, …)` | `list[Reader]` (possibly empty) |
 
 ### No-argument list methods (do NOT pass limit= or offset=)
 
 These fetch everything and take no arguments:
 `get_areas()`, `get_alarm_zones()`,
 `get_alarm_states()`, `get_departments()`, `get_sites()`, `get_weekly_programs()`,
-`get_controllers()`, `get_inputs()`, `get_relays()`, `get_cardholder_types()`,
+`get_controllers()`, `get_relays()`, `get_cardholder_types()`,
 `get_manual_events()`, `get_infos()`, `get_scheduled_mags()`
 
 ### Methods that do accept pagination / filtering
@@ -114,6 +116,7 @@ These fetch everything and take no arguments:
 `get_card_holders(offset, limit, search_terms, firstName, lastName, areas, …)`
 `get_cards(offset=0, limit=500, count=False, **card_kwargs)` — batched in chunks of 40 like `get_readers`
 `get_readers(offset, limit, **reader_kwargs)`
+`get_inputs(offset=0, limit=500)` — defaults fetch everything (batched in chunks of 40)
 `get_access_events(limit, offset, orderby, min_log_id)`
 `get_alarm_events(limit, offset, orderby)`
 `get_audit_events(limit, offset, orderby, min_log_id)`
@@ -361,9 +364,45 @@ Despite the name, `Input.inputGroupUID` holds the parent `AlarmZone.uid`, not an
 `API_AlarmZones` — join client-side on this field. Inputs not assigned to any
 zone have `inputGroupUID = None`. See `examples/06_tests/inputs_by_alarmzone.py`.
 
-### `get_inputs()` is sync-only
-`GuardPointAsyncIO` does not have an async `get_inputs()` — there is no
-`_async_guardpoint_inputs.py` in `gp_asyncio/`.
+### Access rights cannot be linked to an AlarmZone
+`API_SecurityGroup` and `API_AccessGroup` carry only `uid`/`name`/`description`
+(+`accessGroupType`) and have **no navigation properties at all** — which readers an
+access group contains is not exposed, so `$expand=readers` and friends return HTTP 400.
+`API_AlarmZone`'s only navigation property is `weeklyProgram`. There is therefore no
+configuration path from a cardholder's rights to a zone.
+
+On the Cardholder, `accessGroupUIDs` and `liftAccessGroupUIDs` are `Edm.String`
+(a delimited UID list), not navigation properties — only `securityGroup` is a real
+relationship.
+
+What *does* exist is a door-level join, via the reader's door inputs:
+
+```
+Reader.doorAlarmInputUID ──▶ Input.uid ;  Input.inputGroupUID ──▶ AlarmZone.uid
+```
+
+`get_reader_alarm_zone(reader)` and `get_alarm_zone_readers(zone)` wrap it (sync and
+async). They fall back through `doorControlInput1UID`, `doorControlInput2UID`,
+`doorRemoteInputUID`, `motorizedReaderInputUID` — see `READER_INPUT_UID_FIELDS` in
+`guardpoint_utils.py`. Both take optional pre-fetched `readers`/`inputs`/`alarm_zones`;
+pass them when looping, or each call re-fetches.
+
+```python
+readers, inputs, zones = gp.get_readers(), gp.get_inputs(), gp.get_alarm_zones()
+for r in readers:
+    z = gp.get_reader_alarm_zone(r, inputs=inputs, alarm_zones=zones)
+```
+
+A reader returns `None` whenever none of its door inputs is assigned to a zone — the
+common case, since inputs default to no zone. A coarser fallback, not implemented
+because it can span zones: match `Reader.controllerUID` against the controllers of the
+zone's inputs.
+
+To tie a *cardholder* to a zone you must go through observed behaviour, since
+`AccessEvent` carries both `cardholderUID` and `readerUID`:
+`Cardholder → AccessEvent.readerUID → Reader → door input → AlarmZone`. That reports
+zones a person has actually entered, not what they are entitled to.
+
 
 ### `is_sigr_enabled()` is async in GuardPointAsyncIO
 `await gp.is_sigr_enabled()` — don't forget the await.

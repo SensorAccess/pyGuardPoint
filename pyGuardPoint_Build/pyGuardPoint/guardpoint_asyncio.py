@@ -11,6 +11,7 @@ from .gp_asyncio._async_guardpoint_controllers import ControllersAPI
 from .gp_asyncio._async_guardpoint_diagnostic import DiagnosticAPI
 from .gp_asyncio._async_guardpoint_ouputs import OutputsAPI
 from .gp_asyncio._async_guardpoint_readers import ReadersAPI
+from .gp_asyncio._async_guardpoint_inputs import InputsAPI
 from .gp_asyncio._async_guardpoint_scheduledmags import ScheduledMagsAPI
 from .gp_asyncio._async_guardpoint_customizedfields import CustomizedFieldsAPI
 from .gp_asyncio._async_guardpoint_personaldetails import PersonalDetailsAPI
@@ -35,7 +36,7 @@ class GuardPointAsyncIO(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI
                         CustomizedFieldsAPI, PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI,
                         OutputsAPI, DiagnosticAPI, ReadersAPI, ControllersAPI, AlarmStatesAPI, EventsAPI,
                         DepartmentsAPI, SitesAPI, GenericInfoAPI, AlarmZonesAPI, ManualEventsAPI,
-                        AccessGroupsAPI, WeeklyProgramsAPI):
+                        AccessGroupsAPI, WeeklyProgramsAPI, InputsAPI):
     """
     Asynchronous interface for interacting with the GuardPoint system, providing various APIs for managing cards,
     cardholders, areas, security groups, customized fields, personal details, scheduled mags, cardholder types,
