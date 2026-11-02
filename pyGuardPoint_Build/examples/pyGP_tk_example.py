@@ -5,7 +5,7 @@ from pyGuardPoint import GuardPoint
 
 from pyGuardPoint import GuardPointError, Cardholder, GuardPointAsyncIO
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://localhost/'
 GP_USER = 'admin'
 GP_PASS = 'admin'

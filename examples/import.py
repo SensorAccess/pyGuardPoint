@@ -7,7 +7,7 @@ from tqdm import tqdm
 from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
 EXPORT_FILENAME = '../cardholder_export.json'
-GP_HOST = 'sensoraccess.duckdns.org'
+GP_HOST = 'sensoraccess2.duckdns.org'
 GP_USER = 'Admin'
 GP_PASS = 'password'
 

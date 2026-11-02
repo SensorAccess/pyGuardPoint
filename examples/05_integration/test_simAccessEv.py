@@ -3,7 +3,7 @@ from pyGuardPoint import GuardPoint, GuardPointError
 
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://192.168.1.103:10695'
 GP_USER = 'admin'
 GP_PASS = 'admin'

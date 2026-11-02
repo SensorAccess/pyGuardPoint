@@ -15,7 +15,7 @@ Two styles of test are provided:
 pip install pytest
 ```
 
-The test server at `https://sensoraccess.duckdns.org` requires **mutual TLS (mTLS)** — you must supply a client certificate in PKCS#12 format.
+The test server at `https://sensoraccess2.duckdns.org` requires **mutual TLS (mTLS)** — you must supply a client certificate in PKCS#12 format.
 
 ---
 
@@ -25,7 +25,7 @@ All settings are driven by environment variables. The client certificate (`Mobil
 
 | Variable | Default | Description |
 |---|---|---|
-| `GP_HOST` | `https://sensoraccess.duckdns.org` | GuardPoint server URL |
+| `GP_HOST` | `https://sensoraccess2.duckdns.org` | GuardPoint server URL |
 | `GP_USER` | `admin` | Username |
 | `GP_PASS` | `admin` | Password |
 | `GP_P12` | `tests/MobileGuardDefault.p12` | Path to the client certificate (mTLS) |
@@ -66,12 +66,12 @@ python tests/run_tests.py
   PyGuardPoint Integration Test Suite
 ===========================================================================
 
-  Server : https://sensoraccess.duckdns.org
+  Server : https://sensoraccess2.duckdns.org
   User   : admin
   P12    : /path/to/MobileGuardDefault.p12
 
 1. AUTHENTICATION & CONNECTION
-  ✓ Connect to server                              | https://sensoraccess.duckdns.org
+  ✓ Connect to server                              | https://sensoraccess2.duckdns.org
 
 2. CARDHOLDERS
   ✓ Get cardholders (limit 5)                      | 5 returned

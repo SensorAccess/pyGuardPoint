@@ -15,7 +15,7 @@ if py_gp_version_int < 153:
     print("\t (Within a Terminal Window) Run > 'pip install pyGuardPoint --upgrade'")
     exit()
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"

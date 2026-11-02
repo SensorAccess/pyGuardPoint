@@ -7,7 +7,7 @@ import pprint
 
 from pyGuardPoint_Build.pyGuardPoint import GuardPointUnauthorized, GuardPointAsyncIO, GuardPoint,GuardPointError
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"

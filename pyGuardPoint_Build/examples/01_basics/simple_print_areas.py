@@ -27,7 +27,7 @@ def print_class_attributes(obj):
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+    gp = GuardPoint(host="https://sensoraccess2.duckdns.org", pwd="admin",
                     check_hostname=False)
 
     #if last_pass_offset < 1 else (' and lastPassDate ge ' + date_filter(time_offset=last_pass_offset))} & "

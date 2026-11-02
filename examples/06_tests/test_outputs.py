@@ -14,7 +14,7 @@ import pkg_resources
 py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://localhost/'
 GP_USER = 'admin'
 GP_PASS = 'admin'

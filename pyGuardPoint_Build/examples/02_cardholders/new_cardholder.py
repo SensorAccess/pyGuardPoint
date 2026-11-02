@@ -5,7 +5,7 @@ sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized, \
     CardholderPersonalDetail, CardholderCustomizedField, Cardholder, Card, CardholderType
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"

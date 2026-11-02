@@ -497,6 +497,11 @@ class AuditEvent:
     additionalSites: any = None
     ownerSiteName: str = ""
     additionalSitesNames: any = None
+    # uid of the object the entry is about - join back to the Cardholder, Card, etc.
+    entityUID: any = None
+    # Field-level diff as free text, e.g. "PIN code: '1111' -> '2222' | Status: ... -> ...".
+    # Empty for operations the server records without detail.
+    auditChanges: any = None
 
     def __init__(self, *args, **kwargs):
         super().__init__()

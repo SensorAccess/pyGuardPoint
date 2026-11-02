@@ -20,7 +20,7 @@ To setup a connection to a GuardPoint Server.
 Connection parameters are passed at initialisation:
 
 >>> from pyGuardPoint import GuardPoint, GuardPointError, Cardholder, CardholderPersonalDetail, Card, CardholderCustomizedField
->>> gp = GuardPoint(host="http://sensoraccess.duckdns.org:10695", pwd="password")
+>>> gp = GuardPoint(host="http://sensoraccess2.duckdns.org:10695", pwd="password")
 
 It is recommended to use a secure connection with client certificates:
 

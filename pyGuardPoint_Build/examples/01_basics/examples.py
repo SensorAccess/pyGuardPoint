@@ -5,7 +5,7 @@ from pyGuardPoint.guardpoint_dataclasses import Cardholder
 
 from pyGuardPoint_Build.pyGuardPoint import SortAlgorithm
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"

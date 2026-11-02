@@ -1,6 +1,6 @@
 from pyGuardPoint import GuardPoint, Card
 
-gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
 cardholders = gp.get_card_holders(firstName="Jeff", lastName="Buckley")
 if len(cardholders) < 1:

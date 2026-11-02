@@ -1,6 +1,6 @@
 from pyGuardPoint import GuardPointError, Cardholder, GuardPointAsync
 
-gp = GuardPointAsync(host="sensoraccess.duckdns.org", pwd="password")
+gp = GuardPointAsync(host="sensoraccess2.duckdns.org", pwd="password")
 
 
 def task_complete(response):

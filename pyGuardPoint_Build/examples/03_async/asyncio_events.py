@@ -9,7 +9,7 @@ sys.path.insert(1, 'pyGuardPoint_Build')
 from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized, EventOrder
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://localhost/'
 GP_USER = 'admin'
 GP_PASS = 'admin'

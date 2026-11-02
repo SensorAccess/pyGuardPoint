@@ -151,7 +151,7 @@ asyncio.run(main())
 
 Most examples expect the following environment variables or hardcoded configuration:
 
-- `GP_HOST` - GuardPoint server URL (e.g., `https://sensoraccess.duckdns.org`)
+- `GP_HOST` - GuardPoint server URL (e.g., `https://sensoraccess2.duckdns.org`)
 - `GP_USER` - Admin username
 - `GP_PASS` - Admin password
 - `TLS_P12` - Path to PKCS#12 certificate file (optional)

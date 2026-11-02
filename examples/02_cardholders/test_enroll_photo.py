@@ -12,7 +12,7 @@ from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, Cardhol
 
 py_gp_version = version("pyGuardPoint")
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://localhost/'
 GP_USER = 'admin'
 GP_PASS = 'admin'

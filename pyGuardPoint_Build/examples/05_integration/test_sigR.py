@@ -12,7 +12,7 @@ from importlib.metadata import version
 
 # GuardPoint Connection Parameters
 
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 GP_API_KEY = '2b2967b0-33b5-47d8-b24c-3239b325f812'

@@ -17,7 +17,7 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
     try:
         sec_groups = gp.get_security_groups()

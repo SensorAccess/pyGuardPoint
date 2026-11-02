@@ -11,7 +11,7 @@ Below is a script which demonstrates how to capture these events.
 >>> from pysignalr.messages import CompletionMessage
 >>>
 >>> # GuardPoint Connection Parameters
->>> GP_HOST = 'https://sensoraccess.duckdns.org'
+>>> GP_HOST = 'https://sensoraccess2.duckdns.org'
 >>> GP_USER = 'admin'
 >>> GP_PASS = 'admin'
 >>> TLS_P12 = "/Users/johnowen/Downloads/MobileGuardDefault.p12"

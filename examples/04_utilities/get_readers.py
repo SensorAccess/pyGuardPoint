@@ -10,7 +10,7 @@ from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError, SortAlg
 
 #py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 
-#GP_HOST = 'https://sensoraccess.duckdns.org'
+#GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_HOST = 'http://192.168.1.103:10695'
 GP_USER = 'admin'
 GP_PASS = 'admin'

@@ -28,7 +28,7 @@ It is recommended to use a mutually authenticated secure connection to the Guard
 
 To establish a secure connection with a PKCS#12(*.p12) credential file:
 
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+    gp = GuardPoint(host="https://sensoraccess2.duckdns.org", pwd="admin",
                         p12_file="MobileGuardDefault.p12",
                         p12_pwd="test")
 
@@ -36,7 +36,7 @@ pyGuardPoint also has built-in support for asynchronous connections, under-the-h
 The example below demonstrates settings up a AsyncIO connection:
 
     from pyGuardPoint import GuardPointAsyncIO
-    gp = GuardPointAsyncIO(host="https://sensoraccess.duckdns.org", pwd="admin",
+    gp = GuardPointAsyncIO(host="https://sensoraccess2.duckdns.org", pwd="admin",
                         p12_file="MobileGuardDefault.p12",
                         p12_pwd="test")
 
@@ -59,7 +59,7 @@ To create a card for the cardholder - A card can represent an assortment of Iden
 
     from pyGuardPoint import GuardPoint, Card
 
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
     cardholders = gp.get_card_holders(firstName="Jeff", lastName="Buckley")
     if len(cardholders) < 1:
@@ -95,7 +95,7 @@ The class Cardholder has a couple of convenience functions:
 
 To get a list of areas/zones, and count the number of cardholders in each:
 
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
     areas = gp.get_areas()
     for area in areas:
@@ -131,7 +131,7 @@ Complete example script using GuardPointAsyncIO to get Access followed by Alarm 
     from pyGuardPoint_Build.pyGuardPoint import GuardPointAsyncIO, GuardPointError, GuardPointUnauthorized
 
     # GuardPoint
-    GP_HOST = 'https://sensoraccess.duckdns.org'
+    GP_HOST = 'https://sensoraccess2.duckdns.org'
     # GP_HOST = 'http://localhost/'
     GP_USER = 'admin'
     GP_PASS = 'admin'

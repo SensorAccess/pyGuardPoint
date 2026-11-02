@@ -25,7 +25,7 @@ from pyGuardPoint_Build.pyGuardPoint import (
     AlarmZoneOption, AlarmZoneArmType, AlarmZoneDisarmType
 )
 
-TEST_HOST    = os.getenv('GP_HOST',    'https://sensoraccess.duckdns.org')
+TEST_HOST    = os.getenv('GP_HOST',    'https://sensoraccess2.duckdns.org')
 TEST_USER    = os.getenv('GP_USER',    'admin')
 TEST_PASS    = os.getenv('GP_PASS',    'admin')
 TEST_P12     = os.getenv('GP_P12',     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MobileGuardDefault.p12'))

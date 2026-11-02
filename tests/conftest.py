@@ -22,7 +22,7 @@ _default_p12 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MobileG
 
 class TestConfig:
     """Test server configuration — driven by environment variables."""
-    host     = os.getenv('GP_HOST',    'https://sensoraccess.duckdns.org')
+    host     = os.getenv('GP_HOST',    'https://sensoraccess2.duckdns.org')
     username = os.getenv('GP_USER',    'admin')
     password = os.getenv('GP_PASS',    'admin')
     p12_file = os.getenv('GP_P12',     _default_p12)

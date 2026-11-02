@@ -14,7 +14,7 @@ py_gp_version = pkg_resources.get_distribution("pyGuardPoint").version
 if __name__ == "__main__":
     print("pyGuardPoint Version:" + py_gp_version)
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+    gp = GuardPoint(host="https://sensoraccess2.duckdns.org", pwd="admin",
                     p12_file="C:\\Users\\john_\\OneDrive\\Desktop\\MobileGuardDefault.p12",
                     p12_pwd="test")
 

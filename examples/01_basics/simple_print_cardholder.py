@@ -53,7 +53,7 @@ if __name__ == "__main__":
     ca_file.write(ca_data.encode())
     ca_file.close()
     print(ca_file.name)
-    gp = GuardPoint(host="https://sensoraccess.duckdns.org", pwd="admin",
+    gp = GuardPoint(host="https://sensoraccess2.duckdns.org", pwd="admin",
                     p12_file="/Users/johnowen/Downloads/MobileGuardDefault.p12",
                     p12_pwd="test")
 

@@ -10,7 +10,7 @@ Usage:
     python tests/run_tests_signalr.py
 
 Optional environment variables:
-    GP_HOST     GuardPoint server URL  (default: https://sensoraccess.duckdns.org)
+    GP_HOST     GuardPoint server URL  (default: https://sensoraccess2.duckdns.org)
     GP_USER     Username               (default: admin)
     GP_PASS     Password               (default: admin)
     GP_P12      Path to P12 cert       (default: tests/MobileGuardDefault.p12)
@@ -32,7 +32,7 @@ from pyGuardPoint_Build.pyGuardPoint import GuardPoint, GuardPointError
 
 _default_p12 = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'MobileGuardDefault.p12')
 
-TEST_HOST    = os.getenv('GP_HOST',    'https://sensoraccess.duckdns.org')
+TEST_HOST    = os.getenv('GP_HOST',    'https://sensoraccess2.duckdns.org')
 TEST_USER    = os.getenv('GP_USER',    'admin')
 TEST_PASS    = os.getenv('GP_PASS',    'admin')
 TEST_P12     = os.getenv('GP_P12',     _default_p12)

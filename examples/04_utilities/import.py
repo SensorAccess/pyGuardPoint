@@ -11,7 +11,7 @@ EXPORT_FILENAME = 'cardholder_export.json'
 log = logging.getLogger(__name__)
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 GP_USER = 'admin'
 GP_PASS = 'admin'
 # TLS/SSL secure connection

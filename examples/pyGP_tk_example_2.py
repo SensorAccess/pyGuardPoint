@@ -86,7 +86,7 @@ class App(tk.Tk):
 
         # -------------------- End GUI Build -------------------- #
 
-        self.gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+        self.gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
         self.gp.get_areas(on_finished=self.got_areas)
 
     def _app_set_search(self, *_):

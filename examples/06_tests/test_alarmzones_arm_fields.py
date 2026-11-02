@@ -3,7 +3,7 @@ from pprint import pprint
 from pyGuardPoint import GuardPoint, GuardPointError, GuardPointUnauthorized
 
 # GuardPoint
-GP_HOST = 'https://sensoraccess.duckdns.org'
+GP_HOST = 'https://sensoraccess2.duckdns.org'
 # GP_HOST = 'http://localhost/'
 GP_USER = 'admin'
 GP_PASS = 'admin'

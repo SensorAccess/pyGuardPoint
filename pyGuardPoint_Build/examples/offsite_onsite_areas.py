@@ -18,7 +18,7 @@ if py_gp_version_int < 52:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
     # if last_pass_offset < 1 else (' and lastPassDate ge ' + date_filter(time_offset=last_pass_offset))} & "
 

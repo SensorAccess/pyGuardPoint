@@ -13,7 +13,7 @@ if py_gp_version_int < 74:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
-    gp = GuardPoint(host="sensoraccess.duckdns.org", pwd="password")
+    gp = GuardPoint(host="sensoraccess2.duckdns.org", pwd="password")
 
     try:
         personalDetails = CardholderPersonalDetail(email="john.owen@countermac.com")

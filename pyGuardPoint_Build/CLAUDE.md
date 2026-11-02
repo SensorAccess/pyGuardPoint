@@ -59,7 +59,7 @@ from pyGuardPoint import GuardPoint, GuardPointAsyncIO
 
 # Sync — for the public test server (requires mTLS)
 gp = GuardPoint(
-    host='https://sensoraccess.duckdns.org',
+    host='https://sensoraccess2.duckdns.org',
     username='admin',
     pwd='admin',
     p12_file='tests/MobileGuardDefault.p12',
@@ -159,6 +159,45 @@ GuardPoint10 exposes 8 separate event-log entity sets, each covering a different
 | `get_extended_union_events()` | all of the above merged into one feed, discriminated by `eventType` |
 
 A **failed** action (e.g. arming with no Weekly Program defined) writes to none of these — the server rejects the request before any state change, so failures only surface as a raised `GuardPointError`, never as a log entry.
+
+### `AuditEvent.auditChanges` is the field-level diff
+
+`get_audit_events()` carries two fields the other event types don't have:
+
+| Field | What it holds |
+|---|---|
+| `entityUID` | uid of the object the entry is about — join back to the Cardholder/Card/etc. |
+| `auditChanges` | free-text diff, `"PIN code: '1111' -> '2222' \| Status: 'Invalidated' -> 'Validated'"` |
+
+Both were **added to the dataclass in 2.5.4**. Before that they were undeclared: attribute
+access happened to work (`sanitise_args` doesn't filter positional dicts) but `.dict()` uses
+`asdict()`, which only sees declared fields — so any `.dict()`-based scan silently lost them.
+`AuditEvent` was the only event dataclass with a gap; the other seven match the server schema.
+
+`auditChanges` is empty for operations the server records without detail — notably the
+automated nightly cardholder purge (`02:50`, `DeleteOperation`), which dominates the newest
+rows. Page back with `offset` before concluding a log has no diffs.
+
+`objectName` is a free-text `Edm.String`, **not** an enum, so the set of values is open-ended.
+Observed over 3000 rows: `Cardholder`, `Card`, `Controller`, `Reader`, `Input`, `Output`,
+`AlarmZone`, `AccessGroup`, `AccessGroupUnit`, `SecurityGroup`, `CustomizedField`, `Network`,
+`ManualEvent`, `SmartDevice`, `Profile`, `Options`, `GR_Reflex`, and **`User`**. Don't assume a
+small sample is exhaustive.
+
+### Operator password changes are audited only as a bare `User` update
+
+`objectName='User'` rows track GP10 operator accounts (`NewOperation`/`UpdateOperation`/
+`DeleteOperation`), with `userName` as the actor and `data` as the target account. Field edits
+get a diff (`Profile: 'reception' -> 'Administrator'`, `Allow API: 'False' -> 'True'`).
+
+A **password change is never named**: filtering `contains(auditChanges, …)` for `password`,
+`Password`, `PASSWORD`, `pwd`, `Pwd` over the whole log returns zero rows, as does the same
+against `data`. What you get is a `User`/`UpdateOperation` with `auditChanges` **empty** — so
+you can prove an account was modified, when, and by whom, but not that it was the password.
+A self-edit (actor == target) with a blank diff is the strongest available signal.
+
+Cardholder PINs, by contrast, are logged **in clear text** — both old and new value — so
+audit-log read access is enough to recover current PINs.
 
 ---
 
@@ -267,7 +306,7 @@ See `tests/run_tests_signalr.py` for the full working example.
 
 | Detail | Value |
 |---|---|
-| URL | `https://sensoraccess.duckdns.org` |
+| URL | `https://sensoraccess2.duckdns.org` |
 | Auth | mTLS required — plain HTTPS without a client cert is rejected at the TLS layer |
 | Client cert | `tests/MobileGuardDefault.p12` (bundled) |
 | P12 password | `test` |
