@@ -3,6 +3,7 @@ import validators
 from ..guardpoint_dataclasses import Site
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .._action_helpers import resolve_uid
 
 
 class SitesAPI:
@@ -68,3 +69,18 @@ class SitesAPI:
         for x in json_body['value']:
             sites.append(Site(x))
         return sites
+
+    async def start_site_polling(self, site_or_uid):
+        """Start polling every network on a site (``API_Sites/StartAllPolling``). Returns ``True``."""
+        body = {'uid': resolve_uid(site_or_uid, "site")}
+        await self._gp_call("POST", "/odata/API_Sites/StartAllPolling", body, "Site Not Found")
+        return True
+
+    async def stop_site_polling(self, site_or_uid):
+        """
+        Stop polling every network on a site (``API_Sites/StopAllPolling``). Controllers on the
+        site go offline to the server until :meth:`start_site_polling`. Returns ``True``.
+        """
+        body = {'uid': resolve_uid(site_or_uid, "site")}
+        await self._gp_call("POST", "/odata/API_Sites/StopAllPolling", body, "Site Not Found")
+        return True

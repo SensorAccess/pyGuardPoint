@@ -4,6 +4,7 @@ from ..guardpoint_utils import GuardPointResponse, reader_zone_uid
 from ..guardpoint_dataclasses import (AlarmZone, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode,
                                       AlarmZoneDisarmType, ArmAlarmZoneResult)
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .._action_helpers import resolve_uid
 
 
 class AlarmZonesAPI:
@@ -204,3 +205,14 @@ class AlarmZonesAPI:
                 relay = AlarmZone(entry)
                 alarm_zones.append(relay)
         return alarm_zones
+
+    async def acknowledge_alarm_zone(self, alarm_zone_or_uid):
+        """
+        Acknowledge the alarms in an alarm zone (``API_AlarmZones/AcknowledgeAlarmZone``).
+
+        :param alarm_zone_or_uid: ``AlarmZone`` object or its UID.
+        :return: ``True`` on success.
+        """
+        body = {'uid': resolve_uid(alarm_zone_or_uid, "alarm zone")}
+        await self._gp_call("POST", "/odata/API_AlarmZones/AcknowledgeAlarmZone", body, "Alarm Zone Not Found")
+        return True

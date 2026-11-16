@@ -143,6 +143,40 @@ total = gp.get_user_manual_events_count()  # returns int
 total = gp.get_extended_union_events_count()  # returns int
 ```
 
+### Control actions and the rest of the GP10 API
+
+Every method below exists on `GuardPoint` and (as `async def`) on `GuardPointAsyncIO`.
+Single-target actions take an object **or** its UID, or `api_key=` instead — exactly one.
+Unless noted they return `True` and raise `GuardPointError` on failure.
+
+| Area | Methods |
+|---|---|
+| Inputs | `bypass_input(inp, api_key=, bypass=True)`, `acknowledge_input`, `confirm_input(…, description=)`, `acknowledge_all_inputs()`, `confirm_all_inputs()` |
+| Alarms | `acknowledge_alarm(alarm)`, `confirm_alarm(alarm, description=)`, `acknowledge_alarm_zone(zone)` |
+| Relays | `activate_relays(relays=, api_keys=, period=0)`, `activate_relay_by_api_key`, `deactivate_relays`, `return_relays_to_normal`, `get_relay_readers(relay)` → `list[Reader]` |
+| Broadcast | `activate_all_readers()`, `deactivate_all_readers()`, `return_to_normal_all_readers()`, `open_all_door_relays(period=None)`, `close_all_door_relays()`, `return_to_normal_all_door_relays()` |
+| Controllers / sites | `initialize_controller(ctrl, api_key=)`, `start_site_polling(site)`, `stop_site_polling(site)`, `get_networks()`, `get_network(uid)` |
+| Readers | `get_reader_last_details(reader, api_key=)` → `ReaderLastDetails` or `None` |
+| Departments | `new_department(d)` → `Department`, `update_department(d)`, `delete_department(d)` |
+| Scheduled MAGs | `get_scheduled_mag(uid)`, `add_scheduled_mag(sm)` → uid, `update_scheduled_mag(sm)` (changed fields only), `delete_scheduled_mag(sm)` |
+| Scheduled readers | `get_scheduled_additional_readers(cardholder=)`, `get_scheduled_additional_reader(uid)`, `add_…` → uid, `update_…`, `delete_…` |
+| Cardholder extras | `get_cardholder_access_groups(ch)` → `list[AccessGroup]`, `get_all_companies()` → `list[str]`, `get_card_holder_photo_image(ch)` → `(bytes, content_type)`, `get_all_photos(offset, limit)` |
+| Options | `get_options_by_keys(keys)` → dict, `get_lite_options()` → dict, `get_non_editable_properties("API_Cards")` → `list[str]` |
+| Events | `since=` / `until=` on every `get_*_events` and `get_*_events_count`; `insert_access_event(event)` |
+| Diagnostics | `send_free_command(controllers, "hex")` (general form of `simulate_access_event`) |
+| Parking | `get_parking_groups()` |
+| Workstations | `get_workstations()`, `get_available_sounds()`, `workstation_login/logout`, `close_workstation`, `bring_workstation_to_front`, `display_message`, `play_sound`, `log_into_events_log`, `open_window(ws, WindowType…, uid=)` |
+
+Relay methods return `{relay_uid: message}` (the server's per-relay map; usually empty).
+`open_all_door_relays()` with no period holds every door open until
+`return_to_normal_all_door_relays()` — treat as an evacuation-level action.
+
+Request bodies follow the server's live `$metadata` (actions/functions), which is
+authoritative over the Postman collection where they disagree.
+
+The shared, I/O-free request/response logic lives in `pyGuardPoint/_action_helpers.py`;
+`_gp_call()` on each connection class sends a request and raises on failure.
+
 ### Event logs — which one to use
 
 GuardPoint10 exposes 8 separate event-log entity sets, each covering a different kind of event:
@@ -320,7 +354,9 @@ No environment variables needed — the bundled cert is used by default:
 python tests/run_tests.py          # sync runner   (36 checks)
 python tests/run_tests_async.py    # async runner  (35 checks)
 python tests/run_tests_signalr.py  # SignalR test  (8 checks)
-pytest                             # full pytest suite (70 tests)
+pytest                             # full pytest suite
+pytest tests/test_new_endpoints_offline.py   # no server needed
+pytest tests/test_new_endpoints_live.py      # never operates real doors/inputs/alarms
 ```
 
 ---
@@ -443,6 +479,32 @@ To tie a *cardholder* to a zone you must go through observed behaviour, since
 zones a person has actually entered, not what they are entitled to.
 
 
+### Scheduled MAG / additional reader deletes are queued
+`delete_scheduled_mag()` / `delete_scheduled_additional_reader()` return `True` (204), but a
+GET straight afterwards still returns the record with `status == "AskToDelete"` until the
+controllers confirm. Check `status`, not existence.
+
+### Scheduled additional reader PATCH
+Only `fromDateValid`, `toDateValid` and `wpuid` can be patched. Including `readerUID` /
+`cardholderUID` makes the server treat it as a new overlapping schedule
+(`Error_ScheduleAdditionalReaderOverlapOlderOne`), and `wP_APIKey` is rejected on PATCH even
+though the Postman collection uses it. `update_scheduled_additional_reader()` sends only the
+allowed fields. To move a schedule to another reader, delete and re-add.
+
+### Empty Guid strings are rejected
+Unset Guid fields serialise as `""`, which the server rejects with "The input was not valid."
+This is why `add_scheduled_mag()` failed on every call before this fix (it sent
+`scheduledSecurityGroupUID: ""`). `dict(editable_only=True)` on `ScheduledMag`, `Department`
+and the newer dataclasses now drops `""`/`None` values.
+
+### Responses that don't match `$metadata`
+- `GetOptionsByKeys` / `GetLiteOptions` return `{"value": "<JSON text>"}` — parsed for you.
+- `GetAllCompanies` returns `{"stringValues": [...]}`.
+- `/Photos/{uid}` returns raw image bytes (not JSON) — hence `gp_binary_query()`.
+- `GetReaderLastDetails` returns 404 for a reader with no recorded pass → `None`.
+- `BypassInput` / `AcknowledgeInput` / `ConfirmInput` with an unknown **UID** answer
+  `API_Key_Not_Found`, not `UID_Not_Found`.
+
 ### `is_sigr_enabled()` is async in GuardPointAsyncIO
 `await gp.is_sigr_enabled()` — don't forget the await.
 
@@ -466,10 +528,13 @@ CardholderPersonalDetail, CardholderCustomizedField, CardholderType
 Controller, Reader, Relay, Department, AccessEvent, AlarmEvent, AuditEvent
 CommEvent, GeneralEvent, TechnicalEvent, UserManualEvent, ExtendedUnionEvent
 AlarmZone, TriggeredInput, ArmAlarmZoneResult
+Input, AlarmState, Site, ParkingGroup, Network, ReaderLastDetails
+CardholderPhoto, Workstation, ScheduledAdditionalReader
 
 # Enums
 SortAlgorithm, EventOrder, CardholderOrderBy, CardType
 AlarmZoneOption, AlarmZoneArmType, AlarmZoneDisarmType, ArmBypassMode
+PeriodType, LogEventType, WindowType
 ```
 
 ---
@@ -482,6 +547,14 @@ python -m build          # produces dist/pyguardpoint-X.Y.Z.tar.gz and .whl
 pip install dist/pyguardpoint-*.whl
 ```
 
-`find_packages()` in `setup.py` auto-discovers `pyGuardPoint`, `pyGuardPoint.gp_asyncio`,
-and `tests`. The `.p12` cert and `README.md` in `tests/` are included via `package_data`.
-Examples are included under `examples/` as data files.
+`find_packages(exclude=['tests', 'tests.*'])` installs only `pyGuardPoint` and
+`pyGuardPoint.gp_asyncio`. `tests/` (including the `.p12` cert) and `examples/` ship in the
+**sdist only**, via `MANIFEST.in` — they are not installed, because a top-level `tests`
+package shadows other projects' and its `pyGuardPoint_Build.pyGuardPoint` imports only
+resolve from a source checkout.
+
+- `python_requires='>=3.10'` — `pysignalr>=1.3.0` needs 3.10+, so 3.9 cannot install it.
+- `aiohttp` is declared explicitly (the async client imports it directly).
+- `README.rst` is Markdown-compatible, **not valid reStructuredText** — keep
+  `long_description_content_type='text/markdown'`; switching to `text/x-rst` would make PyPI
+  reject the upload ("description failed to render").

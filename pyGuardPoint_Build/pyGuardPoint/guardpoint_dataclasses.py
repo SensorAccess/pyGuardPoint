@@ -75,6 +75,155 @@ def sanitise_args(obj: Observable, args, kwargs):
     return kwarg_dict
 
 
+class PeriodType(Enum):
+    """``API_PeriodType`` - unit for the workstation ``Close`` period."""
+    Seconds = 0
+    Minutes = 1
+
+
+class LogEventType(Enum):
+    """``API_LogEventType`` - severity for ``API_Workstations/LogIntoEventsLog``."""
+    Warning = 4
+    Information = 5
+    Alarm = 6
+    Verification = 16
+
+
+class WindowType(Enum):
+    """``API_Windows`` - the GP10 client windows ``API_Workstations/OpenWindow`` can open."""
+    CardholderPopupView = 0
+    ReaderPopupView = 1
+    OutputPopupView = 2
+    InputPopupView = 3
+    LocalReflexPopupView = 4
+    NetworkPropertiesView = 5
+    ControllerPropertiesView = 6
+    SitePropertiesView = 7
+    OutputGroupPropertiesView = 8
+    InputGroupPropertiesView = 9
+    ReaderGroupPropertiesView = 10
+    LocalReflexGroupPropertiesView = 11
+    GalaxyZonesView = 12
+    LiteAZDetailsView = 13
+    DiagnosticView = 14
+    HistoryEventsView = 15
+    TimeAttendanceView = 16
+    IndicationsView = 17
+    AlertsGridView = 18
+    DisplayPhotoView = 19
+    AlarmZoneSecurityView = 20
+    VideoPlusHost = 21
+    SecurityCenter = 22
+    InOutAttendanceView = 23
+    AreaRollCallManagementView = 24
+    LicenseView = 25
+    PendingActivityView = 26
+    AlarmActivityView = 27
+    AreaRollCallDetailsView = 28
+
+
+class _SimpleEntity:
+    """
+    Base for plain (non change-tracked) entities: build from a response dict and/or kwargs,
+    keeping only declared scalar fields; ``dict()`` returns them back.
+    """
+
+    def __init__(self, *args, **kwargs):
+        values = {}
+        for arg in args:
+            if isinstance(arg, dict):
+                values.update(arg)
+        values.update(kwargs)
+        declared = {f for f in getattr(self, '__dataclass_fields__', {})}
+        for k, v in values.items():
+            if k in declared and isinstance(v, (str, type(None), bool, int, float)):
+                setattr(self, k, v)
+
+    def dict(self, editable_only=False):
+        d = {}
+        for k, v in asdict(self).items():
+            d[k] = v if isinstance(v, (list, dict, bool, int, float, type(None))) else str(v)
+        if editable_only:
+            d.pop('uid', None)
+            # Empty strings are unset Guid/String fields - sending "" for a Guid is a 400.
+            d = {k: v for k, v in d.items() if v != ""}
+        return d
+
+
+@dataclass(init=False)
+class ParkingGroup(_SimpleEntity):
+    uid: str = ""
+    name: str = ""
+    description: any = None
+    ownerSiteUID: str = ""
+
+
+@dataclass(init=False)
+class Network(_SimpleEntity):
+    uid: str = ""
+    name: str = ""
+    type: int = 0
+    baudrate: int = 0
+    isDynamicMemoryLoaction: bool = False   # sic - server spelling
+    networkAgentUID: any = None
+    isPolling: bool = False
+    siteUID: any = None
+    connectionState: int = 0
+    description: any = None
+    isGalaxy: bool = False
+    apiKey: any = None
+
+
+@dataclass(init=False)
+class ReaderLastDetails(_SimpleEntity):
+    """Result of ``API_Readers({uid})/GetReaderLastDetails`` - the last person through a reader."""
+    readerUID: str = ""
+    readerName: any = None
+    cardholderFirstName: any = None
+    cardholderLastName: any = None
+    passedDateTime: any = None
+
+
+@dataclass(init=False)
+class CardholderPhoto(_SimpleEntity):
+    """Item of ``GetAllPhotos``. ``photo`` is the base64-encoded image (or None)."""
+    cardholderUID: str = ""
+    firstName: any = None
+    lastName: any = None
+    photo: any = None
+
+
+@dataclass(init=False)
+class Workstation(_SimpleEntity):
+    """A GP10 client workstation, addressed by ``name`` in every workstation action."""
+    name: str = ""
+
+
+@dataclass(init=False)
+class ScheduledAdditionalReader(_SimpleEntity):
+    """
+    ``API_ScheduledAdditionalReaders`` - grants a cardholder one extra reader, on a weekly
+    programme, for a date window. Identify the reader by ``readerUID`` or ``reader_APIKey`` and
+    the weekly programme by ``wpuid`` or ``wP_APIKey``.
+    """
+    uid: str = ""
+    cardholderUID: str = ""
+    readerUID: str = ""
+    reader_APIKey: any = None
+    wpuid: str = ""
+    wP_APIKey: any = None
+    fromDateValid: any = None
+    toDateValid: any = None
+    status: str = ""
+
+    def dict(self, editable_only=False):
+        d = super().dict(editable_only=editable_only)
+        if editable_only:
+            d.pop('status', None)
+            d = {k: v for k, v in d.items() if v is not None}
+        return d
+
+
 class SortAlgorithm(Enum):
     SERVER_DEFAULT = 0
     FUZZY_MATCH = 1
@@ -467,7 +616,7 @@ class Department:
             if isinstance(department_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, department_dict[property_name])
 
-    def dict(self):
+    def dict(self, editable_only=False):
         department_dict = {}
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
@@ -476,6 +625,12 @@ class Department:
                 department_dict[k] = None
             else:
                 department_dict[k] = str(v)
+
+        if editable_only:
+            department_dict.pop('uid', None)
+            # parentUID / defaultMultipleAccessGroupUID are Guids - "" would be rejected, and
+            # sending None in a PATCH would clear a value the caller never touched.
+            department_dict = {k: v for k, v in department_dict.items() if v not in ("", None)}
 
         return department_dict
 
@@ -1224,9 +1379,13 @@ class ScheduledMag(Observable):
         for property_name in scheduled_mags_dict:
             if isinstance(scheduled_mags_dict[property_name], (str, type(None), bool, int)):
                 setattr(self, property_name, scheduled_mags_dict[property_name])
-                self.add_observer(property_name)
 
-    def dict(self, editable_only=False):
+        # Monitor changes on every field (not just those supplied), so update_scheduled_mag
+        # can PATCH only what the caller edited.
+        for k in asdict(self):
+            self.add_observer(k)
+
+    def dict(self, editable_only=False, changed_only=False):
         c = {}
         for k, v in asdict(self).items():
             if isinstance(v, (list, dict, bool, int)):
@@ -1241,6 +1400,12 @@ class ScheduledMag(Observable):
                 c.pop('uid')
             if 'status' in c:
                 c.pop('status')
+            # Unset Guid fields (e.g. scheduledSecurityGroupUID when using securityGroupAPIKey)
+            # serialise as "" which the server rejects with "The input was not valid."
+            c = {k: v for k, v in c.items() if v not in ("", None)}
+
+        if changed_only:
+            c = {k: v for k, v in c.items() if k in self.changed_attributes}
 
         return c
 

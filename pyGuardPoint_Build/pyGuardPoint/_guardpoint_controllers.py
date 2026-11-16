@@ -2,6 +2,7 @@ import validators
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import Controller
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import uid_or_api_key_body
 
 
 class ControllersAPI:
@@ -116,3 +117,15 @@ class ControllersAPI:
             return None
         else:
             return Controller(json_body['value'][0])
+
+    def initialize_controller(self, controller_or_uid=None, api_key: str = None):
+        """
+        Re-initialise a controller (re-download its tables) - ``API_Controllers/InitializeController``.
+
+        :param controller_or_uid: ``Controller`` object or UID. Mutually exclusive with ``api_key``.
+        :param api_key: The controller's API key.
+        :return: ``True`` on success.
+        """
+        body = uid_or_api_key_body(controller_or_uid, api_key, "controller")
+        self._gp_call("POST", "/odata/API_Controllers/InitializeController", body, "Controller Not Found")
+        return True

@@ -4,7 +4,10 @@ from .guardpoint_dataclasses import (SortAlgorithm, Cardholder, Card, Area, Secu
                                      AlarmEvent, AuditEvent, CommEvent, GeneralEvent, TechnicalEvent, UserManualEvent,
                                      ExtendedUnionEvent, Relay, Controller, Reader, ScheduledMag, Department,
                                      CardholderOrderBy, CardType, AlarmZoneOption, AlarmZoneArmType, ArmBypassMode,
-                                     AlarmZoneDisarmType, AlarmZone, TriggeredInput, ArmAlarmZoneResult)
+                                     AlarmZoneDisarmType, AlarmZone, TriggeredInput, ArmAlarmZoneResult,
+                                     AccessGroup, Input, AlarmState, Site, ParkingGroup, Network, ReaderLastDetails,
+                                     CardholderPhoto, Workstation, ScheduledAdditionalReader, PeriodType,
+                                     LogEventType, WindowType)
 from .guardpoint_threaded import GuardPointThreaded
 from .guardpoint_asyncio import GuardPointAsyncIO
 from .guardpoint_connection import GuardPointAuthType

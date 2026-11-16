@@ -3,6 +3,7 @@ import validators
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import AlarmState
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import resolve_uid
 
 
 class AlarmStatesAPI:
@@ -69,3 +70,27 @@ class AlarmStatesAPI:
         for x in json_body['value']:
             alarm_states.append(AlarmState(x))
         return alarm_states
+
+    # ------------------------------------------------------------------ alarm actions
+
+    def acknowledge_alarm(self, alarm_or_uid):
+        """
+        Acknowledge an alarm (``API_AlarmStates/AcknowledgeAlarm``).
+
+        :param alarm_or_uid: ``AlarmState`` object or its UID.
+        :return: ``True`` on success.
+        """
+        body = {'uid': resolve_uid(alarm_or_uid, "alarm")}
+        self._gp_call("POST", "/odata/API_AlarmStates/AcknowledgeAlarm", body, "Alarm Not Found")
+        return True
+
+    def confirm_alarm(self, alarm_or_uid, description: str = "Confirmed by API"):
+        """
+        Confirm (close) an alarm (``API_AlarmStates/ConfirmAlarm``), recording ``description``.
+
+        :param alarm_or_uid: ``AlarmState`` object or its UID.
+        :return: ``True`` on success.
+        """
+        body = {'uid': resolve_uid(alarm_or_uid, "alarm"), 'description': description}
+        self._gp_call("POST", "/odata/API_AlarmStates/ConfirmAlarm", body, "Alarm Not Found")
+        return True

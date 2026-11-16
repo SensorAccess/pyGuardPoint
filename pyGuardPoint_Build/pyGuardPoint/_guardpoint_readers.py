@@ -3,6 +3,8 @@ from ._odata_filter import _compose_filter
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import Reader
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import json_headers, uid_or_api_key_body, raise_for_error, single_entity
+from .guardpoint_dataclasses import ReaderLastDetails
 
 
 class ReadersAPI:
@@ -146,3 +148,24 @@ class ReadersAPI:
             return Reader(value[0]) if value else None
         return Reader(value)
 
+    def get_reader_last_details(self, reader_or_uid=None, api_key: str = None):
+        """
+        Who last passed a reader, and when.
+
+        Uses ``API_Readers({uid})/GetReaderLastDetails`` or, with ``api_key``,
+        ``API_Readers/GetReaderLastDetailsByApiKey``.
+
+        :return: ``ReaderLastDetails``, or ``None`` if the reader has no recorded pass.
+        :raises GuardPointError: e.g. ``API_Key_Not_Found``.
+        """
+        body = uid_or_api_key_body(reader_or_uid, api_key, "reader")
+        if 'uid' in body:
+            code, json_body = self.gp_json_query("GET", url=f"/odata/API_Readers({body['uid']})/GetReaderLastDetails")
+        else:
+            code, json_body = self.gp_json_query("POST", url="/odata/API_Readers/GetReaderLastDetailsByApiKey",
+                                                 json_body=body, headers=json_headers())
+        if code == 404 or (code in (200, 204) and not json_body):
+            return None
+        raise_for_error(code, json_body)
+        entity = single_entity(json_body)
+        return ReaderLastDetails(entity) if entity else None

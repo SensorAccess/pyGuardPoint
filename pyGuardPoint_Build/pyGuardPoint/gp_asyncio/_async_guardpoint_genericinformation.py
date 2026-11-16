@@ -5,6 +5,7 @@ import validators
 
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .._action_helpers import parse_options, parse_string_list
 
 
 class GenericInfoAPI:
@@ -77,3 +78,28 @@ class GenericInfoAPI:
         info = await self.get_info('00000000-0000-0000-0000-000000000011')
         return info
 
+    async def get_options_by_keys(self, keys):
+        """
+        Read named server options (``GetOptionsByKeys``).
+
+        :param keys: option key or list of keys, e.g. ``["UniqueCardholderNumberRequired"]``.
+        :return: ``{key: value}`` - unknown keys come back as ``None``.
+        """
+        if isinstance(keys, str):
+            keys = [keys]
+        return parse_options(await self._gp_call("POST", "/odata/GetOptionsByKeys", {'keys': list(keys)}))
+
+    async def get_lite_options(self):
+        """The reduced option set the GP10 web client uses (``GetLiteOptions``). Returns a dict."""
+        return parse_options(await self._gp_call("GET", "/odata/GetLiteOptions"))
+
+    async def get_non_editable_properties(self, entity_set: str = "API_Cards"):
+        """
+        Property names the server will not let you write on an entity set
+        (``{entity_set}/GetNonEditableProperties``), e.g. ``"API_Cards"``, ``"API_Cardholders"``.
+
+        :return: ``list[str]`` (empty if the server reports none).
+        """
+        if not entity_set.startswith("API_"):
+            entity_set = "API_" + entity_set
+        return parse_string_list(await self._gp_call("GET", f"/odata/{entity_set}/GetNonEditableProperties"))

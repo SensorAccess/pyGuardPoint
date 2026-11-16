@@ -1,0 +1,228 @@
+# pyGuardPoint
+
+> Python wrapper for the GuardPoint 10 access control system REST API (OData-based).
+> Manages cardholders, cards, readers, controllers, alarm zones, access events,
+> and real-time WebSocket event streaming.
+
+## Install
+
+```bash
+pip install pyGuardPoint
+```
+
+## Quick start
+
+```python
+from pyGuardPoint import GuardPoint, Cardholder, GuardPointError
+
+# Local server (no mTLS)
+gp = GuardPoint(host='http://192.168.1.100:10695', username='admin', pwd='admin')
+
+# Remote server with mutual TLS (P12 client certificate)
+gp = GuardPoint(
+    host='https://sensoraccess2.duckdns.org',
+    username='admin',
+    pwd='admin',
+    p12_file='/path/to/cert.p12',
+    p12_pwd='password',
+)
+
+# Create a cardholder
+ch = Cardholder(firstName='Jane', lastName='Doe', pinCode='1234')
+created = gp.new_card_holder(ch)   # returns Cardholder (not a UID string)
+print(created.uid)
+
+# Update
+created.description = 'VIP'
+gp.update_card_holder(created)     # returns True
+
+# Delete
+gp.delete_card_holder(created)     # returns True
+
+# Search
+results = gp.get_card_holders(search_terms='Jane', limit=10)
+
+# Read-only resources
+areas         = gp.get_areas()
+readers       = gp.get_readers()
+controllers   = gp.get_controllers()
+security_grps = gp.get_security_groups()
+access_grps   = gp.get_access_groups()
+alarm_zones   = gp.get_alarm_zones()
+sites         = gp.get_sites()
+departments   = gp.get_departments()
+weekly_progs  = gp.get_weekly_programs()
+events        = gp.get_access_events(limit=50)
+```
+
+## Arming / disarming alarm zones
+
+```python
+from pyGuardPoint import AlarmZoneOption, AlarmZoneArmType, AlarmZoneDisarmType, ArmBypassMode
+
+zone = gp.get_alarm_zone('<uid>')
+
+# Arm. Returns ArmAlarmZoneResult: truthy on success, plus the inputs that were
+# in alarm when the request was made (empty on servers predating that response).
+result = gp.arm_alarm_zone(zone, option=AlarmZoneOption.Arm,
+                           arm_type=AlarmZoneArmType.ArmConstantly,
+                           bypass_mode=ArmBypassMode.Cancel)
+if not result:
+    for i in result.triggered_inputs:   # TriggeredInput: .name, .uid
+        print(f'arming blocked by {i.name}')
+
+# Return the zone to its Weekly Program (triggered_inputs is always empty here)
+gp.arm_alarm_zone(zone, option=AlarmZoneOption.ReturnAlarmZoneToWeeklyProgram)
+
+# Disarm — returns a plain bool
+gp.disarm_alarm_zone(zone, disarm_type=AlarmZoneDisarmType.DisarmForDuration,
+                     period=30, is_minute=True)
+```
+
+## Which doors belong to an alarm zone
+
+SecurityGroups and AccessGroups have no link to AlarmZones (GP10 does not expose which
+readers an access group contains). Readers do, via their door inputs:
+
+```python
+# AlarmZone of a reader's door, or None if its inputs aren't assigned to a zone
+zone = gp.get_reader_alarm_zone(reader)
+
+# ...and the reverse
+readers = gp.get_alarm_zone_readers(zone)
+
+# Pass pre-fetched collections when looping, or each call re-fetches them
+readers, inputs, zones = gp.get_readers(), gp.get_inputs(), gp.get_alarm_zones()
+for r in readers:
+    z = gp.get_reader_alarm_zone(r, inputs=inputs, alarm_zones=zones)
+```
+
+## Control actions (inputs, alarms, doors, controllers)
+
+Single-target actions take an object, its UID, or `api_key=`. They return `True` and raise
+`GuardPointError` on failure. Every method has an `async def` twin on `GuardPointAsyncIO`.
+
+```python
+gp.acknowledge_alarm(alarm);  gp.confirm_alarm(alarm, description="Checked by guard")
+gp.bypass_input(inp);         gp.bypass_input(api_key="R5", bypass=False)
+gp.acknowledge_all_inputs();  gp.confirm_all_inputs()
+
+gp.activate_relays([relay1, relay2], period=5)     # period 0 = stay on
+gp.return_relays_to_normal(api_keys=["R1"])
+gp.open_all_door_relays(period=10)                 # no period = open until returned to normal
+gp.return_to_normal_all_door_relays()
+
+gp.initialize_controller(controller);  gp.start_site_polling(site)
+gp.get_reader_last_details(reader)                 # ReaderLastDetails or None
+
+# Event history by date (every get_*_events / get_*_events_count)
+gp.get_access_events(since=datetime(2026, 11, 1), until=datetime(2026, 11, 2))
+
+# CRUD added for departments, scheduled MAGs and scheduled additional readers
+d = gp.new_department(Department(name="Ops"));  gp.delete_department(d)
+gp.get_cardholder_access_groups(cardholder)       # list[AccessGroup]
+gp.get_options_by_keys(["UniqueCardholderNumberRequired"])
+```
+
+Also: `get_all_companies`, `get_card_holder_photo_image` (raw bytes via /Photos),
+`get_all_photos`, `get_networks`, `get_parking_groups`, `insert_access_event`,
+`send_free_command`, and remote control of GP10 client workstations (`display_message`,
+`open_window`, `workstation_login`, ...).
+
+## Async client
+
+```python
+import asyncio
+from pyGuardPoint import GuardPointAsyncIO
+
+async def main():
+    gp = GuardPointAsyncIO(host='https://...', username='admin', pwd='admin',
+                           p12_file='cert.p12', p12_pwd='pwd')
+    cardholders = await gp.get_card_holders(limit=10)
+    await gp.close()
+
+asyncio.run(main())
+```
+
+## Real-time events (SignalR WebSocket)
+
+```python
+import asyncio, threading
+from pyGuardPoint import GuardPoint
+
+gp = GuardPoint(host='https://...', username='admin', pwd='admin',
+                p12_file='cert.p12', p12_pwd='pwd')
+
+client = gp.get_signal_client()
+
+async def on_open(): print('connected')
+async def on_access_event(msg): print('access event:', msg)
+
+client.on_open(on_open)
+client.on('AccessEventArrived', on_access_event)
+
+# start_listening() blocks — run in a daemon thread
+t = threading.Thread(target=gp.start_listening, args=(client,), daemon=True)
+t.start()
+```
+
+## Key classes
+
+- `GuardPoint` — synchronous client (http.client)
+- `GuardPointAsyncIO` — async client (aiohttp), mirrors all methods with `async def`
+- `GuardPointThreaded` — callback-based wrapper for GUI / threaded applications
+- `Cardholder` — main entity; supports nested `cards`, `cardholderPersonalDetail`,
+  `cardholderCustomizedField`, `securityGroup`, `insideArea`
+- `Card` — access card with `cardCode`, `cardType`, `status`, `cardholderUID`
+- `CardholderPersonalDetail` — company, email, department, phone
+- `CardholderCustomizedField` — server-defined custom string/number/bool fields
+- `AccessEvent`, `AlarmEvent`, `AuditEvent` — event log entries
+- `AlarmZone` — alarm zone with `isRealTimeStatusArm`, `iswpStatusArm`, `alarmStatus`
+- `ArmAlarmZoneResult` — result of `arm_alarm_zone()`; `.success`, `.triggered_inputs`,
+  `.error_messages`, and `__bool__` so `if result:` reads as success
+- `TriggeredInput` — an input in alarm at arm time (`.name`, `.uid` only)
+
+## Auth options
+
+```python
+from pyGuardPoint import GuardPointAuthType
+
+# Default: bearer token (username + password → JWT)
+gp = GuardPoint(host=..., username='admin', pwd='admin')
+
+# API key
+gp = GuardPoint(host=..., auth=GuardPointAuthType.BEARER_TOKEN, key='<uuid-api-key>')
+
+# Basic auth
+gp = GuardPoint(host=..., auth=GuardPointAuthType.BASIC, username='admin', key='<api-key>')
+```
+
+## Important behaviours
+
+- `new_card_holder()` and `new_card()` return the **created object**, not a UID string.
+- `update_*()` and `delete_*()` return `True` on success, raise `GuardPointError` on failure.
+- The library tracks field changes (Observable pattern) — only modified fields are sent in PATCH requests.
+- No-argument list methods (`get_areas`, `get_security_groups`, etc.) fetch all records; do not pass `limit=`.
+- The server soft-deletes cardholders — a fetch immediately after deletion may still return the record.
+- Card codes must be hex characters only (0-9, A-F), max 8 characters.
+
+## Running the bundled tests
+
+The integration test suite ships in the **source distribution** (`pyguardpoint-X.Y.Z.tar.gz`,
+or the GitHub repository), with a bundled client certificate for the public demo server
+(`https://sensoraccess2.duckdns.org`). It is not installed by `pip install pyGuardPoint`.
+
+Python 3.10 or later is required.
+
+```bash
+# from the root of an unpacked sdist / repository checkout
+python tests/run_tests.py          # sync runner
+python tests/run_tests_async.py    # async runner
+python tests/run_tests_signalr.py  # SignalR + event simulation
+pytest tests/
+```
+
+## Source and examples
+
+Full source, examples, and issue tracker:
+https://github.com/SensorAccess/pyGuardPoint

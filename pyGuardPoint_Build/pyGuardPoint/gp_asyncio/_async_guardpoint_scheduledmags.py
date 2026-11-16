@@ -2,6 +2,7 @@ import validators
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_dataclasses import ScheduledMag, Cardholder
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
+from .._action_helpers import resolve_uid, raise_for_error, single_entity
 
 
 class ScheduledMagsAPI:
@@ -43,28 +44,53 @@ class ScheduledMagsAPI:
                 scheduled_mags.append(sm)
         return scheduled_mags
 
-    def add_scheduled_mag(self, scheduled_mag: ScheduledMag):
-        url = self.baseurl + "/odata/API_ScheduledMags"
-        headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }
-        body = scheduled_mag.dict(editable_only=True)
+    async def add_scheduled_mag(self, scheduled_mag: ScheduledMag):
+        """
+        Schedule a security group for a cardholder over a date window.
 
-        code, json_body = self.gp_json_query("POST", headers=headers, url=url, json_body=body)
+        Needs ``cardholderUID``, ``fromDateValid``, ``toDateValid`` and the group as either
+        ``securityGroupAPIKey`` or ``scheduledSecurityGroupUID``.
 
-        if code == 201:  # HTTP CREATED
-            return json_body['uid']
-        else:
-            if 'value' in json_body:
-                if isinstance(json_body['value'], list):
-                    json_body = json_body['value'][0]
-            else:
-                error_msg = GuardPointResponse.extract_error_msg(json_body)
+        :return: the new scheduled MAG's UID.
+        :raises GuardPointError: if the server rejects it.
+        """
+        json_body = await self._gp_call("POST", "/odata/API_ScheduledMags", scheduled_mag.dict(editable_only=True),
+                                  "Cardholder Not Found")
+        entity = single_entity(json_body) if isinstance(json_body, dict) else None
+        if not entity or not entity.get('uid'):
+            raise GuardPointError("Badly formatted response.")
+        return entity['uid']
 
-                if code == 401:
-                    raise GuardPointUnauthorized(f"Unauthorized - ({error_msg})")
-                elif code == 404:  # Not Found
-                    raise GuardPointError(f"Cardholder Not Found")
-                else:
-                    raise GuardPointError(f"{error_msg}")
+    async def get_scheduled_mag(self, scheduled_mag_uid):
+        """Fetch one scheduled security group. Returns ``ScheduledMag`` or ``None`` if not found."""
+        uid = resolve_uid(scheduled_mag_uid, "scheduled MAG")
+        code, json_body = await self.gp_json_query("GET", url=f"/odata/API_ScheduledMags({uid})")
+        if code == 404:
+            return None
+        raise_for_error(code, json_body)
+        entity = single_entity(json_body)
+        return ScheduledMag(entity) if entity else None
+
+    async def update_scheduled_mag(self, scheduled_mag: ScheduledMag):
+        """
+        PATCH a scheduled security group. Only fields changed since it was fetched are sent
+        (typically ``fromDateValid`` / ``toDateValid``). ``cardholderUID`` is always included,
+        as the server requires it. Returns ``True``.
+        """
+        uid = resolve_uid(scheduled_mag, "scheduled MAG")
+        body = scheduled_mag.dict(editable_only=True, changed_only=True)
+        if scheduled_mag.cardholderUID:
+            body['cardholderUID'] = scheduled_mag.cardholderUID
+        await self._gp_call("PATCH", f"/odata/API_ScheduledMags({uid})", body, "Scheduled MAG Not Found")
+        return True
+
+    async def delete_scheduled_mag(self, scheduled_mag_or_uid):
+        """
+        Delete a scheduled security group. Returns ``True``.
+
+        The delete is queued for the controllers: a GET straight afterwards still returns the
+        record, with ``status == "AskToDelete"``, until the controller confirms.
+        """
+        uid = resolve_uid(scheduled_mag_or_uid, "scheduled MAG")
+        await self._gp_call("DELETE", f"/odata/API_ScheduledMags({uid})", not_found_msg="Scheduled MAG Not Found")
+        return True

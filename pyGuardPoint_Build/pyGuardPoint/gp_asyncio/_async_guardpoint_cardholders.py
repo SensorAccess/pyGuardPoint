@@ -7,6 +7,9 @@ from .._str_match_algo import fuzzy_match
 from ..guardpoint_dataclasses import Cardholder, SortAlgorithm, Area, CardholderOrderBy, CardholderType, SecurityGroup
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ..guardpoint_utils import GuardPointResponse
+from .._action_helpers import resolve_uid, value_list
+from ..guardpoint_dataclasses import CardholderPhoto
+from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 
 log = logging.getLogger(__name__)
 
@@ -622,3 +625,33 @@ class CardholdersAPI:
             cardholders.append(Cardholder(x))
 
         return cardholders
+
+    async def get_card_holder_photo_image(self, cardholder_or_uid):
+        """
+        Download a cardholder's photo as raw image bytes via ``/Photos/{uid}``.
+
+        Unlike :meth:`get_card_holder_photo` (base64 text from the OData entity), this returns
+        the decoded file - write it straight to disk.
+
+        :return: ``(image_bytes, content_type)`` or ``(None, None)`` if there is no photo.
+        """
+        uid = resolve_uid(cardholder_or_uid, "cardholder")
+        code, body, content_type = await self.gp_binary_query(f"/Photos/{uid}")
+        if code in (204, 404) or not body:
+            return None, None
+        if code == 401:
+            raise GuardPointUnauthorized("Unauthorized")
+        if code != 200:
+            raise GuardPointError(f"Photo request failed - HTTP {code}")
+        return body, content_type
+
+    async def get_all_photos(self, offset: int = 0, limit: int = 40):
+        """
+        Page through every cardholder photo (``GetAllPhotos``).
+
+        Each item carries the full base64 image, so keep ``limit`` small and page with ``offset``.
+
+        :return: ``list[CardholderPhoto]``
+        """
+        url = f"/odata/GetAllPhotos?$top={int(limit)}&$skip={int(offset)}"
+        return [CardholderPhoto(p) for p in value_list(await self._gp_call("GET", url))]

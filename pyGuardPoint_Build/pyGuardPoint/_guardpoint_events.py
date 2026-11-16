@@ -3,6 +3,8 @@ from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import (AlarmEvent, AccessEvent, EventOrder, AuditEvent, CommEvent, GeneralEvent,
                                      TechnicalEvent, UserManualEvent, ExtendedUnionEvent)
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import date_range_phrases, single_entity
+from .guardpoint_dataclasses import AccessEvent
 
 
 class EventsAPI:
@@ -19,7 +21,7 @@ class EventsAPI:
     """
 
     @staticmethod
-    def _build_url_params(site_uid, limit, offset, count, orderby, min_log_id):
+    def _build_url_params(site_uid, limit, offset, count, orderby, min_log_id, since=None, until=None):
         if count:
             url_query_params = "?$count=true&$top=0"
         else:
@@ -42,6 +44,19 @@ class EventsAPI:
 
         if match_args is not None or greater_than_args is not None:
             filter_str = _compose_filter(exact_match=match_args, greater_than=greater_than_args)
+        else:
+            filter_str = ""
+
+        date_phrases = date_range_phrases(since, until)
+        if date_phrases:
+            if filter_str:
+                # "$filter=(A)&" -> "$filter=((A)%20and%20(dateTime ...))&"
+                inner = filter_str[len("$filter="):-1]
+                filter_str = f"$filter=({'%20and%20'.join([inner] + date_phrases)})&"
+            else:
+                filter_str = f"$filter=({'%20and%20'.join(date_phrases)})&"
+
+        if filter_str:
             url_query_params += ("&" + filter_str)
 
         if limit:
@@ -51,11 +66,11 @@ class EventsAPI:
 
         return url_query_params
 
-    def get_access_events_count(self):
-        return self.get_access_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_access_events_count(self, since=None, until=None):
+        return self.get_access_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_access_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                          min_log_id=None):
+                          min_log_id=None, since=None, until=None):
         """
         Retrieve access event logs from the API with optional filtering, ordering, and pagination.
 
@@ -69,6 +84,9 @@ class EventsAPI:
         :type orderby: EventOrder, optional
         :param min_log_id: Optional; the minimum log ID to filter access events. Only events with a log ID greater than this value are retrieved.
         :type min_log_id: int, optional
+        :param since: Optional; only events at or after this time (``datetime`` or ISO-8601 string;
+            naive datetimes are UTC). Every ``get_*_events`` / ``get_*_events_count`` accepts it.
+        :param until: Optional; only events strictly before this time.
         :return: A list of AccessEvent objects representing the access events retrieved from the API.
         :rtype: list of AccessEvent
         :raises GuardPointUnauthorized: If the API request is unauthorized (HTTP status code 401).
@@ -81,7 +99,7 @@ class EventsAPI:
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -111,7 +129,7 @@ class EventsAPI:
                 access_events.append(AccessEvent(x))
             return access_events
 
-    def get_alarm_events_count(self):
+    def get_alarm_events_count(self, since=None, until=None):
         """
         Retrieve the count of alarm events.
 
@@ -123,9 +141,9 @@ class EventsAPI:
         :return: The total count of alarm events.
         :rtype: int
         """
-        return self.get_alarm_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+        return self.get_alarm_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
-    def get_alarm_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC):
+    def get_alarm_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC, since=None, until=None):
         """
         Retrieve a list of alarm events from the API with optional filtering, ordering, and pagination.
 
@@ -156,7 +174,7 @@ class EventsAPI:
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, None)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, None, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -185,11 +203,11 @@ class EventsAPI:
                 alarm_events.append(AlarmEvent(x))
             return alarm_events
 
-    def get_audit_events_count(self):
-        return self.get_audit_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_audit_events_count(self, since=None, until=None):
+        return self.get_audit_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_audit_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                         min_log_id=None):
+                         min_log_id=None, since=None, until=None):
 
         url = "/odata/API_AuditEventLogs"
         headers = {
@@ -197,7 +215,7 @@ class EventsAPI:
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -226,18 +244,18 @@ class EventsAPI:
                 audit_events.append(AuditEvent(x))
             return audit_events
 
-    def get_comm_events_count(self):
-        return self.get_comm_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_comm_events_count(self, since=None, until=None):
+        return self.get_comm_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_comm_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                        min_log_id=None):
+                        min_log_id=None, since=None, until=None):
         url = "/odata/API_CommEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -266,18 +284,18 @@ class EventsAPI:
                 comm_events.append(CommEvent(x))
             return comm_events
 
-    def get_general_events_count(self):
-        return self.get_general_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_general_events_count(self, since=None, until=None):
+        return self.get_general_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_general_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                           min_log_id=None):
+                           min_log_id=None, since=None, until=None):
         url = "/odata/API_GeneralEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -306,18 +324,18 @@ class EventsAPI:
                 general_events.append(GeneralEvent(x))
             return general_events
 
-    def get_technical_events_count(self):
-        return self.get_technical_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_technical_events_count(self, since=None, until=None):
+        return self.get_technical_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_technical_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                             min_log_id=None):
+                             min_log_id=None, since=None, until=None):
         url = "/odata/API_TechnicalEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -346,18 +364,18 @@ class EventsAPI:
                 technical_events.append(TechnicalEvent(x))
             return technical_events
 
-    def get_user_manual_events_count(self):
-        return self.get_user_manual_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC)
+    def get_user_manual_events_count(self, since=None, until=None):
+        return self.get_user_manual_events(limit=None, offset=None, count=True, orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_user_manual_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                               min_log_id=None):
+                               min_log_id=None, since=None, until=None):
         url = "/odata/API_UserManualEventLogs"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -386,12 +404,12 @@ class EventsAPI:
                 user_manual_events.append(UserManualEvent(x))
             return user_manual_events
 
-    def get_extended_union_events_count(self):
+    def get_extended_union_events_count(self, since=None, until=None):
         return self.get_extended_union_events(limit=None, offset=None, count=True,
-                                              orderby=EventOrder.DATETIME_DESC)
+                                              orderby=EventOrder.DATETIME_DESC, since=since, until=until)
 
     def get_extended_union_events(self, limit=None, offset=None, count=False, orderby=EventOrder.DATETIME_DESC,
-                                  min_log_id=None):
+                                  min_log_id=None, since=None, until=None):
         """
         Retrieve events from the API_ExtendedUnionEvents feed — a single merged view of
         every event log type (access, alarm, audit, comm, general, technical), each entry
@@ -403,7 +421,7 @@ class EventsAPI:
             'Accept': 'application/json'
         }
 
-        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id)
+        url_query_params = EventsAPI._build_url_params(self.site_uid, limit, offset, count, orderby, min_log_id, since, until)
 
         code, json_body = self.gp_json_query("GET", headers=headers, url=(url + url_query_params))
 
@@ -431,3 +449,28 @@ class EventsAPI:
             for x in json_body['value']:
                 extended_union_events.append(ExtendedUnionEvent(x))
             return extended_union_events
+
+    def insert_access_event(self, access_event):
+        """
+        Write an access event into the GP10 access log (POST ``API_AccessEventLogs``) - e.g. to
+        record passes from a third-party reader.
+
+        :param access_event: ``AccessEvent`` or dict. Typical fields: ``dateTime``, ``type``
+            (``"AccessGranted"``...), ``readerUID``, ``readerName``, ``cardholderUID``,
+            ``cardCode``, ``cardholderFirstName``, ``cardholderLastName``.
+        :return: the created ``AccessEvent`` if the server echoes it, else ``True``.
+        """
+        if hasattr(access_event, 'dict'):
+            body = access_event.dict()
+        elif isinstance(access_event, dict):
+            body = dict(access_event)
+        else:
+            raise ValueError("access_event must be an AccessEvent or dict")
+        # Server assigns these; sending empty/zero values is rejected.
+        for k in ('uid', 'logID'):
+            if not body.get(k):
+                body.pop(k, None)
+        body = {k: v for k, v in body.items() if v != ""}
+        json_body = self._gp_call("POST", "/odata/API_AccessEventLogs", body)
+        entity = single_entity(json_body) if isinstance(json_body, dict) else None
+        return AccessEvent(entity) if entity else True

@@ -7,6 +7,9 @@ from pysignalr.client import SignalRClient
 from .CustomWebsocketTransport import CustomWebsocketTransport, DEFAULT_PING_INTERVAL, DEFAULT_CONNECTION_TIMEOUT, \
     DEFAULT_MAX_SIZE
 from ._guardpoint_weeklyprograms import WeeklyProgramsAPI
+from ._guardpoint_scheduledreaders import ScheduledAdditionalReadersAPI
+from ._guardpoint_parkinggroups import ParkingGroupsAPI, NetworksAPI
+from ._guardpoint_workstations import WorkstationsAPI
 from ._guardpoint_alarmstates import AlarmStatesAPI
 from ._guardpoint_alarmzones import AlarmZonesAPI
 from ._guardpoint_cardholdertypes import CardholderTypesAPI
@@ -41,7 +44,8 @@ log = logging.getLogger(__name__)
 class GuardPoint(GuardPointConnection, CardsAPI, CardholdersAPI, AreasAPI, SecurityGroupsAPI, CustomizedFieldsAPI,
                  PersonalDetailsAPI, ScheduledMagsAPI, CardholderTypesAPI, OutputsAPI, DiagnosticAPI, ReadersAPI,
                  ControllersAPI, AlarmStatesAPI, EventsAPI, DepartmentsAPI, SitesAPI, AccessGroupsAPI, GenericInfoAPI,
-                 AlarmZonesAPI, InputsAPI, ManualEventsAPI, WeeklyProgramsAPI):
+                 AlarmZonesAPI, InputsAPI, ManualEventsAPI, WeeklyProgramsAPI,
+                 ScheduledAdditionalReadersAPI, ParkingGroupsAPI, NetworksAPI, WorkstationsAPI):
     """
     A class to interface with the GuardPoint system, providing various APIs for managing cards, cardholders, areas,
     security groups, customized fields, personal details, scheduled mags, cardholder types, outputs, diagnostics,

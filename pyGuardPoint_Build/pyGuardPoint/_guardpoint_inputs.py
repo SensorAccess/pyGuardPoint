@@ -2,6 +2,7 @@
 from .guardpoint_dataclasses import Input
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import uid_or_api_key_body
 
 
 class InputsAPI:
@@ -91,3 +92,47 @@ class InputsAPI:
                 input = Input(entry)
                 inputs.append(input)
         return inputs
+
+    # ------------------------------------------------------------------ input actions
+    # Each single-input action identifies the input by object/UID *or* by api_key.
+
+    def bypass_input(self, input_or_uid=None, api_key: str = None, bypass: bool = True):
+        """
+        Bypass (or un-bypass) an input so it no longer raises alarms.
+
+        :param input_or_uid: ``Input`` object or input UID. Mutually exclusive with ``api_key``.
+        :param api_key: The input's API key.
+        :param bypass: ``True`` to bypass, ``False`` to restore.
+        :return: ``True`` on success.
+        :raises GuardPointError: On failure (e.g. unknown input / API key).
+        """
+        body = uid_or_api_key_body(input_or_uid, api_key, "input")
+        body['bypass'] = bool(bypass)
+        self._gp_call("POST", "/odata/API_Inputs/BypassInput", body, "Input Not Found")
+        return True
+
+    def acknowledge_input(self, input_or_uid=None, api_key: str = None):
+        """Acknowledge the alarm on a single input. Returns ``True`` on success."""
+        body = uid_or_api_key_body(input_or_uid, api_key, "input")
+        self._gp_call("POST", "/odata/API_Inputs/AcknowledgeInput", body, "Input Not Found")
+        return True
+
+    def confirm_input(self, input_or_uid=None, api_key: str = None, description: str = "Confirmed by API"):
+        """
+        Confirm (close) the alarm on a single input, recording ``description`` in the
+        user-manual event log. Returns ``True`` on success.
+        """
+        body = uid_or_api_key_body(input_or_uid, api_key, "input")
+        body['description'] = description
+        self._gp_call("POST", "/odata/API_Inputs/ConfirmInput", body, "Input Not Found")
+        return True
+
+    def acknowledge_all_inputs(self):
+        """Acknowledge the alarms on every input. Returns ``True`` on success."""
+        self._gp_call("POST", "/odata/API_Inputs/AcknowledgeAll")
+        return True
+
+    def confirm_all_inputs(self):
+        """Confirm the alarms on every input. Returns ``True`` on success."""
+        self._gp_call("POST", "/odata/API_Inputs/ConfirmAll")
+        return True

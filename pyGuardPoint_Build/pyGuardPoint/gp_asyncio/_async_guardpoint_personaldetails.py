@@ -2,6 +2,7 @@ import validators
 from ..guardpoint_utils import GuardPointResponse
 from ..guardpoint_error import GuardPointError, GuardPointUnauthorized
 from ..guardpoint_dataclasses import CardholderPersonalDetail
+from .._action_helpers import parse_string_list
 
 
 class PersonalDetailsAPI:
@@ -37,3 +38,7 @@ class PersonalDetailsAPI:
                 raise GuardPointError(f"{error_msg}")
 
         return True
+
+    async def get_all_companies(self):
+        """Distinct ``company`` values across all cardholders' personal details. Returns ``list[str]``."""
+        return parse_string_list(await self._gp_call("GET", "/odata/GetAllCompanies"))

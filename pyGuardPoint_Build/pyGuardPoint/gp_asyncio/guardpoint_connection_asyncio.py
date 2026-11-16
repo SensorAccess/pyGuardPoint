@@ -174,29 +174,73 @@ class GuardPointConnection:
             msg = GuardPointResponse.extract_error_msg(body)
             raise GuardPointUnauthorized(msg)
 
-    async def gp_json_query(self, method, url, json_body: dict = '', headers=None):
+    async def _auth_str(self):
+        """
+        Return ``(auth_str, None)`` ready for the Authorization header, or ``(None, (code, body))``
+        if a bearer token could not be obtained/renewed.
+        """
         if self.authType == GuardPointAuthType.BASIC:
-            auth_str = "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}")
+            return "Basic " + ConvertBase64.encode(f"{self.user}:{self.key}"), None
         elif self.authType == GuardPointAuthType.BEARER_TOKEN:
             if self.token is None:
                 code, auth_body = await self._new_token()
                 if code != 200:
-                    return code, auth_body
+                    return None, (code, auth_body)
             if self.auto_renew:
                 if self.token_expiry < (time.time() + (20 * 60)) and self.token_expiry > time.time():
                     code, auth_body = await self._renew_token()
                     if code != 200:
-                        return code, auth_body
+                        return None, (code, auth_body)
                 elif self.token_expiry < time.time():
                     code, auth_body = await self._new_token()
                     if code != 200:
-                        return code, auth_body
+                        return None, (code, auth_body)
 
-            auth_str = f"Bearer {self.token}"
+            return f"Bearer {self.token}", None
         else:
             raise NotImplementedError("Selected authentication mechanism not available.")
 
+    async def gp_json_query(self, method, url, json_body: dict = '', headers=None):
+        auth_str, failure = await self._auth_str()
+        if failure:
+            return failure
+
         return await self._query(method, url, json_body, headers, auth_str)
+
+    async def _gp_call(self, method, url, body=None, not_found_msg="Not Found"):
+        """
+        Send a JSON request, raise GuardPointError/GuardPointUnauthorized on failure (including a
+        200 response whose ResponseObject says ``success: false``) and return the decoded body.
+        """
+        from .._action_helpers import json_headers, raise_for_error
+        headers = json_headers() if body else None
+        code, json_body = await self.gp_json_query(method, url=url, json_body=body or '', headers=headers)
+        raise_for_error(code, json_body, not_found_msg)
+        return json_body
+
+    async def gp_binary_query(self, url, accept: str = '*/*'):
+        """
+        GET a non-JSON resource (e.g. ``/Photos/{uid}``, which returns raw image bytes).
+
+        :return: ``(http_status, body_bytes, content_type)``
+        """
+        auth_str, failure = await self._auth_str()
+        if failure:
+            return failure[0], None, None
+
+        if 'http' not in url:
+            url = self.baseurl + url
+        headers = {'Accept': accept, 'Authorization': auth_str}
+        log.debug(f"Binary request: host={self.baseurl}, GET, {url}")
+        try:
+            async with self.session.get(url, headers=headers) as response:
+                return response.status, await response.read(), response.headers.get('Content-Type')
+        except InvalidURL as e:
+            log.error(str(e))
+            return 400, None, None
+        except Exception as e:
+            log.error(str(e))
+            return 500, None, None
 
     async def _query(self, method, url, json_body: dict = None, headers=None, auth_str=None):
         raw_body = ''

@@ -1,0 +1,6 @@
+include CLAUDE.md
+include llms.txt
+include README.rst
+include LICENSE.txt
+recursive-include tests *.py *.md *.p12
+recursive-include examples *.py *.md *.txt *.csv

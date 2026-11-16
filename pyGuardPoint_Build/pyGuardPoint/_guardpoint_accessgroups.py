@@ -2,6 +2,7 @@ from ._odata_filter import _compose_filter
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import AccessGroup
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import resolve_uid, value_list
 
 
 class AccessGroupsAPI:
@@ -69,3 +70,14 @@ class AccessGroupsAPI:
                     sg = AccessGroup(entry)
                     access_groups.append(sg)
             return access_groups
+
+    def get_cardholder_access_groups(self, cardholder_or_uid):
+        """
+        The access groups that apply to a cardholder (``GetAGsForCardholder``).
+
+        :param cardholder_or_uid: ``Cardholder`` object or UID.
+        :return: ``list[AccessGroup]``
+        """
+        uid = resolve_uid(cardholder_or_uid, "cardholder")
+        json_body = self._gp_call("GET", f"/odata/GetAGsForCardholder(uid={uid})", not_found_msg="Cardholder Not Found")
+        return [AccessGroup(ag) for ag in value_list(json_body)]

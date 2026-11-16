@@ -4,6 +4,7 @@ from ._odata_filter import _compose_filter
 from .guardpoint_utils import GuardPointResponse
 from .guardpoint_dataclasses import Department
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import resolve_uid, single_entity
 
 
 class DepartmentsAPI:
@@ -102,3 +103,27 @@ class DepartmentsAPI:
             for x in json_body['value']:
                 departments.append(Department(x))
             return departments
+
+    def new_department(self, department: Department):
+        """
+        Create a department. ``name`` is required; ``uid`` is ignored.
+
+        :return: the created ``Department`` (with its new ``uid``).
+        """
+        body = department.dict(editable_only=True)
+        json_body = self._gp_call("POST", "/odata/API_Departments", body)
+        entity = single_entity(json_body) if json_body else None
+        return Department(entity) if entity else department
+
+    def update_department(self, department: Department):
+        """PATCH a department's name / description / parent / default access group. Returns ``True``."""
+        uid = resolve_uid(department, "department")
+        body = department.dict(editable_only=True)
+        self._gp_call("PATCH", f"/odata/API_Departments({uid})", body, "Department Not Found")
+        return True
+
+    def delete_department(self, department_or_uid):
+        """Delete a department. Returns ``True``."""
+        uid = resolve_uid(department_or_uid, "department")
+        self._gp_call("DELETE", f"/odata/API_Departments({uid})", not_found_msg="Department Not Found")
+        return True

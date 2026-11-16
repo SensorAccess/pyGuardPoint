@@ -2,6 +2,7 @@ import validators
 from .guardpoint_utils import GuardPointResponse
 
 from .guardpoint_error import GuardPointError, GuardPointUnauthorized
+from ._action_helpers import resolve_uid
 
 
 class DiagnosticAPI:
@@ -71,3 +72,21 @@ class DiagnosticAPI:
                 return True
 
         return False
+
+    def send_free_command(self, controllers, command: str):
+        """
+        Send a raw hex command to one or more controllers (``api/Diagnostic`` SendFreeCommand).
+
+        This is the general form of :meth:`simulate_access_event`. Commands go straight to the
+        controller firmware - only use documented command strings.
+
+        :param controllers: ``Controller``, UID, or a list of either.
+        :param command: hex command string, e.g. ``"7901000000000A28"``.
+        :return: the server's response body (may be ``None``).
+        """
+        if not isinstance(controllers, (list, tuple, set)):
+            controllers = [controllers]
+        if not isinstance(command, str) or not command or any(c not in "0123456789abcdefABCDEF" for c in command):
+            raise ValueError("command must be a non-empty hex string")
+        body = {'controllersUIDs': [resolve_uid(c, "controller") for c in controllers], 'command': command}
+        return self._gp_call("POST", "/api/Diagnostic", body)
