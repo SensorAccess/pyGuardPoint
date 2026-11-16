@@ -10,7 +10,7 @@ class AlarmStatesAPI:
         if not validators.uuid(alarm_uid):
             raise ValueError(f"Malformed alarm_uid: {alarm_uid}")
 
-        url = f"/odata/API_AlarmStates({alarm_uid})?=&$expand=Input"
+        url = f"/odata/API_AlarmStates({alarm_uid})?$expand=Input"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
@@ -40,7 +40,7 @@ class AlarmStatesAPI:
         return AlarmState({k: v for k, v in value.items() if not k.startswith('@odata.')})
 
     def get_alarm_states(self):
-        url = "/odata/API_AlarmStates?=&$expand=Input"
+        url = "/odata/API_AlarmStates?$expand=Input"
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
